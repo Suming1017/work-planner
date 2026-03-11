@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新意念计划管理系统 - 云端版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .sync-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: #e8f5e9;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #2e7d32;
+            margin-left: 20px;
+        }
+
+        .sync-status.syncing {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .sync-status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        .sync-status.syncing .sync-dot {
+            background: #ff9800;
+            animation: pulse 0.5s infinite;
+        }
+
+        .sync-status.error .sync-dot {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .content-area {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            min-height: 600px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            font-size: 2.5em;
+            opacity: 0.8;
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #333;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .section-header h2 {
+            color: #333;
+            font-size: 1.8em;
+        }
+
+        .add-btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .plan-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .plan-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-left: 5px solid #667eea;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 临近日期的计划 - 红色高亮 */
+        .plan-card.urgent {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffebee 100%);
+            border-left: 5px solid #ff5722;
+            box-shadow: 0 4px 16px rgba(255, 87, 34, 0.35);
+        }
+
+        .plan-card.urgent .plan-title {
+            color: #d32f2f;
+        }
+
+        /* 近期计划 - 黄色高亮 */
+        .plan-card.near {
+            background: linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);
+            border-left: 5px solid #ff9800;
+            box-shadow: 0 3px 12px rgba(255, 152, 0, 0.25);
+        }
+
+        /* 普通计划 - 绿色 */
+        .plan-card.normal {
+            background: linear-gradient(135deg, #f1f8e9 0%, #ffffff 100%);
+            border-left: 5px solid #4caf50;
+        }
+
+        /* 已过期或较远计划 - 灰色 */
+        .plan-card.far {
+            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+            border-left: 5px solid #9e9e9e;
+            opacity: 0.8;
+        }
+
+        .plan-card.from-monthly {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 5px solid #1976d2;
+        }
+
+        .plan-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .plan-title {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .plan-meta {
+            display: flex;
+            gap: 12px;
+            color: #666;
+            font-size: 0.9em;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 6px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 99999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .modal-header h3 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            padding-bottom: 10px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        /* 柱状图样式 */
+        .chart-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 250px;
+            padding: 20px 0;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .chart-bar {
+            flex: 1;
+            max-width: 80px;
+            margin: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .chart-bar-value {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px 8px 0 0;
+            transition: height 0.3s ease;
+            position: relative;
+            min-width: 50px;
+        }
+
+        .chart-bar-value:hover {
+            opacity: 0.8;
+        }
+
+        .chart-bar-label {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #555;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .chart-bar-count {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📋 新意念计划管理系统 - 云端版</h1>
+            <p>
+                自动保存到云端，多人实时协作
+                <span class="sync-status" id="syncStatus">
+                    <span class="sync-dot"></span>
+                    <span id="syncText">连接中...</span>
+                </span>
+            </p>
+        </header>
+
+
+        <div class="tabs">
+            <button class="tab active" data-tab="weekly">周计划</button>
+            <button class="tab" data-tab="monthly">月计划</button>
+            <button class="tab" data-tab="yearly">年计划</button>
+            <button class="tab" data-tab="completed">已完结计划</button>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-info">
+                    <div class="stat-label">周计划</div>
+                    <div class="stat-value" id="weeklyCount">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-info">
+                    <div class="stat-label">月计划</div>
+                    <div class="stat-value" id="monthlyCount">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📉</div>
+                <div class="stat-info">
+                    <div class="stat-label">年计划</div>
+                    <div class="stat-value" id="yearlyCount">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <div class="stat-label">已完结</div>
+                    <div class="stat-value" id="completedCount">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-info">
+                    <div class="stat-label">总计</div>
+                    <div class="stat-value" id="totalCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="section-header">
+                <h2 id="sectionTitle">周计划</h2>
+                <button class="add-btn" id="addPlanBtn">+ 新增计划</button>
+            </div>
+
+            <!-- 年份筛选器和图表按钮（仅已完结计划显示） -->
+            <div id="yearFilter" style="display: none; margin-bottom: 20px;">
+                <label for="yearSelect">按年份筛选：</label>
+                <select id="yearSelect" style="padding: 8px; border-radius: 6px; border: 2px solid #e0e0e0;">
+                    <option value="">全部年份</option>
+                </select>
+                <button class="add-btn" id="toggleChartBtn" style="margin-left: 15px;">📊 显示统计图表</button>
+            </div>
+
+            <!-- 统计图表（仅已完结计划显示，默认隐藏） -->
+            <div id="chartContainer" style="display: none; margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 12px;">
+                <h3 style="margin-bottom: 15px; color: #333;">已完结计划统计（按立项名）</h3>
+                <div id="chartCanvas" style="height: 300px; position: relative;"></div>
+                <div id="chartLegend" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px;"></div>
+            </div>
+
+            <div class="plan-list" id="planList"></div>
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div class="modal" id="planModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">新增计划</h3>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="planForm">
+                <input type="hidden" id="planId">
+                <input type="hidden" id="planType">
+                
+                <div class="form-group">
+                    <label for="planTitle">立项名</label>
+                    <select id="planTitle" required>
+                        <option value="">请选择立项名</option>
+                        <option value="厚街基建">厚街基建</option>
+                        <option value="厚街中压抢修">厚街中压抢修</option>
+                        <option value="厚街保电">厚街保电</option>
+                        <option value="厚街用户">厚街用户</option>
+                        <option value="公司用户">公司用户</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="planTitleSuffix">立项名补充说明（可选）</label>
+                    <input type="text" id="planTitleSuffix" placeholder="请输入补充说明，如：2025年第1期">
+                </div>
+
+                <div class="form-group">
+                    <label for="planContent">工作内容</label>
+                    <textarea id="planContent" required placeholder="请详细描述工作内容"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startDate">开始时间</label>
+                        <input type="datetime-local" id="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">结束时间</label>
+                        <input type="datetime-local" id="endDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ticketType">票型选择</label>
+                    <select id="ticketType">
+                        <option value="">请选择票型</option>
+                        <option value="线路一种票">线路一种票</option>
+                        <option value="线路二种票">线路二种票</option>
+                        <option value="书面布置记录票">书面布置记录票</option>
+                        <option value="施工作业票">施工作业票</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="priority">风险等级</label>
+                        <select id="priority">
+                            <option value="high">高</option>
+                            <option value="medium" selected>中</option>
+                            <option value="low">低</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">状态</label>
+                        <select id="status">
+                            <option value="pending">待开始</option>
+                            <option value="in-progress">进行中</option>
+                            <option value="completed">已完成</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 只在周计划时显示人员信息 -->
+                <div id="personnelFields">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="responsible">负责人</label>
+                            <input type="text" id="responsible" placeholder="请输入负责人姓名">
+                        </div>
+                        <div class="form-group">
+                            <label for="members">班员</label>
+                            <input type="text" id="members" placeholder="多人请用逗号分隔">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>小组票</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="group1Leader">小组1负责人</label>
+                            <input type="text" id="group1Leader" placeholder="请输入小组负责人">
+                        </div>
+                        <div class="form-group">
+                            <label for="group1Members">小组1组员</label>
+                            <input type="text" id="group1Members" placeholder="多人请用逗号分隔">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="group2Leader">小组2负责人</label>
+                            <input type="text" id="group2Leader" placeholder="请输入小组负责人">
+                        </div>
+                        <div class="form-group">
+                            <label for="group2Members">小组2组员</label>
+                            <input type="text" id="group2Members" placeholder="多人请用逗号分隔">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="group3Leader">小组3负责人</label>
+                            <input type="text" id="group3Leader" placeholder="请输入小组负责人">
+                        </div>
+                        <div class="form-group">
+                            <label for="group3Members">小组3组员</label>
+                            <input type="text" id="group3Members" placeholder="多人请用逗号分隔">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="group4Leader">小组4负责人</label>
+                            <input type="text" id="group4Leader" placeholder="请输入小组负责人">
+                        </div>
+                        <div class="form-group">
+                            <label for="group4Members">小组4组员</label>
+                            <input type="text" id="group4Members" placeholder="多人请用逗号分隔">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="group5Leader">小组5负责人</label>
+                            <input type="text" id="group5Leader" placeholder="请输入小组负责人">
+                        </div>
+                        <div class="form-group">
+                            <label for="group5Members">小组5组员</label>
+                            <input type="text" id="group5Members" placeholder="多人请用逗号分隔">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 15px; padding-top: 15px; border-top: 2px dashed #e0e0e0;">
+                        <div class="form-group">
+                            <label for="fireWorkLeader" style="color: #f44336;">🔥 动火票负责人</label>
+                            <input type="text" id="fireWorkLeader" placeholder="请输入动火票负责人">
+                        </div>
+                        <div class="form-group">
+                            <label for="fireWorkExecutor" style="color: #ff9800;">⚡ 动火执行人</label>
+                            <input type="text" id="fireWorkExecutor" placeholder="请输入动火执行人">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fireWorkGuardian" style="color: #2196f3;">🛡️ 动火监护人</label>
+                            <input type="text" id="fireWorkGuardian" placeholder="请输入动火监护人">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="save-btn">保存</button>
+                    <button type="button" class="cancel-btn" id="cancelBtn">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
+
+        window.supabaseCreateClient = createClient;
+
+        var supabaseClient = null;
+        var plans = [];
+        var currentTab = 'weekly';
+        var editingPlanId = null;
+
+        var planTypeNames = {
+            weekly: '周计划',
+            monthly: '月计划',
+            yearly: '年计划',
+            completed: '已完结计划'
+        };
+
+        window.onload = function() {
+            console.log('页面加载完成');
+            initSupabase();
+            initTabs();
+            initEventListeners();
+        };
+
+        function initSupabase() {
+            var config = {
+                url: 'https://cuvkfshykabvwnhrremb.supabase.co',
+                key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1dmtmc2h5a2FidnduaHJyZW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzIwNjksImV4cCI6MjA4ODcwODA2OX0.R3HDrqefIimS7HZsXoU1dZorB2jep-1LT5pc8O0tcP4'
+            };
+
+            console.log('检查 Supabase 库:', typeof supabaseCreateClient);
+
+            if (typeof supabaseCreateClient === 'undefined') {
+                console.error('Supabase 库未加载');
+                setSyncStatus('error', '库加载失败');
+                return;
+            }
+
+            try {
+                supabaseClient = supabaseCreateClient(config.url, config.key);
+                console.log('Supabase 初始化成功');
+                loadPlans();
+                setupRealtime();
+            } catch (error) {
+                console.error('Supabase 初始化失败:', error);
+                setSyncStatus('error', '连接失败');
+            }
+        }
+
+        function setupRealtime() {
+            if (!supabaseClient) return;
+
+            // 设置5秒超时，如果订阅成功则显示已连接
+            var timeoutId = setTimeout(function() {
+                console.log('实时订阅超时，但数据已加载');
+                setSyncStatus('connected', '已连接');
+            }, 5000);
+
+            supabaseClient.channel('plans-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'plans' }, function(payload) {
+                    console.log('收到实时更新:', payload);
+                    loadPlans();
+                })
+                .subscribe(function(status, err) {
+                    if (status === 'SUBSCRIBED') {
+                        clearTimeout(timeoutId);
+                        console.log('实时订阅成功');
+                        setSyncStatus('connected', '已连接');
+                    } else if (status === 'CLOSED') {
+                        clearTimeout(timeoutId);
+                        setSyncStatus('error', '连接断开');
+                    } else if (status === 'CHANNEL_ERROR') {
+                        clearTimeout(timeoutId);
+                        console.error('频道错误:', err);
+                        setSyncStatus('error', '连接错误');
+                    } else {
+                        console.log('订阅状态:', status);
+                    }
+                }, {
+                    timeout: 5000
+                });
+        }
+
+        function setSyncStatus(status, text) {
+            var syncStatus = document.getElementById('syncStatus');
+            var syncText = document.getElementById('syncText');
+            syncStatus.className = 'sync-status ' + status;
+            syncText.textContent = text;
+        }
+
+        function loadPlans() {
+            if (!supabaseClient) return;
+
+            setSyncStatus('syncing', '同步中...');
+
+            supabaseClient.from('plans')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .then(function(result) {
+                    var data = result.data;
+                    var error = result.error;
+
+                    if (error) {
+                        console.error('加载数据失败:', error);
+                        setSyncStatus('error', '同步失败');
+                        return;
+                    }
+
+                    plans = data.map(function(plan) {
+                        return {
+                            id: plan.id,
+                            type: plan.type,
+                            title: plan.title,
+                            titleBase: plan.title_base,
+                            titleSuffix: plan.title_suffix,
+                            content: plan.content,
+                            startDate: plan.start_date,
+                            endDate: plan.end_date,
+                            ticketType: plan.ticket_type,
+                            priority: plan.priority,
+                            status: plan.status,
+                            responsible: plan.responsible || '',
+                            members: plan.members || '',
+                            group1Leader: plan.group1_leader || '',
+                            group1Members: plan.group1_members || '',
+                            group2Leader: plan.group2_leader || '',
+                            group2Members: plan.group2_members || '',
+                            group3Leader: plan.group3_leader || '',
+                            group3Members: plan.group3_members || '',
+                            group4Leader: plan.group4_leader || '',
+                            group4Members: plan.group4_members || '',
+                            group5Leader: plan.group5_leader || '',
+                            group5Members: plan.group5_members || '',
+                            fireWorkLeader: plan.fire_work_leader || '',
+                            fireWorkExecutor: plan.fire_work_executor || '',
+                            fireWorkGuardian: plan.fire_work_guardian || '',
+                            createdAt: plan.created_at,
+                            updatedAt: plan.updated_at
+                        };
+                    });
+
+                    // 自动更新已过期的计划状态为已完成
+                    autoUpdateCompletedPlans();
+
+                    renderPlans();
+                    updateStats();
+                    setSyncStatus('connected', '已连接');
+                    console.log('加载计划:', plans.length, '个');
+                });
+        }
+
+        // 自动更新已过期的计划状态为已完成
+        function autoUpdateCompletedPlans() {
+            var now = new Date();
+            var updatedCount = 0;
+
+            plans.forEach(function(plan) {
+                if (plan.status !== 'completed') {
+                    var endDate = new Date(plan.endDate);
+                    if (endDate < now) {
+                        plan.status = 'completed';
+                        updatedCount++;
+                        // 同步到云端
+                        savePlanToCloud(plan);
+                    }
+                }
+            });
+
+            if (updatedCount > 0) {
+                console.log('自动更新了 ' + updatedCount + ' 个计划为已完成状态');
+            }
+        }
+
+        function savePlanToCloud(planData) {
+            if (!supabaseClient) {
+                return Promise.reject(new Error('未连接到数据库'));
+            }
+
+            setSyncStatus('syncing', '保存中...');
+
+            var dbData = {
+                id: planData.id,
+                type: planData.type,
+                title: planData.title,
+                title_base: planData.titleBase,
+                title_suffix: planData.titleSuffix,
+                content: planData.content,
+                start_date: planData.startDate,
+                end_date: planData.endDate,
+                ticket_type: planData.ticketType,
+                priority: planData.priority,
+                status: planData.status,
+                responsible: planData.responsible,
+                members: planData.members,
+                group1_leader: planData.group1Leader,
+                group1_members: planData.group1Members,
+                group2_leader: planData.group2Leader,
+                group2_members: planData.group2Members,
+                group3_leader: planData.group3Leader,
+                group3_members: planData.group3Members,
+                group4_leader: planData.group4Leader,
+                group4_members: planData.group4Members,
+                group5_leader: planData.group5Leader,
+                group5_members: planData.group5Members,
+                fire_work_leader: planData.fireWorkLeader,
+                fire_work_executor: planData.fireWorkExecutor,
+                fire_work_guardian: planData.fireWorkGuardian
+            };
+
+            return supabaseClient.from('plans')
+                .upsert(dbData)
+                .select()
+                .single()
+                .then(function(result) {
+                    if (result.error) {
+                        throw result.error;
+                    }
+                    return result.data;
+                });
+        }
+
+        function deletePlanFromCloud(planId) {
+            if (!supabaseClient) {
+                return Promise.reject(new Error('未连接到数据库'));
+            }
+
+            return supabaseClient.from('plans')
+                .delete()
+                .eq('id', planId)
+                .then(function(result) {
+                    if (result.error) {
+                        throw result.error;
+                    }
+                });
+        }
+
+        function initEventListeners() {
+            var tabs = document.querySelectorAll('.tab');
+            tabs.forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(function(t) { t.classList.remove('active'); });
+                    tab.classList.add('active');
+                    currentTab = tab.dataset.tab;
+                    document.getElementById('sectionTitle').textContent = planTypeNames[currentTab];
+
+                    // 在已完结计划标签页隐藏新增按钮
+                    var addBtn = document.getElementById('addPlanBtn');
+                    var yearFilter = document.getElementById('yearFilter');
+                    var chartContainer = document.getElementById('chartContainer');
+
+                    if (currentTab === 'completed') {
+                        addBtn.style.display = 'none';
+                        yearFilter.style.display = 'block';
+                        chartContainer.style.display = 'block';
+                        updateYearFilter();
+                        renderChart();
+                    } else {
+                        addBtn.style.display = 'block';
+                        yearFilter.style.display = 'none';
+                        chartContainer.style.display = 'none';
+                    }
+
+                    renderPlans();
+                });
+            });
+
+            // 年份筛选监听
+            document.getElementById('yearSelect').addEventListener('change', function() {
+                renderPlans();
+                if (document.getElementById('chartContainer').style.display !== 'none') {
+                    renderChart();
+                }
+            });
+
+            // 图表显示/隐藏按钮
+            document.getElementById('toggleChartBtn').addEventListener('click', function() {
+                var chartContainer = document.getElementById('chartContainer');
+                var toggleBtn = document.getElementById('toggleChartBtn');
+
+                if (chartContainer.style.display === 'none') {
+                    chartContainer.style.display = 'block';
+                    toggleBtn.textContent = '📊 隐藏统计图表';
+                    renderChart();
+                } else {
+                    chartContainer.style.display = 'none';
+                    toggleBtn.textContent = '📊 显示统计图表';
+                }
+            });
+
+            document.getElementById('addPlanBtn').addEventListener('click', function() {
+                openModal();
+            });
+
+            document.getElementById('closeModalBtn').addEventListener('click', function() {
+                closeModal();
+            });
+
+            document.getElementById('cancelBtn').addEventListener('click', function() {
+                closeModal();
+            });
+
+            document.getElementById('planForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                savePlan();
+            });
+
+            document.getElementById('planModal').addEventListener('click', function(e) {
+                if (e.target.id === 'planModal') {
+                    closeModal();
+                }
+            });
+
+            // 监听计划类型变化
+            document.getElementById('planType').addEventListener('change', function(e) {
+                togglePersonnelFields(e.target.value);
+            });
+
+            // 使用事件委托处理编辑和删除按钮点击
+            document.getElementById('planList').addEventListener('click', function(e) {
+                var editBtn = e.target.closest('.edit-btn');
+                var deleteBtn = e.target.closest('.delete-btn');
+
+                if (editBtn) {
+                    var planId = editBtn.dataset.planId;
+                    openModal(planId);
+                } else if (deleteBtn) {
+                    var planId = deleteBtn.dataset.planId;
+                    deletePlan(planId);
+                }
+            });
+        }
+
+        function initTabs() {
+            console.log('初始化标签页');
+        }
+
+        function openModal(planId) {
+            var modal = document.getElementById('planModal');
+            var form = document.getElementById('planForm');
+            var title = document.getElementById('modalTitle');
+
+            form.reset();
+            editingPlanId = planId;
+
+            if (planId) {
+                var plan = plans.find(function(p) { return p.id === planId; });
+                // 如果没找到（比如是周计划中的来自月计划的记录），尝试查找原始月计划
+                if (!plan && planId && planId.endsWith('_weekly')) {
+                    var sourceId = planId.replace('_weekly', '');
+                    plan = plans.find(function(p) { return p.id === sourceId; });
+                    // 如果找到原始月计划，设置编辑ID为原始ID
+                    if (plan) {
+                        editingPlanId = sourceId;
+                    }
+                }
+                if (plan) {
+                    title.textContent = '编辑计划';
+                    document.getElementById('planId').value = plan.id;
+                    document.getElementById('planType').value = plan.type;
+
+                    // 填充标题（如果是新的格式，拆分标题和补充说明；旧格式兼容）
+                    if (plan.titleBase) {
+                        document.getElementById('planTitle').value = plan.titleBase;
+                        document.getElementById('planTitleSuffix').value = plan.titleSuffix || '';
+                    } else {
+                        // 旧数据，尝试从标题中提取补充说明
+                        var match = plan.title.match(/^(.+?)\s*-\s*(.+)$/);
+                        if (match) {
+                            document.getElementById('planTitle').value = match[1];
+                            document.getElementById('planTitleSuffix').value = match[2];
+                        } else {
+                            document.getElementById('planTitle').value = plan.title;
+                            document.getElementById('planTitleSuffix').value = '';
+                        }
+                    }
+
+                    document.getElementById('planContent').value = plan.content;
+                    document.getElementById('startDate').value = formatDateTimeForInput(plan.startDate);
+                    document.getElementById('endDate').value = formatDateTimeForInput(plan.endDate);
+                    document.getElementById('ticketType').value = plan.ticketType || '';
+                    document.getElementById('priority').value = plan.priority;
+                    document.getElementById('status').value = plan.status;
+
+                    // 只在周计划和月计划时填充人员信息
+                    if (plan.type === 'weekly' || plan.type === 'monthly') {
+                        document.getElementById('responsible').value = plan.responsible || '';
+                        document.getElementById('members').value = plan.members || '';
+                        document.getElementById('group1Leader').value = plan.group1Leader || '';
+                        document.getElementById('group1Members').value = plan.group1Members || '';
+                        document.getElementById('group2Leader').value = plan.group2Leader || '';
+                        document.getElementById('group2Members').value = plan.group2Members || '';
+                        document.getElementById('group3Leader').value = plan.group3Leader || '';
+                        document.getElementById('group3Members').value = plan.group3Members || '';
+                        document.getElementById('group4Leader').value = plan.group4Leader || '';
+                        document.getElementById('group4Members').value = plan.group4Members || '';
+                        document.getElementById('group5Leader').value = plan.group5Leader || '';
+                        document.getElementById('group5Members').value = plan.group5Members || '';
+
+                        // 填充动火票信息
+                        document.getElementById('fireWorkLeader').value = plan.fireWorkLeader || '';
+                        document.getElementById('fireWorkExecutor').value = plan.fireWorkExecutor || '';
+                        document.getElementById('fireWorkGuardian').value = plan.fireWorkGuardian || '';
+                    }
+                }
+            } else {
+                title.textContent = '新增计划';
+                document.getElementById('planType').value = currentTab;
+            }
+
+            // 根据计划类型显示/隐藏人员字段
+            togglePersonnelFields(document.getElementById('planType').value);
+
+            modal.classList.add('show');
+            console.log('打开模态框');
+        }
+
+        function closeModal() {
+            document.getElementById('planModal').classList.remove('show');
+            editingPlanId = null;
+        }
+
+        // 根据计划类型显示/隐藏人员字段
+        function togglePersonnelFields(planType) {
+            var personnelFields = document.getElementById('personnelFields');
+            if (planType === 'weekly' || planType === 'monthly') {
+                personnelFields.style.display = 'block';
+            } else {
+                personnelFields.style.display = 'none';
+            }
+        }
+
+        function updateStats() {
+            var weeklyCount = plans.filter(function(p) { return p.type === 'weekly' && p.status !== 'completed'; }).length;
+            var monthlyCount = plans.filter(function(p) { return p.type === 'monthly' && p.status !== 'completed'; }).length;
+            var yearlyCount = plans.filter(function(p) { return p.type === 'yearly' && p.status !== 'completed'; }).length;
+            var completedCount = plans.filter(function(p) { return p.status === 'completed'; }).length;
+            var totalCount = plans.length;
+
+            document.getElementById('weeklyCount').textContent = weeklyCount;
+            document.getElementById('monthlyCount').textContent = monthlyCount;
+            document.getElementById('yearlyCount').textContent = yearlyCount;
+            document.getElementById('completedCount').textContent = completedCount;
+            document.getElementById('totalCount').textContent = totalCount;
+        }
+
+        function savePlan() {
+            var titleBase = document.getElementById('planTitle').value;
+            var titleSuffix = document.getElementById('planTitleSuffix').value;
+            var fullTitle = titleSuffix ? titleBase + ' - ' + titleSuffix : titleBase;
+
+            var planData = {
+                id: editingPlanId || String(Date.now()),
+                type: document.getElementById('planType').value,
+                title: fullTitle,
+                titleBase: titleBase,
+                titleSuffix: titleSuffix,
+                content: document.getElementById('planContent').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                ticketType: document.getElementById('ticketType').value,
+                priority: document.getElementById('priority').value,
+                status: document.getElementById('status').value,
+                responsible: document.getElementById('responsible').value,
+                members: document.getElementById('members').value,
+                group1Leader: document.getElementById('group1Leader').value,
+                group1Members: document.getElementById('group1Members').value,
+                group2Leader: document.getElementById('group2Leader').value,
+                group2Members: document.getElementById('group2Members').value,
+                group3Leader: document.getElementById('group3Leader').value,
+                group3Members: document.getElementById('group3Members').value,
+                        group4Leader: document.getElementById('group4Leader').value,
+                        group4Members: document.getElementById('group4Members').value,
+                        group5Leader: document.getElementById('group5Leader').value,
+                        group5Members: document.getElementById('group5Members').value,
+                        fireWorkLeader: document.getElementById('fireWorkLeader').value,
+                        fireWorkExecutor: document.getElementById('fireWorkExecutor').value,
+                        fireWorkGuardian: document.getElementById('fireWorkGuardian').value,
+                        createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            savePlanToCloud(planData)
+                .then(function() {
+                    closeModal();
+                    console.log('计划保存成功');
+                })
+                .catch(function(error) {
+                    console.error('保存失败:', error);
+                    alert('保存失败: ' + error.message);
+                    setSyncStatus('error', '保存失败');
+                });
+        }
+
+        function deletePlan(planId) {
+            if (!confirm('确定要删除这个计划吗？')) return;
+
+            setSyncStatus('syncing', '删除中...');
+
+            deletePlanFromCloud(planId)
+                .then(function() {
+                    console.log('删除成功');
+                })
+                .catch(function(error) {
+                    console.error('删除失败:', error);
+                    alert('删除失败: ' + error.message);
+                    setSyncStatus('error', '删除失败');
+                });
+        }
+
+        function renderPlans() {
+            var container = document.getElementById('planList');
+            var filteredPlans;
+
+            // 已完结计划标签显示所有已完成的计划
+            if (currentTab === 'completed') {
+                var selectedYear = document.getElementById('yearSelect').value;
+                filteredPlans = plans.filter(function(p) {
+                    if (p.status !== 'completed') return false;
+                    if (selectedYear && selectedYear !== '') {
+                        var planYear = new Date(p.endDate).getFullYear();
+                        return planYear === parseInt(selectedYear);
+                    }
+                    return true;
+                });
+            } else {
+                // 其他标签显示对应类型的计划（不包括已完成的）
+                filteredPlans = plans.filter(function(p) {
+                    return p.type === currentTab && p.status !== 'completed';
+                });
+            }
+
+            // 如果是周计划，在周二自动纳入下一周的月计划
+            if (currentTab === 'weekly' && isTodayTuesday()) {
+                var monthlyPlans = plans.filter(function(p) {
+                    return p.type === 'monthly' && isInNextWeek(p.startDate);
+                });
+
+                monthlyPlans.forEach(function(monthlyPlan) {
+                    // 检查是否已经有对应的周计划（通过标题匹配）
+                    var hasWeeklyPlan = filteredPlans.some(function(wp) {
+                        return wp.title === monthlyPlan.title && wp.sourceType === 'monthly';
+                    });
+
+                    if (!hasWeeklyPlan) {
+                        // 创建一个纳入的周计划对象
+                        var weeklyPlan = {
+                            id: monthlyPlan.id + '_weekly',
+                            type: 'weekly',
+                            title: monthlyPlan.title,
+                            content: monthlyPlan.content,
+                            startDate: monthlyPlan.startDate,
+                            endDate: monthlyPlan.endDate,
+                            priority: monthlyPlan.priority,
+                            status: monthlyPlan.status,
+                            responsible: monthlyPlan.responsible || '',
+                            members: monthlyPlan.members || '',
+                            group1Leader: monthlyPlan.group1Leader || '',
+                            group1Members: monthlyPlan.group1Members || '',
+                            group2Leader: monthlyPlan.group2Leader || '',
+                            group2Members: monthlyPlan.group2Members || '',
+                            group3Leader: monthlyPlan.group3Leader || '',
+                            group3Members: monthlyPlan.group3Members || '',
+                            group4Leader: monthlyPlan.group4Leader || '',
+                            group4Members: monthlyPlan.group4Members || '',
+                            group5Leader: monthlyPlan.group5Leader || '',
+                            group5Members: monthlyPlan.group5Members || '',
+                            sourceType: 'monthly', // 标记来源
+                            sourceId: monthlyPlan.id,
+                            createdAt: monthlyPlan.createdAt,
+                            updatedAt: monthlyPlan.updatedAt
+                        };
+                        filteredPlans.push(weeklyPlan);
+                    }
+                });
+            }
+
+            // 按开始时间从近到远排序
+            filteredPlans.sort(function(a, b) {
+                return new Date(a.startDate) - new Date(b.startDate);
+            });
+
+            // 计算每个计划距离今天的天数，并添加样式类
+            var now = new Date();
+            filteredPlans = filteredPlans.map(function(plan) {
+                var startDate = new Date(plan.startDate);
+                var diffTime = startDate - now;
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // 添加样式类
+                if (diffDays <= 0) {
+                    plan.urgencyClass = 'urgent'; // 今天或已开始
+                } else if (diffDays <= 3) {
+                    plan.urgencyClass = 'urgent'; // 3天内
+                } else if (diffDays <= 7) {
+                    plan.urgencyClass = 'near'; // 一周内
+                } else if (diffDays <= 30) {
+                    plan.urgencyClass = 'normal'; // 一月内
+                } else {
+                    plan.urgencyClass = 'far'; // 超过一个月
+                }
+
+                return plan;
+            });
+
+            if (filteredPlans.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>暂无' + planTypeNames[currentTab] + '，点击"新增计划"开始创建</p></div>';
+                return;
+            }
+            
+            container.innerHTML = filteredPlans.map(function(plan) {
+                var personnelHtml = '';
+                if (plan.responsible) {
+                    personnelHtml += '<span style="background: #fff3e0; color: #ef6c00; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">👤 负责人: ' + escapeHtml(plan.responsible) + '</span>';
+                }
+                if (plan.members) {
+                    if (personnelHtml) personnelHtml += ' ';
+                    personnelHtml += '<span style="background: #f3e5f5; color: #7b1fa2; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">👥 班员: ' + escapeHtml(plan.members) + '</span>';
+                }
+
+                // 显示小组信息
+                var groupsHtml = '';
+                for (var i = 1; i <= 5; i++) {
+                    var leaderKey = 'group' + i + 'Leader';
+                    var membersKey = 'group' + i + 'Members';
+
+                    if (plan[leaderKey] || plan[membersKey]) {
+                        if (groupsHtml) groupsHtml += '<div style="height: 8px;"></div>';
+                        var groupText = '<div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #e0e0e0;"><span style="font-size: 13px; color: #667eea; font-weight: bold;">🏷️ 小组' + i + '票</span>';
+                        if (plan[leaderKey]) {
+                            groupText += '<div style="margin-top: 4px; font-size: 12px; color: #555;">👤 负责人: ' + escapeHtml(plan[leaderKey]) + '</div>';
+                        }
+                        if (plan[membersKey]) {
+                            groupText += '<div style="margin-top: 2px; font-size: 12px; color: #555;">👥 组员: ' + escapeHtml(plan[membersKey]) + '</div>';
+                        }
+                        groupText += '</div>';
+                        groupsHtml += groupText;
+                    }
+                }
+
+                // 显示票型（突出显示）
+                var ticketHtml = '';
+                if (plan.ticketType) {
+                    ticketHtml = '<span style="margin-left: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">🎫 ' + escapeHtml(plan.ticketType) + '</span>';
+                }
+
+                // 显示动火票信息
+                var fireWorkHtml = '';
+                if (plan.fireWorkLeader || plan.fireWorkExecutor || plan.fireWorkGuardian) {
+                    fireWorkHtml = '<div style="margin-top: 12px; padding: 12px; background: linear-gradient(135deg, #fff3e0 0%, #ffebee 100%); border-radius: 8px; border-left: 4px solid #f44336;">';
+                    if (plan.fireWorkLeader) {
+                        fireWorkHtml += '<div style="margin-bottom: 4px;"><span style="color: #f44336; font-weight: bold;">🔥 动火票负责人:</span> ' + escapeHtml(plan.fireWorkLeader) + '</div>';
+                    }
+                    if (plan.fireWorkExecutor) {
+                        fireWorkHtml += '<div style="margin-bottom: 4px;"><span style="color: #ff9800; font-weight: bold;">⚡ 动火执行人:</span> ' + escapeHtml(plan.fireWorkExecutor) + '</div>';
+                    }
+                    if (plan.fireWorkGuardian) {
+                        fireWorkHtml += '<div><span style="color: #2196f3; font-weight: bold;">🛡️ 动火监护人:</span> ' + escapeHtml(plan.fireWorkGuardian) + '</div>';
+                    }
+                    fireWorkHtml += '</div>';
+                }
+
+                // 来源标记
+                var sourceTag = '';
+                var cardClass = plan.urgencyClass || 'plan-card';
+                if (plan.sourceType === 'monthly') {
+                    sourceTag = '<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">来自下周月计划</span>';
+                    cardClass = 'plan-card from-monthly ' + (plan.urgencyClass || '');
+                }
+
+                // 计算剩余天数提示
+                var daysBadge = '';
+                var startDate = new Date(plan.startDate);
+                var diffTime = startDate - new Date();
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays <= 0) {
+                    daysBadge = '<span style="background: #f44336; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">进行中/已开始</span>';
+                } else if (diffDays <= 3) {
+                    daysBadge = '<span style="background: #ff5722; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">' + diffDays + '天后</span>';
+                } else if (diffDays <= 7) {
+                    daysBadge = '<span style="background: #ff9800; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; margin-left: 8px;">' + diffDays + '天后</span>';
+                } else {
+                    daysBadge = '<span style="background: #9e9e9e; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; margin-left: 8px;">' + diffDays + '天后</span>';
+                }
+
+                return '<div class="' + cardClass + '">' +
+                    '<div class="plan-header">' +
+                    '<div>' +
+                    '<div class="plan-title">' + escapeHtml(plan.title) + sourceTag + daysBadge + ticketHtml + '</div>' +
+                    '<div class="plan-meta">' +
+                    '<span style="background: #e3f2fd; color: #1976d2; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' 至 ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
+                    '<span style="margin-left: 8px;">⚠️ ' + getPriorityText(plan.priority) + '</span>' +
+                    (personnelHtml ? '</div><div class="plan-meta" style="margin-top: 8px;">' + personnelHtml : '') +
+                    '</div>' +
+                    (groupsHtml ? '<div style="margin-top: 10px; padding: 10px; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); border-radius: 8px; border-left: 3px solid #667eea;">' + groupsHtml + '</div>' : '') +
+                    '</div>' +
+                    '<div class="plan-actions">' +
+                    (currentTab === 'completed' ? '' : '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">编辑</button>') +
+                    (currentTab === 'completed' ? '' : '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">删除</button>') +
+                    '</div>' +
+                    '</div>' +
+                    '<div style="margin-top: 12px; padding: 12px; background: #fafafa; border-radius: 6px; color: #555; line-height: 1.6;">' + escapeHtml(plan.content) + '</div>' +
+                    fireWorkHtml +
+                    '</div>';
+            }).join('');
+        }
+
+        function getPriorityText(priority) {
+            var texts = {
+                high: '<span style="background: #ff5252; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">高风险</span>',
+                medium: '<span style="background: #ff9800; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">中风险</span>',
+                low: '<span style="background: #4caf50; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">低风险</span>'
+            };
+            return texts[priority] || '<span style="background: #9e9e9e; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px;">普通</span>';
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 格式化日期时间为 datetime-local 输入框需要的格式 (YYYY-MM-DDTHH:mm)
+        function formatDateTimeForInput(dateTimeStr) {
+            if (!dateTimeStr) return '';
+            var date = new Date(dateTimeStr);
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+        }
+
+        // 格式化日期时间用于显示
+        function formatDateTimeForDisplay(dateTimeStr) {
+            if (!dateTimeStr) return '';
+            var date = new Date(dateTimeStr);
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+        }
+
+        // 获取当前周的起始和结束日期
+        function getCurrentWeekRange() {
+            var now = new Date();
+            var day = now.getDay();
+            var diff = now.getDate() - day + (day === 0 ? -6 : 1); // 周一作为一周开始
+            var monday = new Date(now.setDate(diff));
+            monday.setHours(0, 0, 0, 0);
+
+            var sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23, 59, 59, 999);
+
+            return { start: monday, end: sunday };
+        }
+
+        // 获取下一周的起始和结束日期（每周二执行）
+        function getNextWeekRange() {
+            var now = new Date();
+            // 先找到本周一
+            var day = now.getDay();
+            var diff = now.getDate() - day + (day === 0 ? -6 : 1);
+            var thisMonday = new Date(now);
+            thisMonday.setDate(diff);
+            thisMonday.setHours(0, 0, 0, 0);
+
+            // 下一周一是本周一 + 7天
+            var nextMonday = new Date(thisMonday);
+            nextMonday.setDate(thisMonday.getDate() + 7);
+
+            // 下周日是下周一 + 6天
+            var nextSunday = new Date(nextMonday);
+            nextSunday.setDate(nextMonday.getDate() + 6);
+            nextSunday.setHours(23, 59, 59, 999);
+
+            return { start: nextMonday, end: nextSunday };
+        }
+
+        // 检查日期是否在当前周内
+        function isInCurrentWeek(dateStr) {
+            var weekRange = getCurrentWeekRange();
+            var date = new Date(dateStr);
+            return date >= weekRange.start && date <= weekRange.end;
+        }
+
+        // 检查日期是否在下一周内
+        function isInNextWeek(dateStr) {
+            var weekRange = getNextWeekRange();
+            var date = new Date(dateStr);
+            return date >= weekRange.start && date <= weekRange.end;
+        }
+
+        // 检查今天是否是周二
+        function isTodayTuesday() {
+            var now = new Date();
+            var dayOfWeek = now.getDay();
+            return dayOfWeek === 2;
+        }
+
+        // 更新年份筛选器
+        function updateYearFilter() {
+            var yearSelect = document.getElementById('yearSelect');
+            var completedPlans = plans.filter(function(p) { return p.status === 'completed'; });
+            var years = [];
+
+            completedPlans.forEach(function(plan) {
+                var year = new Date(plan.endDate).getFullYear();
+                if (years.indexOf(year) === -1) {
+                    years.push(year);
+                }
+            });
+
+            years.sort(function(a, b) { return b - a; }); // 降序排列
+
+            yearSelect.innerHTML = '<option value="">全部年份</option>';
+            years.forEach(function(year) {
+                yearSelect.innerHTML += '<option value="' + year + '">' + year + '年</option>';
+            });
+        }
+
+        // 渲染柱状图
+        function renderChart() {
+            var chartCanvas = document.getElementById('chartCanvas');
+            var chartLegend = document.getElementById('chartLegend');
+
+            var selectedYear = document.getElementById('yearSelect').value;
+            var completedPlans = plans.filter(function(p) {
+                if (p.status !== 'completed') return false;
+                if (selectedYear && selectedYear !== '') {
+                    var planYear = new Date(p.endDate).getFullYear();
+                    return planYear === parseInt(selectedYear);
+                }
+                return true;
+            });
+
+            // 按立项名分组统计
+            var projectStats = {};
+            completedPlans.forEach(function(plan) {
+                var titleBase = plan.titleBase || plan.title;
+                if (!projectStats[titleBase]) {
+                    projectStats[titleBase] = 0;
+                }
+                projectStats[titleBase]++;
+            });
+
+            var projects = Object.keys(projectStats);
+            var counts = Object.values(projectStats);
+            var maxCount = Math.max.apply(null, counts) || 1;
+
+            // 颜色数组
+            var colors = [
+                '#667eea', '#764ba2', '#f093fb', '#f5576c',
+                '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+                '#fa709a', '#fee140'
+            ];
+
+            // 生成柱状图HTML
+            var chartHtml = '<div class="chart-container">';
+            projects.forEach(function(project, index) {
+                var count = projectStats[project];
+                var height = (count / maxCount) * 200; // 最大高度200px
+                var color = colors[index % colors.length];
+
+                chartHtml += '<div class="chart-bar">' +
+                    '<div class="chart-bar-count">' + count + '</div>' +
+                    '<div class="chart-bar-value" style="height: ' + height + 'px; background: ' + color + ';"></div>' +
+                    '<div class="chart-bar-label">' + project + '</div>' +
+                    '</div>';
+            });
+            chartHtml += '</div>';
+
+            chartCanvas.innerHTML = chartHtml;
+
+            // 生成图例
+            var legendHtml = '';
+            projects.forEach(function(project, index) {
+                var color = colors[index % colors.length];
+                var count = projectStats[project];
+                legendHtml += '<div class="legend-item">' +
+                    '<div class="legend-color" style="background: ' + color + ';"></div>' +
+                    '<span>' + project + ': ' + count + '个</span>' +
+                    '</div>';
+            });
+            chartLegend.innerHTML = legendHtml;
+        }
+
+        // 暴露函数到全局作用域，供 HTML onclick 使用
+        window.openModal = openModal;
+        window.deletePlan = deletePlan;
+
+        console.log('JavaScript 加载完成');
+    </script>
+</body>
+</html>
