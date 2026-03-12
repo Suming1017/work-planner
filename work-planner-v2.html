@@ -524,7 +524,6 @@
         <div class="tabs">
             <button class="tab active" data-tab="weekly">周计划</button>
             <button class="tab" data-tab="monthly">月计划</button>
-            <button class="tab" data-tab="yearly">年计划</button>
             <button class="tab" data-tab="completed">已完结计划</button>
         </div>
 
@@ -542,13 +541,6 @@
                 <div class="stat-info">
                     <div class="stat-label">月计划</div>
                     <div class="stat-value" id="monthlyCount">0</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📉</div>
-                <div class="stat-info">
-                    <div class="stat-label">年计划</div>
-                    <div class="stat-value" id="yearlyCount">0</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -573,13 +565,67 @@
                 <button class="add-btn" id="addPlanBtn">+ 新增计划</button>
             </div>
 
+            <!-- 全局搜索框 -->
+            <div style="margin-bottom: 20px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="searchInput" placeholder="🔍 搜索计划（立项名、工作内容、负责人、票型...）"
+                               style="flex: 1; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+                        <button id="clearSearchBtn" style="padding: 12px 20px; background: #f5f5f5; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-size: 14px;">清空</button>
+                    </div>
+                </div>
+                <div id="searchResults" style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-radius: 8px; display: none;">
+                    <span style="color: #1976d2; font-weight: 600;">找到 <span id="searchCount">0</span> 个匹配计划</span>
+                </div>
+            </div>
+
+            <!-- 状态筛选器（仅周计划显示） -->
+            <div id="weeklyStatusFilter" style="display: none; margin-bottom: 25px; padding: 0;">
+                <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.3s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+                        <input type="checkbox" id="statusPending" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #9e9e9e;">
+                        <span style="font-size: 14px; font-weight: 600; color: #555;">待开始</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.3s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+                        <input type="checkbox" id="statusInProgress" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #4caf50;">
+                        <span style="font-size: 14px; font-weight: 600; color: #555;">进行中</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.3s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+                        <input type="checkbox" id="statusPaused" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #ff9800;">
+                        <span style="font-size: 14px; font-weight: 600; color: #555;">间断中</span>
+                    </label>
+                </div>
+            </div>
+
             <!-- 年份筛选器和图表按钮（仅已完结计划显示） -->
-            <div id="yearFilter" style="display: none; margin-bottom: 20px;">
-                <label for="yearSelect">按年份筛选：</label>
-                <select id="yearSelect" style="padding: 8px; border-radius: 6px; border: 2px solid #e0e0e0;">
-                    <option value="">全部年份</option>
-                </select>
-                <button class="add-btn" id="toggleChartBtn" style="margin-left: 15px;">📊 显示统计图表</button>
+            <div id="yearFilter" style="display: none; margin-bottom: 25px; padding: 18px 22px; background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%); border-radius: 12px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);">
+                <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 15px; font-weight: 700; color: #333;">📅 按年份筛选:</span>
+                        <select id="yearSelect" style="padding: 10px 14px; border-radius: 8px; border: 2px solid #e0e0e0; font-size: 14px; background: white; cursor: pointer; transition: border-color 0.3s ease;">
+                            <option value="">全部年份</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 15px; font-weight: 700; color: #333;">📆 按月份筛选:</span>
+                        <select id="monthSelect" style="padding: 10px 14px; border-radius: 8px; border: 2px solid #e0e0e0; font-size: 14px; background: white; cursor: pointer; transition: border-color 0.3s ease;">
+                            <option value="">全部月份</option>
+                            <option value="1">1月</option>
+                            <option value="2">2月</option>
+                            <option value="3">3月</option>
+                            <option value="4">4月</option>
+                            <option value="5">5月</option>
+                            <option value="6">6月</option>
+                            <option value="7">7月</option>
+                            <option value="8">8月</option>
+                            <option value="9">9月</option>
+                            <option value="10">10月</option>
+                            <option value="11">11月</option>
+                            <option value="12">12月</option>
+                        </select>
+                    </div>
+                    <button class="add-btn" id="toggleChartBtn" style="padding: 10px 20px;">📊 显示统计图表</button>
+                </div>
             </div>
 
             <!-- 统计图表（仅已完结计划显示，默认隐藏） -->
@@ -610,6 +656,7 @@
                         <option value="">请选择立项名</option>
                         <option value="厚街基建">厚街基建</option>
                         <option value="厚街中压抢修">厚街中压抢修</option>
+                        <option value="厚街低压抢修">厚街低压抢修</option>
                         <option value="厚街保电">厚街保电</option>
                         <option value="厚街用户">厚街用户</option>
                         <option value="公司用户">公司用户</option>
@@ -628,11 +675,21 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="startDate">开始时间</label>
-                        <input type="datetime-local" id="startDate" required>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="date" id="startDate" required style="flex: 1;">
+                            <input type="number" id="startHour" min="0" max="23" placeholder="时" style="width: 60px;" required>
+                            <span style="font-weight: bold;">:</span>
+                            <input type="number" id="startMinute" min="0" max="59" placeholder="分" style="width: 60px;" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="endDate">结束时间</label>
-                        <input type="datetime-local" id="endDate" required>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="date" id="endDate" required style="flex: 1;">
+                            <input type="number" id="endHour" min="0" max="23" placeholder="时" style="width: 60px;" required>
+                            <span style="font-weight: bold;">:</span>
+                            <input type="number" id="endMinute" min="0" max="59" placeholder="分" style="width: 60px;" required>
+                        </div>
                     </div>
                 </div>
                 
@@ -650,9 +707,9 @@
                     <div class="form-group">
                         <label for="priority">风险等级</label>
                         <select id="priority">
+                            <option value="low" selected>低</option>
+                            <option value="medium">中</option>
                             <option value="high">高</option>
-                            <option value="medium" selected>中</option>
-                            <option value="low">低</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -660,6 +717,7 @@
                         <select id="status">
                             <option value="pending">待开始</option>
                             <option value="in-progress">进行中</option>
+                            <option value="paused">间断中</option>
                             <option value="completed">已完成</option>
                         </select>
                     </div>
@@ -747,6 +805,13 @@
                             <input type="text" id="fireWorkGuardian" placeholder="请输入动火监护人">
                         </div>
                     </div>
+
+                    <div class="form-row" style="margin-top: 15px; padding-top: 15px; border-top: 2px dashed #e0e0e0;">
+                        <div class="form-group">
+                            <label for="ticketPersonnel" style="color: #9c27b0;">📝 办票人员</label>
+                            <input type="text" id="ticketPersonnel" placeholder="请输入办票人员姓名">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions">
@@ -770,7 +835,6 @@
         var planTypeNames = {
             weekly: '周计划',
             monthly: '月计划',
-            yearly: '年计划',
             completed: '已完结计划'
         };
 
@@ -890,6 +954,7 @@
                             group4Members: plan.group4_members || '',
                             group5Leader: plan.group5_leader || '',
                             group5Members: plan.group5_members || '',
+                            ticketPersonnel: plan.ticket_personnel || '',
                             fireWorkLeader: plan.fire_work_leader || '',
                             fireWorkExecutor: plan.fire_work_executor || '',
                             fireWorkGuardian: plan.fire_work_guardian || '',
@@ -898,36 +963,11 @@
                         };
                     });
 
-                    // 自动更新已过期的计划状态为已完成
-                    autoUpdateCompletedPlans();
-
                     renderPlans();
                     updateStats();
                     setSyncStatus('connected', '已连接');
                     console.log('加载计划:', plans.length, '个');
                 });
-        }
-
-        // 自动更新已过期的计划状态为已完成
-        function autoUpdateCompletedPlans() {
-            var now = new Date();
-            var updatedCount = 0;
-
-            plans.forEach(function(plan) {
-                if (plan.status !== 'completed') {
-                    var endDate = new Date(plan.endDate);
-                    if (endDate < now) {
-                        plan.status = 'completed';
-                        updatedCount++;
-                        // 同步到云端
-                        savePlanToCloud(plan);
-                    }
-                }
-            });
-
-            if (updatedCount > 0) {
-                console.log('自动更新了 ' + updatedCount + ' 个计划为已完成状态');
-            }
         }
 
         function savePlanToCloud(planData) {
@@ -961,6 +1001,7 @@
                 group4_members: planData.group4Members,
                 group5_leader: planData.group5Leader,
                 group5_members: planData.group5Members,
+                ticket_personnel: planData.ticketPersonnel,
                 fire_work_leader: planData.fireWorkLeader,
                 fire_work_executor: planData.fireWorkExecutor,
                 fire_work_guardian: planData.fireWorkGuardian
@@ -1002,21 +1043,28 @@
                     currentTab = tab.dataset.tab;
                     document.getElementById('sectionTitle').textContent = planTypeNames[currentTab];
 
-                    // 在已完结计划标签页隐藏新增按钮
+                    // 控制筛选器和按钮的显示
                     var addBtn = document.getElementById('addPlanBtn');
+                    var weeklyStatusFilter = document.getElementById('weeklyStatusFilter');
                     var yearFilter = document.getElementById('yearFilter');
                     var chartContainer = document.getElementById('chartContainer');
 
-                    if (currentTab === 'completed') {
+                    // 隐藏所有筛选器
+                    weeklyStatusFilter.style.display = 'none';
+                    yearFilter.style.display = 'none';
+                    chartContainer.style.display = 'none';
+
+                    if (currentTab === 'weekly') {
+                        addBtn.style.display = 'block';
+                        weeklyStatusFilter.style.display = 'block';
+                    } else if (currentTab === 'monthly') {
+                        addBtn.style.display = 'block';
+                    } else if (currentTab === 'completed') {
                         addBtn.style.display = 'none';
                         yearFilter.style.display = 'block';
                         chartContainer.style.display = 'block';
                         updateYearFilter();
                         renderChart();
-                    } else {
-                        addBtn.style.display = 'block';
-                        yearFilter.style.display = 'none';
-                        chartContainer.style.display = 'none';
                     }
 
                     renderPlans();
@@ -1028,6 +1076,27 @@
                 renderPlans();
                 if (document.getElementById('chartContainer').style.display !== 'none') {
                     renderChart();
+                }
+            });
+
+            // 月份筛选监听
+            document.getElementById('monthSelect').addEventListener('change', function() {
+                renderPlans();
+                if (document.getElementById('chartContainer').style.display !== 'none') {
+                    renderChart();
+                }
+            });
+
+            // 周计划状态筛选监听
+            ['statusPending', 'statusInProgress', 'statusPaused'].forEach(function(id) {
+                var checkbox = document.getElementById(id);
+                if (checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        console.log('状态筛选器变化:', id, 'checked:', this.checked);
+                        renderPlans();
+                    });
+                } else {
+                    console.error('找不到元素:', id);
                 }
             });
 
@@ -1050,6 +1119,17 @@
                 openModal();
             });
 
+            // 搜索功能监听
+            document.getElementById('searchInput').addEventListener('input', function() {
+                renderPlans();
+            });
+
+            // 清空搜索按钮
+            document.getElementById('clearSearchBtn').addEventListener('click', function() {
+                document.getElementById('searchInput').value = '';
+                renderPlans();
+            });
+
             document.getElementById('closeModalBtn').addEventListener('click', function() {
                 closeModal();
             });
@@ -1063,11 +1143,12 @@
                 savePlan();
             });
 
-            document.getElementById('planModal').addEventListener('click', function(e) {
-                if (e.target.id === 'planModal') {
-                    closeModal();
-                }
-            });
+            // 禁用点击模态框外部关闭功能（锁定模态框）
+            // document.getElementById('planModal').addEventListener('click', function(e) {
+            //     if (e.target.id === 'planModal') {
+            //         closeModal();
+            //     }
+            // });
 
             // 监听计划类型变化
             document.getElementById('planType').addEventListener('change', function(e) {
@@ -1091,6 +1172,27 @@
 
         function initTabs() {
             console.log('初始化标签页');
+            // 初始化筛选器显示
+            var weeklyStatusFilter = document.getElementById('weeklyStatusFilter');
+            var yearFilter = document.getElementById('yearFilter');
+            var chartContainer = document.getElementById('chartContainer');
+
+            // 根据当前标签页显示对应的筛选器
+            if (currentTab === 'weekly') {
+                weeklyStatusFilter.style.display = 'block';
+                yearFilter.style.display = 'none';
+                chartContainer.style.display = 'none';
+            } else if (currentTab === 'monthly') {
+                weeklyStatusFilter.style.display = 'none';
+                yearFilter.style.display = 'none';
+                chartContainer.style.display = 'none';
+            } else if (currentTab === 'completed') {
+                weeklyStatusFilter.style.display = 'none';
+                yearFilter.style.display = 'block';
+                chartContainer.style.display = 'block';
+                updateYearFilter();
+                renderChart();
+            }
         }
 
         function openModal(planId) {
@@ -1134,8 +1236,19 @@
                     }
 
                     document.getElementById('planContent').value = plan.content;
-                    document.getElementById('startDate').value = formatDateTimeForInput(plan.startDate);
-                    document.getElementById('endDate').value = formatDateTimeForInput(plan.endDate);
+
+                    // 填充开始时间
+                    var startDateTime = new Date(plan.startDate);
+                    document.getElementById('startDate').value = formatDateForInput(startDateTime);
+                    document.getElementById('startHour').value = startDateTime.getHours();
+                    document.getElementById('startMinute').value = String(startDateTime.getMinutes()).padStart(2, '0');
+
+                    // 填充结束时间
+                    var endDateTime = new Date(plan.endDate);
+                    document.getElementById('endDate').value = formatDateForInput(endDateTime);
+                    document.getElementById('endHour').value = endDateTime.getHours();
+                    document.getElementById('endMinute').value = String(endDateTime.getMinutes()).padStart(2, '0');
+
                     document.getElementById('ticketType').value = plan.ticketType || '';
                     document.getElementById('priority').value = plan.priority;
                     document.getElementById('status').value = plan.status;
@@ -1154,6 +1267,9 @@
                         document.getElementById('group4Members').value = plan.group4Members || '';
                         document.getElementById('group5Leader').value = plan.group5Leader || '';
                         document.getElementById('group5Members').value = plan.group5Members || '';
+
+                        // 填充办票人员信息
+                        document.getElementById('ticketPersonnel').value = plan.ticketPersonnel || '';
 
                         // 填充动火票信息
                         document.getElementById('fireWorkLeader').value = plan.fireWorkLeader || '';
@@ -1191,13 +1307,11 @@
         function updateStats() {
             var weeklyCount = plans.filter(function(p) { return p.type === 'weekly' && p.status !== 'completed'; }).length;
             var monthlyCount = plans.filter(function(p) { return p.type === 'monthly' && p.status !== 'completed'; }).length;
-            var yearlyCount = plans.filter(function(p) { return p.type === 'yearly' && p.status !== 'completed'; }).length;
             var completedCount = plans.filter(function(p) { return p.status === 'completed'; }).length;
             var totalCount = plans.length;
 
             document.getElementById('weeklyCount').textContent = weeklyCount;
             document.getElementById('monthlyCount').textContent = monthlyCount;
-            document.getElementById('yearlyCount').textContent = yearlyCount;
             document.getElementById('completedCount').textContent = completedCount;
             document.getElementById('totalCount').textContent = totalCount;
         }
@@ -1207,6 +1321,18 @@
             var titleSuffix = document.getElementById('planTitleSuffix').value;
             var fullTitle = titleSuffix ? titleBase + ' - ' + titleSuffix : titleBase;
 
+            // 合并开始日期和时间
+            var startDateStr = document.getElementById('startDate').value;
+            var startHour = document.getElementById('startHour').value;
+            var startMinute = document.getElementById('startMinute').value;
+            var startDateTime = new Date(startDateStr + 'T' + String(startHour).padStart(2, '0') + ':' + String(startMinute).padStart(2, '0'));
+
+            // 合并结束日期和时间
+            var endDateStr = document.getElementById('endDate').value;
+            var endHour = document.getElementById('endHour').value;
+            var endMinute = document.getElementById('endMinute').value;
+            var endDateTime = new Date(endDateStr + 'T' + String(endHour).padStart(2, '0') + ':' + String(endMinute).padStart(2, '0'));
+
             var planData = {
                 id: editingPlanId || String(Date.now()),
                 type: document.getElementById('planType').value,
@@ -1214,8 +1340,8 @@
                 titleBase: titleBase,
                 titleSuffix: titleSuffix,
                 content: document.getElementById('planContent').value,
-                startDate: document.getElementById('startDate').value,
-                endDate: document.getElementById('endDate').value,
+                startDate: startDateTime.toISOString(),
+                endDate: endDateTime.toISOString(),
                 ticketType: document.getElementById('ticketType').value,
                 priority: document.getElementById('priority').value,
                 status: document.getElementById('status').value,
@@ -1231,6 +1357,7 @@
                         group4Members: document.getElementById('group4Members').value,
                         group5Leader: document.getElementById('group5Leader').value,
                         group5Members: document.getElementById('group5Members').value,
+                        ticketPersonnel: document.getElementById('ticketPersonnel').value,
                         fireWorkLeader: document.getElementById('fireWorkLeader').value,
                         fireWorkExecutor: document.getElementById('fireWorkExecutor').value,
                         fireWorkGuardian: document.getElementById('fireWorkGuardian').value,
@@ -1270,22 +1397,130 @@
             var container = document.getElementById('planList');
             var filteredPlans;
 
+            // 获取搜索关键词
+            var searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim();
+            var searchResultsDiv = document.getElementById('searchResults');
+
             // 已完结计划标签显示所有已完成的计划
             if (currentTab === 'completed') {
                 var selectedYear = document.getElementById('yearSelect').value;
+                var selectedMonth = document.getElementById('monthSelect').value;
                 filteredPlans = plans.filter(function(p) {
                     if (p.status !== 'completed') return false;
+
+                    var planDate = new Date(p.endDate);
+                    var planYear = planDate.getFullYear();
+                    var planMonth = planDate.getMonth() + 1; // getMonth() 返回 0-11
+
+                    // 年份筛选
                     if (selectedYear && selectedYear !== '') {
-                        var planYear = new Date(p.endDate).getFullYear();
-                        return planYear === parseInt(selectedYear);
+                        if (planYear !== parseInt(selectedYear)) return false;
                     }
+
+                    // 月份筛选
+                    if (selectedMonth && selectedMonth !== '') {
+                        if (planMonth !== parseInt(selectedMonth)) return false;
+                    }
+
                     return true;
                 });
-            } else {
-                // 其他标签显示对应类型的计划（不包括已完成的）
+            } else if (currentTab === 'weekly') {
+                // 周计划：根据状态筛选（不包括已完成）
+                var statusPending = document.getElementById('statusPending').checked;
+                var statusInProgress = document.getElementById('statusInProgress').checked;
+                var statusPaused = document.getElementById('statusPaused').checked;
+
+                console.log('周计划筛选条件 - 待开始:', statusPending, '进行中:', statusInProgress, '间断中:', statusPaused);
+
                 filteredPlans = plans.filter(function(p) {
-                    return p.type === currentTab && p.status !== 'completed';
+                    // 首先排除已完成的计划
+                    if (p.status === 'completed') return false;
+
+                    // 然后根据类型筛选
+                    if (p.type !== currentTab) return false;
+
+                    // 根据选中的状态筛选
+                    if (p.status === 'pending' && !statusPending) return false;
+                    if (p.status === 'in-progress' && !statusInProgress) return false;
+                    if (p.status === 'paused' && !statusPaused) return false;
+
+                    return true;
                 });
+
+                console.log('周计划筛选结果数量:', filteredPlans.length);
+            } else {
+                // 其他标签（月计划）显示对应类型的计划，排除已完成的
+                filteredPlans = plans.filter(function(p) {
+                    // 排除已完成的计划
+                    if (p.status === 'completed') return false;
+
+                    return p.type === currentTab;
+                });
+            }
+
+            // 搜索过滤
+            if (searchKeyword) {
+                var beforeSearchCount = filteredPlans.length;
+                filteredPlans = filteredPlans.filter(function(plan) {
+                    var searchText = '';
+
+                    // 搜索标题
+                    if (plan.title) {
+                        searchText += plan.title.toLowerCase();
+                    }
+                    // 搜索内容
+                    if (plan.content) {
+                        searchText += ' ' + plan.content.toLowerCase();
+                    }
+                    // 搜索负责人
+                    if (plan.responsible) {
+                        searchText += ' ' + plan.responsible.toLowerCase();
+                    }
+                    // 搜索班员
+                    if (plan.members) {
+                        searchText += ' ' + plan.members.toLowerCase();
+                    }
+                    // 搜索票型
+                    if (plan.ticketType) {
+                        searchText += ' ' + plan.ticketType.toLowerCase();
+                    }
+                    // 搜索动火票负责人
+                    if (plan.fireWorkLeader) {
+                        searchText += ' ' + plan.fireWorkLeader.toLowerCase();
+                    }
+                    // 搜索动火执行人
+                    if (plan.fireWorkExecutor) {
+                        searchText += ' ' + plan.fireWorkExecutor.toLowerCase();
+                    }
+                    // 搜索动火监护人
+                    if (plan.fireWorkGuardian) {
+                        searchText += ' ' + plan.fireWorkGuardian.toLowerCase();
+                    }
+                    // 搜索办票人员
+                    if (plan.ticketPersonnel) {
+                        searchText += ' ' + plan.ticketPersonnel.toLowerCase();
+                    }
+                    // 搜索小组成员
+                    for (var i = 1; i <= 5; i++) {
+                        var leaderKey = 'group' + i + 'Leader';
+                        var membersKey = 'group' + i + 'Members';
+                        if (plan[leaderKey]) {
+                            searchText += ' ' + plan[leaderKey].toLowerCase();
+                        }
+                        if (plan[membersKey]) {
+                            searchText += ' ' + plan[membersKey].toLowerCase();
+                        }
+                    }
+
+                    // 匹配关键词
+                    return searchText.indexOf(searchKeyword) !== -1;
+                });
+
+                // 显示搜索结果统计
+                searchResultsDiv.style.display = 'block';
+                document.getElementById('searchCount').textContent = filteredPlans.length;
+            } else {
+                searchResultsDiv.style.display = 'none';
             }
 
             // 如果是周计划，在周二自动纳入下一周的月计划
@@ -1369,11 +1604,11 @@
             container.innerHTML = filteredPlans.map(function(plan) {
                 var personnelHtml = '';
                 if (plan.responsible) {
-                    personnelHtml += '<span style="background: #fff3e0; color: #ef6c00; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">👤 负责人: ' + escapeHtml(plan.responsible) + '</span>';
+                    personnelHtml += '<span style="background: #fff3e0; color: #ef6c00; padding: 6px 14px; border-radius: 8px; font-size: 16px; font-weight: 700; border: 2px solid #ff9800;">👤 负责人: ' + escapeHtml(plan.responsible) + '</span>';
                 }
                 if (plan.members) {
                     if (personnelHtml) personnelHtml += ' ';
-                    personnelHtml += '<span style="background: #f3e5f5; color: #7b1fa2; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">👥 班员: ' + escapeHtml(plan.members) + '</span>';
+                    personnelHtml += '<span style="background: #f3e5f5; color: #7b1fa2; padding: 6px 14px; border-radius: 8px; font-size: 16px; font-weight: 700; border: 2px solid #9c27b0;">👥 班员: ' + escapeHtml(plan.members) + '</span>';
                 }
 
                 // 显示小组信息
@@ -1383,13 +1618,13 @@
                     var membersKey = 'group' + i + 'Members';
 
                     if (plan[leaderKey] || plan[membersKey]) {
-                        if (groupsHtml) groupsHtml += '<div style="height: 8px;"></div>';
-                        var groupText = '<div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #e0e0e0;"><span style="font-size: 13px; color: #667eea; font-weight: bold;">🏷️ 小组' + i + '票</span>';
+                        if (groupsHtml) groupsHtml += '<div style="height: 10px;"></div>';
+                        var groupText = '<div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px 16px; border-radius: 10px; border: 2px solid #2196f3;"><span style="font-size: 15px; color: #1976d2; font-weight: 800;">🏷️ 小组' + i + '票</span>';
                         if (plan[leaderKey]) {
-                            groupText += '<div style="margin-top: 4px; font-size: 12px; color: #555;">👤 负责人: ' + escapeHtml(plan[leaderKey]) + '</div>';
+                            groupText += '<div style="margin-top: 6px; font-size: 15px; color: #0d47a1; font-weight: 700;">👤 负责人: ' + escapeHtml(plan[leaderKey]) + '</div>';
                         }
                         if (plan[membersKey]) {
-                            groupText += '<div style="margin-top: 2px; font-size: 12px; color: #555;">👥 组员: ' + escapeHtml(plan[membersKey]) + '</div>';
+                            groupText += '<div style="margin-top: 4px; font-size: 15px; color: #0d47a1; font-weight: 700;">👥 组员: ' + escapeHtml(plan[membersKey]) + '</div>';
                         }
                         groupText += '</div>';
                         groupsHtml += groupText;
@@ -1418,6 +1653,14 @@
                     fireWorkHtml += '</div>';
                 }
 
+                // 显示办票人员信息
+                var ticketPersonnelHtml = '';
+                if (plan.ticketPersonnel) {
+                    ticketPersonnelHtml = '<div style="margin-top: 12px; padding: 12px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 8px; border-left: 4px solid #9c27b0;">';
+                    ticketPersonnelHtml += '<div><span style="color: #9c27b0; font-weight: bold;">📝 办票人员:</span> ' + escapeHtml(plan.ticketPersonnel) + '</div>';
+                    ticketPersonnelHtml += '</div>';
+                }
+
                 // 来源标记
                 var sourceTag = '';
                 var cardClass = plan.urgencyClass || 'plan-card';
@@ -1441,6 +1684,21 @@
                     daysBadge = '<span style="background: #9e9e9e; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; margin-left: 8px;">' + diffDays + '天后</span>';
                 }
 
+                // 在已完结标签页中，不显示"进行中/已开始"，显示实际状态
+                // 在其他标签页中，显示所有状态
+                var statusBadge = '';
+                if (currentTab === 'completed') {
+                    // 已完结标签页：只显示非已完成状态
+                    if (plan.status && plan.status !== 'completed') {
+                        statusBadge = '<span style="margin-left: 8px;">📌 ' + getStatusText(plan.status) + '</span>';
+                    }
+                } else {
+                    // 其他标签页：显示所有状态
+                    if (plan.status) {
+                        statusBadge = '<span style="margin-left: 8px;">📌 ' + getStatusText(plan.status) + '</span>';
+                    }
+                }
+
                 return '<div class="' + cardClass + '">' +
                     '<div class="plan-header">' +
                     '<div>' +
@@ -1448,6 +1706,7 @@
                     '<div class="plan-meta">' +
                     '<span style="background: #e3f2fd; color: #1976d2; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' 至 ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
                     '<span style="margin-left: 8px;">⚠️ ' + getPriorityText(plan.priority) + '</span>' +
+                    statusBadge +
                     (personnelHtml ? '</div><div class="plan-meta" style="margin-top: 8px;">' + personnelHtml : '') +
                     '</div>' +
                     (groupsHtml ? '<div style="margin-top: 10px; padding: 10px; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); border-radius: 8px; border-left: 3px solid #667eea;">' + groupsHtml + '</div>' : '') +
@@ -1457,7 +1716,8 @@
                     (currentTab === 'completed' ? '' : '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">删除</button>') +
                     '</div>' +
                     '</div>' +
-                    '<div style="margin-top: 12px; padding: 12px; background: #fafafa; border-radius: 6px; color: #555; line-height: 1.6;">' + escapeHtml(plan.content) + '</div>' +
+                    '<div style="margin-top: 14px; padding: 16px; background: linear-gradient(135deg, #fff9c4 0%, #ffecb3 100%); border-radius: 10px; border-left: 5px solid #ffc107; color: #333; line-height: 1.8; font-size: 15px; font-weight: 700;">' + escapeHtml(plan.content) + '</div>' +
+                    ticketPersonnelHtml +
                     fireWorkHtml +
                     '</div>';
             }).join('');
@@ -1469,13 +1729,32 @@
                 medium: '<span style="background: #ff9800; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">中风险</span>',
                 low: '<span style="background: #4caf50; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">低风险</span>'
             };
-            return texts[priority] || '<span style="background: #9e9e9e; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px;">普通</span>';
+                return texts[priority] || '<span style="background: #9e9e9e; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px;">普通</span>';
+        }
+
+        function getStatusText(status) {
+            var texts = {
+                pending: '<span style="background: #9e9e9e; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">待开始</span>',
+                'in-progress': '<span style="background: #4caf50; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">进行中</span>',
+                paused: '<span style="background: #ff9800; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">间断中</span>',
+                completed: '<span style="background: #2196f3; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">已完成</span>'
+            };
+            return texts[status] || '<span style="background: #9e9e9e; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px;">未知</span>';
         }
 
         function escapeHtml(text) {
             var div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // 格式化日期为 date 输入框需要的格式 (YYYY-MM-DD)
+        function formatDateForInput(date) {
+            if (!date) return '';
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
         }
 
         // 格式化日期时间为 datetime-local 输入框需要的格式 (YYYY-MM-DDTHH:mm)
