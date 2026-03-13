@@ -525,6 +525,7 @@
             <button class="tab active" data-tab="weekly">周计划</button>
             <button class="tab" data-tab="monthly">月计划</button>
             <button class="tab" data-tab="completed">已完结计划</button>
+            <button class="tab" data-tab="trash" style="color: #c62828;">🗑️ 回收站 <span id="trashCount" style="display:inline-block; background:#f44336; color:white; border-radius:10px; padding:1px 7px; font-size:12px; margin-left:4px; vertical-align:middle;">0</span></button>
         </div>
 
         <!-- 统计卡片 -->
@@ -636,6 +637,45 @@
             </div>
 
             <div class="plan-list" id="planList"></div>
+        </div>
+    </div>
+
+    <!-- 删除确认对话框 -->
+    <div id="deleteConfirmModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; padding: 36px 32px; width: 360px; box-shadow: 0 12px 40px rgba(0,0,0,0.25); text-align: center;">
+            <div style="font-size: 52px; margin-bottom: 16px;">🗑️</div>
+            <div style="font-size: 18px; font-weight: 700; color: #333; margin-bottom: 10px;">移入回收站</div>
+            <div style="font-size: 14px; color: #777; margin-bottom: 28px; line-height: 1.7;">计划将移入回收站，<br>可在回收站中恢复或永久删除。</div>
+            <div style="display: flex; gap: 14px;">
+                <button id="deleteCancelBtn" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 15px; font-weight: 600; color: #555; cursor: pointer; transition: all 0.2s;">取消</button>
+                <button id="deleteConfirmBtn" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: linear-gradient(135deg, #f44336 0%, #c62828 100%); font-size: 15px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s;">移入回收站</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 永久删除确认对话框 -->
+    <div id="permanentDeleteModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; padding: 36px 32px; width: 380px; box-shadow: 0 12px 40px rgba(0,0,0,0.3); text-align: center;">
+            <div style="font-size: 52px; margin-bottom: 16px;">⚠️</div>
+            <div style="font-size: 18px; font-weight: 700; color: #b71c1c; margin-bottom: 10px;">永久删除</div>
+            <div style="font-size: 14px; color: #777; margin-bottom: 28px; line-height: 1.7;">此操作<strong style="color:#b71c1c;">不可恢复</strong>，<br>计划数据将被彻底删除！<br>确定要永久删除这条计划吗？</div>
+            <div style="display: flex; gap: 14px;">
+                <button id="permanentDeleteCancelBtn" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 15px; font-weight: 600; color: #555; cursor: pointer;">取消</button>
+                <button id="permanentDeleteConfirmBtn" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: linear-gradient(135deg, #b71c1c 0%, #7f0000 100%); font-size: 15px; font-weight: 600; color: white; cursor: pointer;">确认永久删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 恢复确认对话框 -->
+    <div id="restoreConfirmModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; padding: 36px 32px; width: 360px; box-shadow: 0 12px 40px rgba(0,0,0,0.25); text-align: center;">
+            <div style="font-size: 52px; margin-bottom: 16px;">↩️</div>
+            <div style="font-size: 18px; font-weight: 700; color: #1b5e20; margin-bottom: 10px;">恢复计划</div>
+            <div style="font-size: 14px; color: #777; margin-bottom: 28px; line-height: 1.7;">确认将这条计划从回收站恢复<br>到原来的计划列表？</div>
+            <div style="display: flex; gap: 14px;">
+                <button id="restoreCancelBtn" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 15px; font-weight: 600; color: #555; cursor: pointer;">取消</button>
+                <button id="restoreConfirmBtn" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%); font-size: 15px; font-weight: 600; color: white; cursor: pointer;">确认恢复</button>
+            </div>
         </div>
     </div>
 
@@ -853,7 +893,8 @@
         var planTypeNames = {
             weekly: '周计划',
             monthly: '月计划',
-            completed: '已完结计划'
+            completed: '已完结计划',
+            trash: '🗑️ 回收站'
         };
 
         window.onload = function() {
@@ -977,6 +1018,8 @@
                             fireWorkLeader: plan.fire_work_leader || '',
                             fireWorkExecutor: plan.fire_work_executor || '',
                             fireWorkGuardian: plan.fire_work_guardian || '',
+                            isDeleted: plan.is_deleted || false,
+                            deletedAt: plan.deleted_at || null,
                             createdAt: plan.created_at,
                             updatedAt: plan.updated_at
                         };
@@ -1044,6 +1087,37 @@
                 return Promise.reject(new Error('未连接到数据库'));
             }
 
+            // 软删除：将计划标记为已删除，移入回收站
+            return supabaseClient.from('plans')
+                .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+                .eq('id', planId)
+                .then(function(result) {
+                    if (result.error) {
+                        throw result.error;
+                    }
+                });
+        }
+
+        function restorePlanFromTrash(planId) {
+            if (!supabaseClient) {
+                return Promise.reject(new Error('未连接到数据库'));
+            }
+
+            return supabaseClient.from('plans')
+                .update({ is_deleted: false, deleted_at: null })
+                .eq('id', planId)
+                .then(function(result) {
+                    if (result.error) {
+                        throw result.error;
+                    }
+                });
+        }
+
+        function permanentDeletePlan(planId) {
+            if (!supabaseClient) {
+                return Promise.reject(new Error('未连接到数据库'));
+            }
+
             return supabaseClient.from('plans')
                 .delete()
                 .eq('id', planId)
@@ -1085,6 +1159,8 @@
                         chartContainer.style.display = 'block';
                         updateYearFilter();
                         renderChart();
+                    } else if (currentTab === 'trash') {
+                        addBtn.style.display = 'none';
                     }
 
                     renderPlans();
@@ -1326,15 +1402,23 @@
         }
 
         function updateStats() {
-            var weeklyCount = plans.filter(function(p) { return p.type === 'weekly' && p.status !== 'completed'; }).length;
-            var monthlyCount = plans.filter(function(p) { return p.type === 'monthly' && p.status !== 'completed'; }).length;
-            var completedCount = plans.filter(function(p) { return p.status === 'completed'; }).length;
-            var totalCount = plans.length;
+            var activePlans = plans.filter(function(p) { return !p.isDeleted; });
+            var weeklyCount = activePlans.filter(function(p) { return p.type === 'weekly' && p.status !== 'completed'; }).length;
+            var monthlyCount = activePlans.filter(function(p) { return p.type === 'monthly' && p.status !== 'completed'; }).length;
+            var completedCount = activePlans.filter(function(p) { return p.status === 'completed'; }).length;
+            var totalCount = activePlans.length;
+            var trashCount = plans.filter(function(p) { return p.isDeleted; }).length;
 
             document.getElementById('weeklyCount').textContent = weeklyCount;
             document.getElementById('monthlyCount').textContent = monthlyCount;
             document.getElementById('completedCount').textContent = completedCount;
             document.getElementById('totalCount').textContent = totalCount;
+
+            var trashBadge = document.getElementById('trashCount');
+            if (trashBadge) {
+                trashBadge.textContent = trashCount;
+                trashBadge.style.display = trashCount > 0 ? 'inline-block' : 'none';
+            }
         }
 
         function savePlan() {
@@ -1400,19 +1484,100 @@
         }
 
         function deletePlan(planId) {
-            if (!confirm('确定要删除这个计划吗？')) return;
+            var modal = document.getElementById('deleteConfirmModal');
+            modal.style.display = 'block';
 
-            setSyncStatus('syncing', '删除中...');
+            var confirmBtn = document.getElementById('deleteConfirmBtn');
+            var cancelBtn = document.getElementById('deleteCancelBtn');
 
-            deletePlanFromCloud(planId)
-                .then(function() {
-                    console.log('删除成功');
-                })
-                .catch(function(error) {
-                    console.error('删除失败:', error);
-                    alert('删除失败: ' + error.message);
-                    setSyncStatus('error', '删除失败');
-                });
+            // 克隆按钮以清除旧事件绑定
+            var newConfirmBtn = confirmBtn.cloneNode(true);
+            var newCancelBtn = cancelBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+            newCancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            newConfirmBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                setSyncStatus('syncing', '处理中...');
+                deletePlanFromCloud(planId)
+                    .then(function() {
+                        console.log('已移入回收站');
+                        loadPlans();
+                    })
+                    .catch(function(error) {
+                        console.error('操作失败:', error);
+                        alert('操作失败: ' + error.message);
+                        setSyncStatus('error', '操作失败');
+                    });
+            });
+        }
+
+        function restorePlan(planId) {
+            var modal = document.getElementById('restoreConfirmModal');
+            modal.style.display = 'block';
+
+            var confirmBtn = document.getElementById('restoreConfirmBtn');
+            var cancelBtn = document.getElementById('restoreCancelBtn');
+
+            var newConfirmBtn = confirmBtn.cloneNode(true);
+            var newCancelBtn = cancelBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+            newCancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            newConfirmBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                setSyncStatus('syncing', '恢复中...');
+                restorePlanFromTrash(planId)
+                    .then(function() {
+                        console.log('计划已恢复');
+                        loadPlans();
+                    })
+                    .catch(function(error) {
+                        console.error('恢复失败:', error);
+                        alert('恢复失败: ' + error.message);
+                        setSyncStatus('error', '恢复失败');
+                    });
+            });
+        }
+
+        function permanentDelete(planId) {
+            var modal = document.getElementById('permanentDeleteModal');
+            modal.style.display = 'block';
+
+            var confirmBtn = document.getElementById('permanentDeleteConfirmBtn');
+            var cancelBtn = document.getElementById('permanentDeleteCancelBtn');
+
+            var newConfirmBtn = confirmBtn.cloneNode(true);
+            var newCancelBtn = cancelBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+            newCancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            newConfirmBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                setSyncStatus('syncing', '删除中...');
+                permanentDeletePlan(planId)
+                    .then(function() {
+                        console.log('已永久删除');
+                        loadPlans();
+                    })
+                    .catch(function(error) {
+                        console.error('永久删除失败:', error);
+                        alert('永久删除失败: ' + error.message);
+                        setSyncStatus('error', '删除失败');
+                    });
+            });
         }
 
         function renderPlans() {
@@ -1423,11 +1588,61 @@
             var searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim();
             var searchResultsDiv = document.getElementById('searchResults');
 
+            // 回收站标签：显示已删除的计划
+            if (currentTab === 'trash') {
+                filteredPlans = plans.filter(function(p) { return p.isDeleted; });
+
+                // 搜索过滤
+                if (searchKeyword) {
+                    filteredPlans = filteredPlans.filter(function(plan) {
+                        var searchText = (plan.title || '') + ' ' + (plan.content || '') + ' ' + (plan.responsible || '');
+                        return searchText.toLowerCase().indexOf(searchKeyword) !== -1;
+                    });
+                    searchResultsDiv.style.display = 'block';
+                    document.getElementById('searchCount').textContent = filteredPlans.length;
+                } else {
+                    searchResultsDiv.style.display = 'none';
+                }
+
+                // 按删除时间降序
+                filteredPlans.sort(function(a, b) {
+                    return new Date(b.deletedAt || b.updatedAt) - new Date(a.deletedAt || a.updatedAt);
+                });
+
+                if (filteredPlans.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p style="font-size:1.2em;">🗑️ 回收站为空</p><p style="margin-top:10px; color:#bbb;">删除的计划会在这里显示</p></div>';
+                    return;
+                }
+
+                container.innerHTML = filteredPlans.map(function(plan) {
+                    var deletedTimeStr = plan.deletedAt ? formatDateTimeForDisplay(plan.deletedAt) : '未知时间';
+                    var typeLabel = plan.type === 'weekly' ? '周计划' : plan.type === 'monthly' ? '月计划' : '已完结';
+                    return '<div class="plan-card far" style="opacity:0.85; position:relative;">' +
+                        '<div style="position:absolute; top:12px; right:12px; display:flex; gap:8px;">' +
+                        '<button class="action-btn" style="background:linear-gradient(135deg,#43a047,#1b5e20);color:white;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;" onclick="restorePlan(\'' + escapeHtml(plan.id) + '\')" title="恢复计划">↩️ 恢复</button>' +
+                        '<button class="action-btn" style="background:linear-gradient(135deg,#b71c1c,#f44336);color:white;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;" onclick="permanentDelete(\'' + escapeHtml(plan.id) + '\')" title="永久删除">🗑️ 永久删除</button>' +
+                        '</div>' +
+                        '<div style="padding-right:180px;">' +
+                        '<div class="plan-title" style="color:#888;">' + escapeHtml(plan.title) +
+                        '<span style="margin-left:8px; background:#eeeeee; color:#9e9e9e; padding:2px 8px; border-radius:4px; font-size:11px;">' + typeLabel + '</span>' +
+                        '</div>' +
+                        '<div class="plan-meta" style="margin-top:6px;">' +
+                        '<span style="background:#eeeeee; color:#757575; padding:4px 10px; border-radius:6px; font-size:12px;">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' 至 ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
+                        '<span style="color:#bbb; font-size:12px; margin-left:10px;">🗑️ 删除于 ' + deletedTimeStr + '</span>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div style="margin-top:12px; padding:12px 16px; background:#f5f5f5; border-radius:8px; color:#888; font-size:14px; line-height:1.7;">' + escapeHtml(plan.content) + '</div>' +
+                        '</div>';
+                }).join('');
+                return;
+            }
+
             // 已完结计划标签显示所有已完成的计划
             if (currentTab === 'completed') {
                 var selectedYear = document.getElementById('yearSelect').value;
                 var selectedMonth = document.getElementById('monthSelect').value;
                 filteredPlans = plans.filter(function(p) {
+                    if (p.isDeleted) return false;
                     if (p.status !== 'completed') return false;
 
                     var planDate = new Date(p.endDate);
@@ -1455,6 +1670,7 @@
                 console.log('周计划筛选条件 - 待开始:', statusPending, '进行中:', statusInProgress, '间断中:', statusPaused);
 
                 filteredPlans = plans.filter(function(p) {
+                    if (p.isDeleted) return false;
                     // 首先排除已完成的计划
                     if (p.status === 'completed') return false;
 
@@ -1473,6 +1689,7 @@
             } else {
                 // 其他标签（月计划）显示对应类型的计划，排除已完成的
                 filteredPlans = plans.filter(function(p) {
+                    if (p.isDeleted) return false;
                     // 排除已完成的计划
                     if (p.status === 'completed') return false;
 
@@ -1969,6 +2186,8 @@
         // 暴露函数到全局作用域，供 HTML onclick 使用
         window.openModal = openModal;
         window.deletePlan = deletePlan;
+        window.restorePlan = restorePlan;
+        window.permanentDelete = permanentDelete;
 
         console.log('JavaScript 加载完成');
     </script>
