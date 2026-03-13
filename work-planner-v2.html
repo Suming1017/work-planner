@@ -649,72 +649,87 @@
             <form id="planForm">
                 <input type="hidden" id="planId">
                 <input type="hidden" id="planType">
-                
-                <div class="form-group">
-                    <label for="planTitle">立项名</label>
-                    <select id="planTitle" required>
-                        <option value="">请选择立项名</option>
-                        <option value="厚街基建">厚街基建</option>
-                        <option value="厚街中压抢修">厚街中压抢修</option>
-                        <option value="厚街低压抢修">厚街低压抢修</option>
-                        <option value="厚街保电">厚街保电</option>
-                        <option value="厚街用户">厚街用户</option>
-                        <option value="公司用户">公司用户</option>
-                    </select>
-                </div>
 
-                <div class="form-group">
-                    <label for="planTitleSuffix">立项名补充说明（可选）</label>
-                    <input type="text" id="planTitleSuffix" placeholder="请输入补充说明，如：2025年第1期">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="planTitle">立项名</label>
+                        <select id="planTitle" required style="width: 100%;">
+                            <option value="">选择立项名</option>
+                            <option value="厚街基建">厚街基建</option>
+                            <option value="厚街中压抢修">厚街中压抢修</option>
+                            <option value="厚街低压抢修">厚街低压抢修</option>
+                            <option value="厚街保电">厚街保电</option>
+                            <option value="厚街用户">厚街用户</option>
+                            <option value="公司用户">公司用户</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="planTitleSuffix">补充说明</label>
+                        <input type="text" id="planTitleSuffix" placeholder="如：2025年第1期">
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="planContent">工作内容</label>
-                    <textarea id="planContent" required placeholder="请详细描述工作内容"></textarea>
+                    <textarea id="planContent" required placeholder="请详细描述工作内容，包括具体任务、注意事项等"></textarea>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="startDate">开始时间</label>
-                        <div style="display: flex; gap: 5px; align-items: center;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
                             <input type="date" id="startDate" required style="flex: 1;">
-                            <input type="number" id="startHour" min="0" max="23" placeholder="时" style="width: 60px;" required>
-                            <span style="font-weight: bold;">:</span>
-                            <input type="number" id="startMinute" min="0" max="59" placeholder="分" style="width: 60px;" required>
+                            <input type="number" id="startHour" min="0" max="23" placeholder="时" style="width: 70px;" required>
+                            <span style="font-weight: bold; color: #666;">:</span>
+                            <input type="number" id="startMinute" min="0" max="59" placeholder="分" style="width: 70px;" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="endDate">结束时间</label>
-                        <div style="display: flex; gap: 5px; align-items: center;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
                             <input type="date" id="endDate" required style="flex: 1;">
-                            <input type="number" id="endHour" min="0" max="23" placeholder="时" style="width: 60px;" required>
-                            <span style="font-weight: bold;">:</span>
-                            <input type="number" id="endMinute" min="0" max="59" placeholder="分" style="width: 60px;" required>
+                            <input type="number" id="endHour" min="0" max="23" placeholder="时" style="width: 70px;" required>
+                            <span style="font-weight: bold; color: #666;">:</span>
+                            <input type="number" id="endMinute" min="0" max="59" placeholder="分" style="width: 70px;" required>
                         </div>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="ticketType">票型选择</label>
-                    <select id="ticketType">
-                        <option value="">请选择票型</option>
-                        <option value="线路一种票">线路一种票</option>
-                        <option value="线路二种票">线路二种票</option>
-                        <option value="书面布置记录票">书面布置记录票</option>
-                        <option value="施工作业票">施工作业票</option>
-                    </select>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ticketType">票型</label>
+                        <select id="ticketType" style="width: 100%;">
+                            <option value="">选择票型</option>
+                            <option value="线路一种票">线路一种票</option>
+                            <option value="线路二种票">线路二种票</option>
+                            <option value="书面布置记录票">书面布置记录票</option>
+                            <option value="施工作业票">施工作业票</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="equipmentStatus">电气设备</label>
+                        <select id="equipmentStatus" style="width: 100%;">
+                            <option value="none">无设备</option>
+                            <option value="not-arrived">未到货</option>
+                            <option value="pending">待试验</option>
+                            <option value="testing">试验中</option>
+                            <option value="tested">已试验</option>
+                        </select>
+                    </div>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="priority">风险等级</label>
-                        <select id="priority">
+                        <select id="priority" style="width: 100%;">
                             <option value="low" selected>低</option>
                             <option value="medium">中</option>
                             <option value="high">高</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="status">状态</label>
-                        <select id="status">
+                        <label for="status">计划状态</label>
+                        <select id="status" style="width: 100%;">
                             <option value="pending">待开始</option>
                             <option value="in-progress">进行中</option>
                             <option value="paused">间断中</option>
@@ -724,99 +739,102 @@
                 </div>
 
                 <!-- 只在周计划时显示人员信息 -->
-                <div id="personnelFields">
-                    <div class="form-row">
+                <div id="personnelFields" style="margin-top: 25px; padding-top: 20px; border-top: 3px solid #e0e0e0;">
+                    <div style="margin-bottom: 18px; font-size: 16px; font-weight: 700; color: #667eea;">👥 人员信息</div>
+
+                    <div class="form-row" style="margin-bottom: 12px;">
                         <div class="form-group">
                             <label for="responsible">负责人</label>
-                            <input type="text" id="responsible" placeholder="请输入负责人姓名">
+                            <input type="text" id="responsible" placeholder="输入负责人姓名">
                         </div>
                         <div class="form-group">
                             <label for="members">班员</label>
-                            <input type="text" id="members" placeholder="多人请用逗号分隔">
+                            <input type="text" id="members" placeholder="多人用逗号分隔">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>小组票</label>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="group1Leader">小组1负责人</label>
-                            <input type="text" id="group1Leader" placeholder="请输入小组负责人">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="margin-bottom: 8px; font-size: 15px; font-weight: 600; color: #555;">📋 小组票</label>
+                        <div class="form-row" style="margin-bottom: 10px;">
+                            <div class="form-group">
+                                <label for="group1Leader" style="font-size: 13px; color: #666;">小组1负责人</label>
+                                <input type="text" id="group1Leader" placeholder="输入小组负责人">
+                            </div>
+                            <div class="form-group">
+                                <label for="group1Members" style="font-size: 13px; color: #666;">小组1组员</label>
+                                <input type="text" id="group1Members" placeholder="多人用逗号分隔">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="group1Members">小组1组员</label>
-                            <input type="text" id="group1Members" placeholder="多人请用逗号分隔">
+                        <div class="form-row" style="margin-bottom: 10px;">
+                            <div class="form-group">
+                                <label for="group2Leader" style="font-size: 13px; color: #666;">小组2负责人</label>
+                                <input type="text" id="group2Leader" placeholder="输入小组负责人">
+                            </div>
+                            <div class="form-group">
+                                <label for="group2Members" style="font-size: 13px; color: #666;">小组2组员</label>
+                                <input type="text" id="group2Members" placeholder="多人用逗号分隔">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="group2Leader">小组2负责人</label>
-                            <input type="text" id="group2Leader" placeholder="请输入小组负责人">
+                        <div class="form-row" style="margin-bottom: 10px;">
+                            <div class="form-group">
+                                <label for="group3Leader" style="font-size: 13px; color: #666;">小组3负责人</label>
+                                <input type="text" id="group3Leader" placeholder="输入小组负责人">
+                            </div>
+                            <div class="form-group">
+                                <label for="group3Members" style="font-size: 13px; color: #666;">小组3组员</label>
+                                <input type="text" id="group3Members" placeholder="多人用逗号分隔">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="group2Members">小组2组员</label>
-                            <input type="text" id="group2Members" placeholder="多人请用逗号分隔">
+                        <div class="form-row" style="margin-bottom: 10px;">
+                            <div class="form-group">
+                                <label for="group4Leader" style="font-size: 13px; color: #666;">小组4负责人</label>
+                                <input type="text" id="group4Leader" placeholder="输入小组负责人">
+                            </div>
+                            <div class="form-group">
+                                <label for="group4Members" style="font-size: 13px; color: #666;">小组4组员</label>
+                                <input type="text" id="group4Members" placeholder="多人用逗号分隔">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="group3Leader">小组3负责人</label>
-                            <input type="text" id="group3Leader" placeholder="请输入小组负责人">
-                        </div>
-                        <div class="form-group">
-                            <label for="group3Members">小组3组员</label>
-                            <input type="text" id="group3Members" placeholder="多人请用逗号分隔">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="group4Leader">小组4负责人</label>
-                            <input type="text" id="group4Leader" placeholder="请输入小组负责人">
-                        </div>
-                        <div class="form-group">
-                            <label for="group4Members">小组4组员</label>
-                            <input type="text" id="group4Members" placeholder="多人请用逗号分隔">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="group5Leader">小组5负责人</label>
-                            <input type="text" id="group5Leader" placeholder="请输入小组负责人">
-                        </div>
-                        <div class="form-group">
-                            <label for="group5Members">小组5组员</label>
-                            <input type="text" id="group5Members" placeholder="多人请用逗号分隔">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="group5Leader" style="font-size: 13px; color: #666;">小组5负责人</label>
+                                <input type="text" id="group5Leader" placeholder="输入小组负责人">
+                            </div>
+                            <div class="form-group">
+                                <label for="group5Members" style="font-size: 13px; color: #666;">小组5组员</label>
+                                <input type="text" id="group5Members" placeholder="多人用逗号分隔">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-row" style="margin-top: 15px; padding-top: 15px; border-top: 2px dashed #e0e0e0;">
+                    <div class="form-row" style="margin-top: 20px; padding-top: 15px; border-top: 2px dashed #e0e0e0;">
                         <div class="form-group">
                             <label for="fireWorkLeader" style="color: #f44336;">🔥 动火票负责人</label>
-                            <input type="text" id="fireWorkLeader" placeholder="请输入动火票负责人">
+                            <input type="text" id="fireWorkLeader" placeholder="输入动火票负责人">
                         </div>
                         <div class="form-group">
                             <label for="fireWorkExecutor" style="color: #ff9800;">⚡ 动火执行人</label>
-                            <input type="text" id="fireWorkExecutor" placeholder="请输入动火执行人">
+                            <input type="text" id="fireWorkExecutor" placeholder="输入动火执行人">
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row" style="margin-bottom: 20px;">
                         <div class="form-group">
                             <label for="fireWorkGuardian" style="color: #2196f3;">🛡️ 动火监护人</label>
-                            <input type="text" id="fireWorkGuardian" placeholder="请输入动火监护人">
+                            <input type="text" id="fireWorkGuardian" placeholder="输入动火监护人">
                         </div>
                     </div>
 
-                    <div class="form-row" style="margin-top: 15px; padding-top: 15px; border-top: 2px dashed #e0e0e0;">
-                        <div class="form-group">
+                    <div class="form-row" style="margin-top: 20px; padding-top: 15px; border-top: 2px dashed #e0e0e0;">
+                        <div class="form-group" style="flex: 1;">
                             <label for="ticketPersonnel" style="color: #9c27b0;">📝 办票人员</label>
-                            <input type="text" id="ticketPersonnel" placeholder="请输入办票人员姓名">
+                            <input type="text" id="ticketPersonnel" placeholder="输入办票人员姓名" style="width: 100%;">
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="submit" class="save-btn">保存</button>
-                    <button type="button" class="cancel-btn" id="cancelBtn">取消</button>
+                    <button type="submit" class="save-btn">💾 保存</button>
+                    <button type="button" class="cancel-btn" id="cancelBtn">✖ 取消</button>
                 </div>
             </form>
         </div>
@@ -942,6 +960,7 @@
                             ticketType: plan.ticket_type,
                             priority: plan.priority,
                             status: plan.status,
+                            equipmentStatus: plan.equipment_status || '',
                             responsible: plan.responsible || '',
                             members: plan.members || '',
                             group1Leader: plan.group1_leader || '',
@@ -989,6 +1008,7 @@
                 ticket_type: planData.ticketType,
                 priority: planData.priority,
                 status: planData.status,
+                equipment_status: planData.equipmentStatus,
                 responsible: planData.responsible,
                 members: planData.members,
                 group1_leader: planData.group1Leader,
@@ -1252,6 +1272,7 @@
                     document.getElementById('ticketType').value = plan.ticketType || '';
                     document.getElementById('priority').value = plan.priority;
                     document.getElementById('status').value = plan.status;
+                    document.getElementById('equipmentStatus').value = plan.equipmentStatus || '';
 
                     // 只在周计划和月计划时填充人员信息
                     if (plan.type === 'weekly' || plan.type === 'monthly') {
@@ -1345,6 +1366,7 @@
                 ticketType: document.getElementById('ticketType').value,
                 priority: document.getElementById('priority').value,
                 status: document.getElementById('status').value,
+                equipmentStatus: document.getElementById('equipmentStatus').value,
                 responsible: document.getElementById('responsible').value,
                 members: document.getElementById('members').value,
                 group1Leader: document.getElementById('group1Leader').value,
@@ -1699,13 +1721,20 @@
                     }
                 }
 
+                // 显示电气设备状态
+                var equipmentBadge = '';
+                if (plan.equipmentStatus) {
+                    equipmentBadge = '<span style="margin-left: 8px;">🔧 ' + getEquipmentStatusText(plan.equipmentStatus) + '</span>';
+                }
+
                 return '<div class="' + cardClass + '">' +
                     '<div class="plan-header">' +
                     '<div>' +
                     '<div class="plan-title">' + escapeHtml(plan.title) + sourceTag + daysBadge + ticketHtml + '</div>' +
                     '<div class="plan-meta">' +
-                    '<span style="background: #e3f2fd; color: #1976d2; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' 至 ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
-                    '<span style="margin-left: 8px;">⚠️ ' + getPriorityText(plan.priority) + '</span>' +
+                    '<span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #5568d3;">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' 至 ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
+                    '<span style="margin-left: 10px;">⚠️ ' + getPriorityText(plan.priority) + '</span>' +
+                    equipmentBadge +
                     statusBadge +
                     (personnelHtml ? '</div><div class="plan-meta" style="margin-top: 8px;">' + personnelHtml : '') +
                     '</div>' +
@@ -1725,21 +1754,32 @@
 
         function getPriorityText(priority) {
             var texts = {
-                high: '<span style="background: #ff5252; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">高风险</span>',
-                medium: '<span style="background: #ff9800; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">中风险</span>',
-                low: '<span style="background: #4caf50; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">低风险</span>'
+                high: '<span style="background: #ff5252; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #ff1744;">高风险</span>',
+                medium: '<span style="background: #ff9800; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #f57c00;">中风险</span>',
+                low: '<span style="background: #4caf50; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #388e3c;">低风险</span>'
             };
-                return texts[priority] || '<span style="background: #9e9e9e; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px;">普通</span>';
+                return texts[priority] || '<span style="background: #9e9e9e; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; border: 1px solid #757575;">普通</span>';
         }
 
         function getStatusText(status) {
             var texts = {
-                pending: '<span style="background: #9e9e9e; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">待开始</span>',
-                'in-progress': '<span style="background: #4caf50; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">进行中</span>',
-                paused: '<span style="background: #ff9800; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">间断中</span>',
-                completed: '<span style="background: #2196f3; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">已完成</span>'
+                pending: '<span style="background: #9e9e9e; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #757575;">待开始</span>',
+                'in-progress': '<span style="background: #4caf50; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #388e3c;">进行中</span>',
+                paused: '<span style="background: #ff9800; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #f57c00;">间断中</span>',
+                completed: '<span style="background: #2196f3; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #1565c0;">已完成</span>'
             };
-            return texts[status] || '<span style="background: #9e9e9e; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px;">未知</span>';
+            return texts[status] || '<span style="background: #9e9e9e; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; border: 1px solid #757575;">未知</span>';
+        }
+
+        function getEquipmentStatusText(status) {
+            var texts = {
+                'none': '<span style="background: #9e9e9e; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #757575;">无设备</span>',
+                'not-arrived': '<span style="background: #ff5722; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #d84315;">未到货</span>',
+                'pending': '<span style="background: #ff9800; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #f57c00;">待试验</span>',
+                'testing': '<span style="background: #2196f3; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #1565c0;">试验中</span>',
+                'tested': '<span style="background: #4caf50; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #388e3c;">已试验</span>'
+            };
+            return texts[status] || '<span style="background: #9e9e9e; color: white; padding: 4px 11px; border-radius: 8px; font-size: 12px; border: 1px solid #757575;">未知</span>';
         }
 
         function escapeHtml(text) {
