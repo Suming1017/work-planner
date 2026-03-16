@@ -2,170 +2,185 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新意念计划管理系统 - 云端版</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ===== 设计令牌 ===== */
+        :root {
+            --primary: #5c6bc0;
+            --primary-dark: #3949ab;
+            --primary-light: #e8eaf6;
+            --primary-grad: linear-gradient(135deg, #5c6bc0 0%, #7c4dbb 100%);
+
+            --success: #43a047;
+            --warning: #fb8c00;
+            --danger:  #e53935;
+            --info:    #1e88e5;
+            --gray:    #757575;
+
+            --bg-body:    #eef0f8;
+            --bg-card:    #ffffff;
+            --bg-subtle:  #f7f8fc;
+
+            --border:     #e8eaf0;
+            --radius-sm:  8px;
+            --radius-md:  12px;
+            --radius-lg:  16px;
+            --radius-xl:  24px;
+
+            --shadow-sm:  0 1px 4px rgba(92,107,192,0.08);
+            --shadow-md:  0 4px 16px rgba(92,107,192,0.12);
+            --shadow-lg:  0 8px 32px rgba(92,107,192,0.16);
+
+            --text-primary:   #1a1f36;
+            --text-secondary: #5a607a;
+            --text-muted:     #9ea7c4;
+
+            --font: 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: var(--font);
+            background: var(--bg-body);
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px 20px;
+            color: var(--text-primary);
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1400px; margin: 0 auto; }
 
+        /* ===== Header ===== */
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            background: var(--bg-card);
+            padding: 24px 32px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
             margin-bottom: 20px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .header h1 {
-            color: #333;
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            color: var(--text-primary);
+            font-size: 1.6em;
+            font-weight: 700;
+            letter-spacing: 0.3px;
         }
 
         .header p {
-            color: #666;
-            font-size: 1.1em;
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
+        /* ===== 同步状态 ===== */
         .sync-status {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
+            gap: 7px;
+            padding: 6px 14px;
             background: #e8f5e9;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             color: #2e7d32;
-            margin-left: 20px;
+            font-weight: 600;
         }
-
-        .sync-status.syncing {
-            background: #fff3e0;
-            color: #ef6c00;
-        }
-
-        .sync-status.error {
-            background: #ffebee;
-            color: #c62828;
-        }
+        .sync-status.syncing { background: #fff3e0; color: #e65100; }
+        .sync-status.error   { background: #ffebee; color: #c62828; }
 
         .sync-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px; height: 7px;
             border-radius: 50%;
             background: #4caf50;
             animation: pulse 2s infinite;
         }
-
-        .sync-status.syncing .sync-dot {
-            background: #ff9800;
-            animation: pulse 0.5s infinite;
-        }
-
-        .sync-status.error .sync-dot {
-            background: #f44336;
-        }
+        .sync-status.syncing .sync-dot { background: #ff9800; animation: pulse 0.5s infinite; }
+        .sync-status.error   .sync-dot { background: #f44336; animation: none; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50%       { opacity: 0.4; }
         }
 
+        /* ===== Tabs ===== */
         .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 18px;
             flex-wrap: wrap;
         }
 
         .tab {
-            padding: 15px 30px;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            border-radius: 12px;
+            padding: 11px 24px;
+            background: var(--bg-card);
+            border: 2px solid transparent;
+            border-radius: var(--radius-xl);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            color: #555;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            letter-spacing: 0.2px;
         }
-
         .tab:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: var(--shadow-md);
         }
-
         .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-grad);
             color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 16px rgba(92,107,192,0.35);
         }
 
-        .content-area {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            min-height: 600px;
-        }
-
+        /* ===== 统计卡片 ===== */
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: var(--bg-card);
+            padding: 18px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
             display: flex;
             align-items: center;
-            gap: 15px;
-            transition: transform 0.3s ease;
+            gap: 14px;
+            transition: box-shadow 0.2s, transform 0.2s;
+            border-left: 4px solid transparent;
         }
+        .stat-card:nth-child(1) { border-left-color: var(--primary); }
+        .stat-card:nth-child(2) { border-left-color: var(--info); }
+        .stat-card:nth-child(3) { border-left-color: var(--success); }
+        .stat-card:nth-child(4) { border-left-color: var(--gray); }
+        .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
+        .stat-icon { font-size: 2em; opacity: 0.85; }
+        .stat-info { flex: 1; }
+        .stat-label { color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .stat-value { color: var(--text-primary); font-size: 1.9em; font-weight: 700; line-height: 1; }
 
-        .stat-icon {
-            font-size: 2.5em;
-            opacity: 0.8;
-        }
-
-        .stat-info {
-            flex: 1;
-        }
-
-        .stat-label {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .stat-value {
-            color: #333;
-            font-size: 1.8em;
-            font-weight: 700;
+        /* ===== 内容区 ===== */
+        .content-area {
+            background: var(--bg-card);
+            padding: 28px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            min-height: 600px;
         }
 
         .section-header {
@@ -173,85 +188,81 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #eee;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
         }
 
         .section-header h2 {
-            color: #333;
-            font-size: 1.8em;
+            color: var(--text-primary);
+            font-size: 1.5em;
+            font-weight: 700;
         }
 
+        /* ===== 按钮 ===== */
         .add-btn {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 22px;
+            background: var(--primary-grad);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-xl);
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(92,107,192,0.3);
+            letter-spacing: 0.2px;
         }
-
         .add-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 18px rgba(92,107,192,0.4);
         }
 
-        .plan-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+        /* ===== 计划列表 ===== */
+        .plan-list { display: flex; flex-direction: column; gap: 12px; }
 
         .plan-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border-left: 5px solid #667eea;
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            background: var(--bg-card);
+            border-left: 4px solid var(--primary);
+            border-radius: var(--radius-md);
+            padding: 20px 22px;
+            transition: box-shadow 0.2s, transform 0.2s;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            border-left-width: 4px;
+            border-left-color: var(--primary);
         }
 
-        /* 临近日期的计划 - 红色高亮 */
         .plan-card.urgent {
-            background: linear-gradient(135deg, #fff3e0 0%, #ffebee 100%);
-            border-left: 5px solid #ff5722;
-            box-shadow: 0 4px 16px rgba(255, 87, 34, 0.35);
+            background: linear-gradient(135deg, #fff8f7 0%, #fff3f3 100%);
+            border-left-color: var(--danger);
+            box-shadow: 0 2px 12px rgba(229,57,53,0.12);
         }
+        .plan-card.urgent .plan-title { color: var(--danger); }
 
-        .plan-card.urgent .plan-title {
-            color: #d32f2f;
-        }
-
-        /* 近期计划 - 黄色高亮 */
         .plan-card.near {
-            background: linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);
-            border-left: 5px solid #ff9800;
-            box-shadow: 0 3px 12px rgba(255, 152, 0, 0.25);
+            background: linear-gradient(135deg, #fffdf5 0%, #fff8e8 100%);
+            border-left-color: var(--warning);
+            box-shadow: 0 2px 12px rgba(251,140,0,0.10);
         }
 
-        /* 普通计划 - 绿色 */
         .plan-card.normal {
-            background: linear-gradient(135deg, #f1f8e9 0%, #ffffff 100%);
-            border-left: 5px solid #4caf50;
+            background: linear-gradient(135deg, #f6fbf6 0%, #ffffff 100%);
+            border-left-color: var(--success);
         }
 
-        /* 已过期或较远计划 - 灰色 */
         .plan-card.far {
-            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
-            border-left: 5px solid #9e9e9e;
-            opacity: 0.8;
+            background: var(--bg-subtle);
+            border-left-color: #c5cae9;
+            opacity: 0.85;
         }
 
         .plan-card.from-monthly {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-left: 5px solid #1976d2;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+            border-left-color: var(--info);
         }
 
         .plan-card:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: var(--shadow-md);
             transform: translateY(-2px);
         }
 
@@ -259,260 +270,175 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
         }
 
         .plan-title {
-            font-size: 1.25em;
+            font-size: 1.1em;
             font-weight: 700;
-            color: #333;
-            margin-bottom: 12px;
-            letter-spacing: 0.5px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+            line-height: 1.4;
         }
 
         .plan-meta {
             display: flex;
-            gap: 12px;
-            color: #666;
-            font-size: 0.9em;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 13px;
             align-items: center;
             flex-wrap: wrap;
         }
 
-        .plan-actions {
-            display: flex;
-            gap: 10px;
-        }
+        .plan-actions { display: flex; gap: 8px; }
 
         .action-btn {
-            padding: 6px 15px;
+            padding: 6px 14px;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--radius-xl);
             cursor: pointer;
             font-size: 12px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            letter-spacing: 0.2px;
         }
+        .edit-btn   { background: #fff8e1; color: #f57c00; border: 1px solid #ffe082; }
+        .delete-btn { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .action-btn:hover { transform: scale(1.05); box-shadow: var(--shadow-sm); }
 
-        .edit-btn {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .delete-btn {
-            background: #dc3545;
-            color: white;
-        }
-
-        .action-btn:hover {
-            transform: scale(1.05);
-        }
-
+        /* ===== 弹窗 ===== */
         .modal {
             display: none;
             position: fixed;
             z-index: 99999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(26,31,54,0.55);
+            backdrop-filter: blur(2px);
         }
-
-        .modal.show {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        .modal.show { display: flex; justify-content: center; align-items: center; }
 
         .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
+            background: var(--bg-card);
+            padding: 32px;
+            border-radius: var(--radius-lg);
             width: 90%;
             max-width: 700px;
-            max-height: 85vh;
+            max-height: 88vh;
             overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 16px 56px rgba(26,31,54,0.28);
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #eee;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
         }
+        .modal-header h3 { color: var(--text-primary); font-size: 1.4em; font-weight: 700; }
 
-        .modal-header h3 {
-            color: #333;
-            font-size: 1.5em;
-        }
+        .close-btn { background: none; border: none; font-size: 26px; cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
+        .close-btn:hover { color: var(--text-primary); }
 
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: #999;
-        }
-
-        .close-btn:hover {
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
+        /* ===== 表单 ===== */
+        .form-group { margin-bottom: 18px; }
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
+            margin-bottom: 7px;
+            color: var(--text-secondary);
             font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.3px;
         }
-
         .form-group input,
         .form-group textarea,
         .form-group select {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 11px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
             font-size: 14px;
             box-sizing: border-box;
+            color: var(--text-primary);
+            background: var(--bg-subtle);
+            transition: border-color 0.2s, box-shadow 0.2s;
             user-select: text;
             -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
         }
-
         .form-group input:focus,
         .form-group textarea:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(92,107,192,0.12);
         }
+        .form-group textarea { resize: vertical; min-height: 90px; }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 15px;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-        }
+        .form-row { display: flex; gap: 14px; }
+        .form-row .form-group { flex: 1; }
 
         .modal-actions {
             display: flex;
-            gap: 15px;
-            margin-top: 25px;
-            padding-bottom: 10px;
+            gap: 12px;
+            margin-top: 24px;
+            padding-bottom: 8px;
         }
-
         .modal-actions button {
             flex: 1;
             padding: 12px;
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-xl);
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s;
         }
-
         .save-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-grad);
             color: white;
+            box-shadow: 0 2px 8px rgba(92,107,192,0.3);
         }
+        .save-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(92,107,192,0.4); }
+        .cancel-btn { background: var(--bg-subtle); color: var(--text-secondary); border: 1.5px solid var(--border); }
+        .cancel-btn:hover { background: var(--border); }
 
-        .cancel-btn {
-            background: #e0e0e0;
-            color: #333;
-        }
+        /* ===== 空状态 ===== */
+        .empty-state { text-align: center; padding: 64px 20px; color: var(--text-muted); }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-
-        /* 柱状图样式 */
+        /* ===== 图表 ===== */
         .chart-container {
             display: flex;
             align-items: flex-end;
             justify-content: space-around;
             height: 250px;
             padding: 20px 0;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid var(--border);
         }
-
-        .chart-bar {
-            flex: 1;
-            max-width: 80px;
-            margin: 0 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
+        .chart-bar { flex: 1; max-width: 80px; margin: 0 10px; display: flex; flex-direction: column; align-items: center; position: relative; }
         .chart-bar-value {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 8px 8px 0 0;
+            background: var(--primary-grad);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
             transition: height 0.3s ease;
             position: relative;
             min-width: 50px;
         }
-
-        .chart-bar-value:hover {
-            opacity: 0.8;
-        }
-
-        .chart-bar-label {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #555;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .chart-bar-count {
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 14px;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 13px;
-            color: #555;
-        }
-
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
+        .chart-bar-value:hover { opacity: 0.82; }
+        .chart-bar-label { margin-top: 10px; font-size: 12px; color: var(--text-secondary); text-align: center; font-weight: 600; }
+        .chart-bar-count { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 14px; font-weight: 700; color: var(--primary); }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--text-secondary); }
+        .legend-color { width: 14px; height: 14px; border-radius: 4px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1>📋 新意念计划管理系统 - 云端版</h1>
+            <h1>📋 新意念计划管理系统</h1>
             <p>
-                自动保存到云端，多人实时协作
+                多人实时协作 · 自动云端同步
                 <span class="sync-status" id="syncStatus">
                     <span class="sync-dot"></span>
                     <span id="syncText">连接中...</span>
@@ -567,50 +493,74 @@
             </div>
 
             <!-- 全局搜索框 -->
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 18px;">
                 <div class="form-group" style="margin-bottom: 0;">
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <input type="text" id="searchInput" placeholder="🔍 搜索计划（立项名、工作内容、负责人、票型...）"
-                               style="flex: 1; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
-                        <button id="clearSearchBtn" style="padding: 12px 20px; background: #f5f5f5; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-size: 14px;">清空</button>
+                               style="flex: 1; padding: 11px 16px; border: 1.5px solid var(--border); border-radius: 24px; font-size: 14px; background: var(--bg-subtle); color: var(--text-primary); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                               onfocus="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px rgba(92,107,192,0.12)';this.style.background='white'"
+                               onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none';this.style.background='var(--bg-subtle)'">
+                        <button id="clearSearchBtn" style="padding: 11px 20px; background: var(--bg-subtle); border: 1.5px solid var(--border); border-radius: 24px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-secondary); transition: all 0.2s;"
+                            onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+                            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">清空</button>
                     </div>
                 </div>
-                <div id="searchResults" style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-radius: 8px; display: none;">
-                    <span style="color: #1976d2; font-weight: 600;">找到 <span id="searchCount">0</span> 个匹配计划</span>
+                <div id="searchResults" style="margin-top: 10px; padding: 10px 16px; background: var(--primary-light); border-radius: 8px; display: none; border-left: 3px solid var(--primary);">
+                    <span style="color: var(--primary-dark); font-weight: 600; font-size: 13px;">找到 <span id="searchCount">0</span> 个匹配计划</span>
                 </div>
             </div>
 
             <!-- 状态筛选器（仅周计划显示） -->
             <div id="weeklyStatusFilter" style="display: none; margin-bottom: 25px; padding: 0;">
-                <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.3s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
-                        <input type="checkbox" id="statusPending" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #9e9e9e;">
-                        <span style="font-size: 14px; font-weight: 600; color: #555;">待开始</span>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 18px; background: white; border-radius: 20px; border: 2px solid #9e9e9e; transition: all 0.2s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.06); user-select: none;"
+                        id="label-statusPending"
+                        onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.12)'"
+                        onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.06)'">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#9e9e9e; flex-shrink:0;"></span>
+                        <input type="checkbox" id="statusPending" checked style="display:none;">
+                        <span style="font-size: 13px; font-weight: 600; color: #666; white-space:nowrap;">待开始</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.3s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
-                        <input type="checkbox" id="statusInProgress" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #4caf50;">
-                        <span style="font-size: 14px; font-weight: 600; color: #555;">进行中</span>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 18px; background: white; border-radius: 20px; border: 2px solid #4caf50; transition: all 0.2s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.06); user-select: none;"
+                        id="label-statusInProgress"
+                        onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.12)'"
+                        onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.06)'">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#4caf50; flex-shrink:0;"></span>
+                        <input type="checkbox" id="statusInProgress" checked style="display:none;">
+                        <span style="font-size: 13px; font-weight: 600; color: #388e3c; white-space:nowrap;">进行中</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.3s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
-                        <input type="checkbox" id="statusPaused" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #ff9800;">
-                        <span style="font-size: 14px; font-weight: 600; color: #555;">间断中</span>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 18px; background: white; border-radius: 20px; border: 2px solid #ff9800; transition: all 0.2s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.06); user-select: none;"
+                        id="label-statusPaused"
+                        onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.12)'"
+                        onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.06)'">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ff9800; flex-shrink:0;"></span>
+                        <input type="checkbox" id="statusPaused" checked style="display:none;">
+                        <span style="font-size: 13px; font-weight: 600; color: #e65100; white-space:nowrap;">间断中</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 18px; background: white; border-radius: 20px; border: 2px solid #1976d2; transition: all 0.2s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.06); user-select: none;"
+                        id="label-showNextWeek"
+                        onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.12)'"
+                        onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.06)'">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#1976d2; flex-shrink:0;"></span>
+                        <input type="checkbox" id="showNextWeek" checked style="display:none;">
+                        <span style="font-size: 13px; font-weight: 600; color: #1565c0; white-space:nowrap;">下周计划</span>
                     </label>
                 </div>
             </div>
 
             <!-- 年份筛选器和图表按钮（仅已完结计划显示） -->
-            <div id="yearFilter" style="display: none; margin-bottom: 25px; padding: 18px 22px; background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%); border-radius: 12px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);">
-                <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+            <div id="yearFilter" style="display: none; margin-bottom: 20px; padding: 16px 20px; background: var(--bg-subtle); border-radius: var(--radius-md); border-left: 4px solid var(--primary); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 15px; font-weight: 700; color: #333;">📅 按年份筛选:</span>
-                        <select id="yearSelect" style="padding: 10px 14px; border-radius: 8px; border: 2px solid #e0e0e0; font-size: 14px; background: white; cursor: pointer; transition: border-color 0.3s ease;">
-                            <option value="">全部年份</option>
+                        <span style="font-size: 13px; font-weight: 700; color: var(--text-secondary);">📅 年份</span>
+                        <select id="yearSelect" style="padding: 8px 12px; border-radius: var(--radius-xl); border: 1.5px solid var(--border); font-size: 13px; background: white; cursor: pointer; color: var(--text-primary); outline: none;">
+                            <option value="">全部</option>
                         </select>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 15px; font-weight: 700; color: #333;">📆 按月份筛选:</span>
-                        <select id="monthSelect" style="padding: 10px 14px; border-radius: 8px; border: 2px solid #e0e0e0; font-size: 14px; background: white; cursor: pointer; transition: border-color 0.3s ease;">
-                            <option value="">全部月份</option>
+                        <span style="font-size: 13px; font-weight: 700; color: var(--text-secondary);">📆 月份</span>
+                        <select id="monthSelect" style="padding: 8px 12px; border-radius: var(--radius-xl); border: 1.5px solid var(--border); font-size: 13px; background: white; cursor: pointer; color: var(--text-primary); outline: none;">
+                            <option value="">全部</option>
                             <option value="1">1月</option>
                             <option value="2">2月</option>
                             <option value="3">3月</option>
@@ -625,13 +575,13 @@
                             <option value="12">12月</option>
                         </select>
                     </div>
-                    <button class="add-btn" id="toggleChartBtn" style="padding: 10px 20px;">📊 显示统计图表</button>
+                    <button class="add-btn" id="toggleChartBtn" style="padding: 9px 18px; font-size: 13px;">📊 统计图表</button>
                 </div>
             </div>
 
             <!-- 统计图表（仅已完结计划显示，默认隐藏） -->
-            <div id="chartContainer" style="display: none; margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 12px;">
-                <h3 style="margin-bottom: 15px; color: #333;">已完结计划统计（按立项名）</h3>
+            <div id="chartContainer" style="display: none; margin-bottom: 20px; padding: 20px; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                <h3 style="margin-bottom: 15px; color: var(--text-primary); font-size: 15px; font-weight: 700;">已完结计划统计（按立项名）</h3>
                 <div id="chartCanvas" style="height: 300px; position: relative;"></div>
                 <div id="chartLegend" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px;"></div>
             </div>
@@ -640,44 +590,46 @@
         </div>
     </div>
 
+
     <!-- 删除确认对话框 -->
-    <div id="deleteConfirmModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; padding: 36px 32px; width: 360px; box-shadow: 0 12px 40px rgba(0,0,0,0.25); text-align: center;">
-            <div style="font-size: 52px; margin-bottom: 16px;">🗑️</div>
-            <div style="font-size: 18px; font-weight: 700; color: #333; margin-bottom: 10px;">移入回收站</div>
-            <div style="font-size: 14px; color: #777; margin-bottom: 28px; line-height: 1.7;">计划将移入回收站，<br>可在回收站中恢复或永久删除。</div>
-            <div style="display: flex; gap: 14px;">
-                <button id="deleteCancelBtn" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 15px; font-weight: 600; color: #555; cursor: pointer; transition: all 0.2s;">取消</button>
-                <button id="deleteConfirmBtn" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: linear-gradient(135deg, #f44336 0%, #c62828 100%); font-size: 15px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s;">移入回收站</button>
+    <div id="deleteConfirmModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26,31,54,0.55); backdrop-filter: blur(2px);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 36px 32px; width: 360px; box-shadow: 0 16px 56px rgba(26,31,54,0.25); text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 14px;">🗑️</div>
+            <div style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">移入回收站</div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; line-height: 1.8;">计划将移入回收站，<br>可在回收站中恢复或永久删除。</div>
+            <div style="display: flex; gap: 12px;">
+                <button id="deleteCancelBtn" style="flex: 1; padding: 11px; border: 1.5px solid var(--border); border-radius: 24px; background: white; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.2s;">取消</button>
+                <button id="deleteConfirmBtn" style="flex: 1; padding: 11px; border: none; border-radius: 24px; background: linear-gradient(135deg, #e53935 0%, #c62828 100%); font-size: 14px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(229,57,53,0.3);">移入回收站</button>
             </div>
         </div>
     </div>
 
     <!-- 永久删除确认对话框 -->
-    <div id="permanentDeleteModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; padding: 36px 32px; width: 380px; box-shadow: 0 12px 40px rgba(0,0,0,0.3); text-align: center;">
-            <div style="font-size: 52px; margin-bottom: 16px;">⚠️</div>
-            <div style="font-size: 18px; font-weight: 700; color: #b71c1c; margin-bottom: 10px;">永久删除</div>
-            <div style="font-size: 14px; color: #777; margin-bottom: 28px; line-height: 1.7;">此操作<strong style="color:#b71c1c;">不可恢复</strong>，<br>计划数据将被彻底删除！<br>确定要永久删除这条计划吗？</div>
-            <div style="display: flex; gap: 14px;">
-                <button id="permanentDeleteCancelBtn" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 15px; font-weight: 600; color: #555; cursor: pointer;">取消</button>
-                <button id="permanentDeleteConfirmBtn" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: linear-gradient(135deg, #b71c1c 0%, #7f0000 100%); font-size: 15px; font-weight: 600; color: white; cursor: pointer;">确认永久删除</button>
+    <div id="permanentDeleteModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26,31,54,0.65); backdrop-filter: blur(2px);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 36px 32px; width: 380px; box-shadow: 0 16px 56px rgba(26,31,54,0.28); text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 14px;">⚠️</div>
+            <div style="font-size: 17px; font-weight: 700; color: #b71c1c; margin-bottom: 8px;">永久删除</div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; line-height: 1.8;">此操作<strong style="color:#c62828;">不可恢复</strong>，<br>计划数据将被彻底删除！</div>
+            <div style="display: flex; gap: 12px;">
+                <button id="permanentDeleteCancelBtn" style="flex: 1; padding: 11px; border: 1.5px solid var(--border); border-radius: 24px; background: white; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer;">取消</button>
+                <button id="permanentDeleteConfirmBtn" style="flex: 1; padding: 11px; border: none; border-radius: 24px; background: linear-gradient(135deg, #b71c1c 0%, #7f0000 100%); font-size: 14px; font-weight: 600; color: white; cursor: pointer; box-shadow: 0 2px 8px rgba(183,28,28,0.3);">确认永久删除</button>
             </div>
         </div>
     </div>
 
     <!-- 恢复确认对话框 -->
-    <div id="restoreConfirmModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; padding: 36px 32px; width: 360px; box-shadow: 0 12px 40px rgba(0,0,0,0.25); text-align: center;">
-            <div style="font-size: 52px; margin-bottom: 16px;">↩️</div>
-            <div style="font-size: 18px; font-weight: 700; color: #1b5e20; margin-bottom: 10px;">恢复计划</div>
-            <div style="font-size: 14px; color: #777; margin-bottom: 28px; line-height: 1.7;">确认将这条计划从回收站恢复<br>到原来的计划列表？</div>
-            <div style="display: flex; gap: 14px;">
-                <button id="restoreCancelBtn" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; font-size: 15px; font-weight: 600; color: #555; cursor: pointer;">取消</button>
-                <button id="restoreConfirmBtn" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%); font-size: 15px; font-weight: 600; color: white; cursor: pointer;">确认恢复</button>
+    <div id="restoreConfirmModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26,31,54,0.55); backdrop-filter: blur(2px);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 36px 32px; width: 360px; box-shadow: 0 16px 56px rgba(26,31,54,0.25); text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 14px;">↩️</div>
+            <div style="font-size: 17px; font-weight: 700; color: #1b5e20; margin-bottom: 8px;">恢复计划</div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; line-height: 1.8;">确认将这条计划从回收站恢复<br>到原来的计划列表？</div>
+            <div style="display: flex; gap: 12px;">
+                <button id="restoreCancelBtn" style="flex: 1; padding: 11px; border: 1.5px solid var(--border); border-radius: 24px; background: white; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer;">取消</button>
+                <button id="restoreConfirmBtn" style="flex: 1; padding: 11px; border: none; border-radius: 24px; background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%); font-size: 14px; font-weight: 600; color: white; cursor: pointer; box-shadow: 0 2px 8px rgba(67,160,71,0.3);">确认恢复</button>
             </div>
         </div>
     </div>
+
 
     <!-- 模态框 -->
     <div class="modal" id="planModal">
@@ -1020,6 +972,8 @@
                             fireWorkGuardian: plan.fire_work_guardian || '',
                             isDeleted: plan.is_deleted || false,
                             deletedAt: plan.deleted_at || null,
+                            isTransferred: plan.is_transferred || false,
+                            transferredAt: plan.transferred_at || null,
                             createdAt: plan.created_at,
                             updatedAt: plan.updated_at
                         };
@@ -1029,6 +983,71 @@
                     updateStats();
                     setSyncStatus('connected', '已连接');
                     console.log('加载计划:', plans.length, '个');
+                    // 每周一自动将下一周的月计划标记为已转移
+                    autoTransferMonthlyPlans();
+                });
+        }
+
+        // 自动将开始时间在下一周内的月计划标记为已转移（持久化到数据库，任何时候加载都检测）
+        function autoTransferMonthlyPlans() {
+            if (!supabaseClient) {
+                console.warn('[转移] supabaseClient 未初始化，跳过');
+                return;
+            }
+
+            var nextWeekRange = getNextWeekRange();
+            console.log('[转移] 下一周范围:', nextWeekRange.start.toLocaleDateString(), '~', nextWeekRange.end.toLocaleDateString());
+            console.log('[转移] 当前所有计划数量:', plans.length);
+
+            // 找出开始时间在下一周内、尚未标记转移的月计划
+            var toTransfer = plans.filter(function(p) {
+                var ok = p.type === 'monthly'
+                    && !p.isDeleted
+                    && !p.isTransferred
+                    && p.status !== 'completed'
+                    && p.startDate
+                    && isInNextWeek(p.startDate);
+                if (p.type === 'monthly') {
+                    console.log('[转移] 月计划检查 -', p.title,
+                        '| startDate:', p.startDate,
+                        '| isDeleted:', p.isDeleted,
+                        '| isTransferred:', p.isTransferred,
+                        '| status:', p.status,
+                        '| isInNextWeek:', isInNextWeek(p.startDate),
+                        '| 符合转移:', ok);
+                }
+                return ok;
+            });
+
+            console.log('[转移] 符合转移条件的月计划数量:', toTransfer.length);
+
+            if (toTransfer.length === 0) {
+                console.log('[转移] 没有需要转移的月计划');
+                return;
+            }
+
+            var now = new Date().toISOString();
+            var ids = toTransfer.map(function(p) { return p.id; });
+            console.log('[转移] 准备转移的计划IDs:', ids);
+
+            supabaseClient.from('plans')
+                .update({ is_transferred: true, transferred_at: now })
+                .in('id', ids)
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('[转移] 数据库更新失败:', result.error);
+                        return;
+                    }
+                    console.log('[转移] 数据库更新成功，已转移:', ids.length, '个');
+                    // 更新本地数据，无需重新请求
+                    plans.forEach(function(p) {
+                        if (ids.indexOf(p.id) !== -1) {
+                            p.isTransferred = true;
+                            p.transferredAt = now;
+                        }
+                    });
+                    renderPlans();
+                    updateStats();
                 });
         }
 
@@ -1067,7 +1086,9 @@
                 ticket_personnel: planData.ticketPersonnel,
                 fire_work_leader: planData.fireWorkLeader,
                 fire_work_executor: planData.fireWorkExecutor,
-                fire_work_guardian: planData.fireWorkGuardian
+                fire_work_guardian: planData.fireWorkGuardian,
+                is_transferred: planData.isTransferred || false,
+                transferred_at: planData.transferredAt || null
             };
 
             return supabaseClient.from('plans')
@@ -1183,12 +1204,37 @@
                 }
             });
 
-            // 周计划状态筛选监听
-            ['statusPending', 'statusInProgress', 'statusPaused'].forEach(function(id) {
+            // 周计划状态筛选监听 + 视觉联动
+            var filterColors = {
+                'statusPending':   { border: '#9e9e9e', bg: '#f5f5f5',  dot: '#9e9e9e' },
+                'statusInProgress':{ border: '#4caf50', bg: '#e8f5e9',  dot: '#4caf50' },
+                'statusPaused':    { border: '#ff9800', bg: '#fff3e0',  dot: '#ff9800' },
+                'showNextWeek':    { border: '#1976d2', bg: '#e3f2fd',  dot: '#1976d2' }
+            };
+
+            function updateFilterStyle(id) {
+                var checkbox = document.getElementById(id);
+                var label = document.getElementById('label-' + id);
+                if (!checkbox || !label) return;
+                var color = filterColors[id];
+                if (checkbox.checked) {
+                    label.style.background = color.bg;
+                    label.style.borderColor = color.border;
+                    label.style.opacity = '1';
+                } else {
+                    label.style.background = '#fafafa';
+                    label.style.borderColor = '#e0e0e0';
+                    label.style.opacity = '0.5';
+                }
+            }
+
+            ['statusPending', 'statusInProgress', 'statusPaused', 'showNextWeek'].forEach(function(id) {
                 var checkbox = document.getElementById(id);
                 if (checkbox) {
+                    // 初始化样式
+                    updateFilterStyle(id);
                     checkbox.addEventListener('change', function() {
-                        console.log('状态筛选器变化:', id, 'checked:', this.checked);
+                        updateFilterStyle(id);
                         renderPlans();
                     });
                 } else {
@@ -1403,8 +1449,17 @@
 
         function updateStats() {
             var activePlans = plans.filter(function(p) { return !p.isDeleted; });
-            var weeklyCount = activePlans.filter(function(p) { return p.type === 'weekly' && p.status !== 'completed'; }).length;
-            var monthlyCount = activePlans.filter(function(p) { return p.type === 'monthly' && p.status !== 'completed'; }).length;
+            var weeklyCount = activePlans.filter(function(p) {
+                // 周计划本身 + 已转移到周计划的月计划，均计入周计划统计
+                return (p.type === 'weekly' || (p.type === 'monthly' && p.isTransferred))
+                    && p.status !== 'completed';
+            }).length;
+            // 月计划统计：排除已转移到周计划的计划
+            var monthlyCount = activePlans.filter(function(p) {
+                return p.type === 'monthly'
+                    && p.status !== 'completed'
+                    && !p.isTransferred;
+            }).length;
             var completedCount = activePlans.filter(function(p) { return p.status === 'completed'; }).length;
             var totalCount = activePlans.length;
             var trashCount = plans.filter(function(p) { return p.isDeleted; }).length;
@@ -1666,8 +1721,9 @@
                 var statusPending = document.getElementById('statusPending').checked;
                 var statusInProgress = document.getElementById('statusInProgress').checked;
                 var statusPaused = document.getElementById('statusPaused').checked;
+                var showNextWeek = document.getElementById('showNextWeek').checked;
 
-                console.log('周计划筛选条件 - 待开始:', statusPending, '进行中:', statusInProgress, '间断中:', statusPaused);
+                console.log('周计划筛选条件 - 待开始:', statusPending, '进行中:', statusInProgress, '间断中:', statusPaused, '下周计划:', showNextWeek);
 
                 filteredPlans = plans.filter(function(p) {
                     if (p.isDeleted) return false;
@@ -1693,7 +1749,12 @@
                     // 排除已完成的计划
                     if (p.status === 'completed') return false;
 
-                    return p.type === currentTab;
+                    if (p.type !== currentTab) return false;
+
+                    // 已转移到周计划的月计划，永久不再在月计划中显示
+                    if (currentTab === 'monthly' && p.isTransferred) return false;
+
+                    return true;
                 });
             }
 
@@ -1762,10 +1823,15 @@
                 searchResultsDiv.style.display = 'none';
             }
 
-            // 如果是周计划，在周二自动纳入下一周的月计划
-            if (currentTab === 'weekly' && isTodayTuesday()) {
+            // 将已标记为转移的月计划纳入周计划显示（持久生效，无论今天是否周一）
+            if (currentTab === 'weekly') {
+                var showNextWeekFilter = document.getElementById('showNextWeek') ? document.getElementById('showNextWeek').checked : true;
                 var monthlyPlans = plans.filter(function(p) {
-                    return p.type === 'monthly' && isInNextWeek(p.startDate);
+                    return p.type === 'monthly'
+                        && !p.isDeleted
+                        && p.status !== 'completed'
+                        && p.isTransferred
+                        && showNextWeekFilter; // 未勾选"下周计划"时不纳入
                 });
 
                 monthlyPlans.forEach(function(monthlyPlan) {
@@ -1900,12 +1966,14 @@
                     ticketPersonnelHtml += '</div>';
                 }
 
-                // 来源标记
+                // 来源标记：仅当计划开始日期仍在下一周时显示"下周计划"标签
                 var sourceTag = '';
                 var cardClass = plan.urgencyClass || 'plan-card';
                 if (plan.sourceType === 'monthly') {
-                    sourceTag = '<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">来自下周月计划</span>';
                     cardClass = 'plan-card from-monthly ' + (plan.urgencyClass || '');
+                    if (isInNextWeek(plan.startDate)) {
+                        sourceTag = '<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">下周计划</span>';
+                    }
                 }
 
                 // 计算剩余天数提示
@@ -2042,8 +2110,8 @@
         function getCurrentWeekRange() {
             var now = new Date();
             var day = now.getDay();
-            var diff = now.getDate() - day + (day === 0 ? -6 : 1); // 周一作为一周开始
-            var monday = new Date(now.setDate(diff));
+            var monday = new Date(now);
+            monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
             monday.setHours(0, 0, 0, 0);
 
             var sunday = new Date(monday);
@@ -2053,21 +2121,19 @@
             return { start: monday, end: sunday };
         }
 
-        // 获取下一周的起始和结束日期（每周二执行）
+        // 获取下一周的起始和结束日期
         function getNextWeekRange() {
             var now = new Date();
-            // 先找到本周一
             var day = now.getDay();
-            var diff = now.getDate() - day + (day === 0 ? -6 : 1);
             var thisMonday = new Date(now);
-            thisMonday.setDate(diff);
+            thisMonday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
             thisMonday.setHours(0, 0, 0, 0);
 
-            // 下一周一是本周一 + 7天
+            // 下周一 = 本周一 + 7天
             var nextMonday = new Date(thisMonday);
             nextMonday.setDate(thisMonday.getDate() + 7);
 
-            // 下周日是下周一 + 6天
+            // 下周日 = 下周一 + 6天
             var nextSunday = new Date(nextMonday);
             nextSunday.setDate(nextMonday.getDate() + 6);
             nextSunday.setHours(23, 59, 59, 999);
@@ -2075,18 +2141,33 @@
             return { start: nextMonday, end: nextSunday };
         }
 
+        // 将 "YYYY-MM-DD" 格式的日期字符串解析为本地时间的 Date 对象（避免UTC时区偏移）
+        function parseLocalDate(dateStr) {
+            if (!dateStr) return null;
+            // 取前10位 "YYYY-MM-DD"，按本地时间解析
+            var parts = dateStr.substring(0, 10).split('-');
+            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0);
+        }
+
         // 检查日期是否在当前周内
         function isInCurrentWeek(dateStr) {
             var weekRange = getCurrentWeekRange();
-            var date = new Date(dateStr);
+            var date = parseLocalDate(dateStr);
+            if (!date) return false;
             return date >= weekRange.start && date <= weekRange.end;
         }
 
         // 检查日期是否在下一周内
         function isInNextWeek(dateStr) {
             var weekRange = getNextWeekRange();
-            var date = new Date(dateStr);
+            var date = parseLocalDate(dateStr);
+            if (!date) return false;
             return date >= weekRange.start && date <= weekRange.end;
+        }
+
+        // 检查今天是否是周一
+        function isTodayMonday() {
+            return new Date().getDay() === 1;
         }
 
         // 检查今天是否是周二
