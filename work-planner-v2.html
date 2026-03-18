@@ -2070,7 +2070,14 @@
                 return '<div class="' + cardClass + '">' +
                     '<div class="plan-header">' +
                     '<div>' +
-                    '<div class="plan-title">' + escapeHtml(plan.title) + sourceTag + daysBadge + ticketHtml + '</div>' +
+                    '<div class="plan-title" style="display: flex; align-items: flex-start; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">' +
+                    '<span style="font-size: 1.3em; font-weight: 800; color: var(--text-primary); letter-spacing: 0.3px; line-height: 1.3;">' + escapeHtml(plan.title) + '</span>' +
+                    sourceTag +
+                    daysBadge +
+                    ticketHtml +
+                    (plan.workTicketNo ? '<span style="background: #e8f5e9; color: #2e7d32; padding: 3px 10px; border-radius: 5px; font-size: 13px; font-weight: 600; margin-left: 6px; align-self: center;">🎫 ' + escapeHtml(plan.workTicketNo) + '</span>' : '') +
+                    (plan.planNo ? '<span style="background: #e3f2fd; color: #1565c0; padding: 3px 10px; border-radius: 5px; font-size: 13px; font-weight: 600; margin-left: 6px; align-self: center;">📋 ' + escapeHtml(plan.planNo) + '</span>' : '') +
+                    '</div>' +
                     '<div class="plan-meta">' +
                     '<span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #5568d3;">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' 至 ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
                     '<span style="margin-left: 10px;">⚠️ ' + getPriorityText(plan.priority) + '</span>' +
@@ -2086,7 +2093,6 @@
                     '</div>' +
                     '</div>' +
                     '<div style="margin-top: 14px; padding: 16px; background: linear-gradient(135deg, #fff9c4 0%, #ffecb3 100%); border-radius: 10px; border-left: 5px solid #ffc107; color: #333; line-height: 1.8; font-size: 15px; font-weight: 700;">' + escapeHtml(plan.content) + '</div>' +
-                    ((plan.workTicketNo || plan.planNo) ? '<div style="margin-top:8px; display:flex; gap:10px; flex-wrap:wrap;">' + (plan.workTicketNo ? '<span style="background:#e8f5e9; color:#2e7d32; padding:4px 12px; border-radius:8px; font-size:13px;">🎫 工作票号：' + escapeHtml(plan.workTicketNo) + '</span>' : '') + (plan.planNo ? '<span style="background:#e3f2fd; color:#1565c0; padding:4px 12px; border-radius:8px; font-size:13px;">📋 计划编号：' + escapeHtml(plan.planNo) + '</span>' : '') + '</div>' : '') +
                     ticketPersonnelHtml +
                     fireWorkHtml +
                     '</div>';
