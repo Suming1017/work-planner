@@ -257,8 +257,7 @@
         }
 
         .plan-card.from-monthly {
-            background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
-            border-left-color: var(--info);
+            /* 月计划转移到周计划的计划不再特殊突显 */
         }
 
         .plan-card:hover {
@@ -2024,9 +2023,7 @@
                 // 来源标记 & 下周计划标签
                 var sourceTag = '';
                 var cardClass = plan.urgencyClass || 'plan-card';
-                if (plan.sourceType === 'monthly') {
-                    cardClass = 'plan-card from-monthly ' + (plan.urgencyClass || '');
-                }
+                // 月计划转移到周计划的计划不再特殊突显，使用统一的卡片样式
                 // 只要开始时间落在下一周范围内，就显示"下周计划"标签（适用于所有周计划）
                 var isNextWeekForTag = isInNextWeek(plan.startDate);
                 if (isNextWeekForTag) {
