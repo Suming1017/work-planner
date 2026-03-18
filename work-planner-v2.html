@@ -542,7 +542,7 @@
                         onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.12)'"
                         onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.06)'">
                         <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#1976d2; flex-shrink:0;"></span>
-                        <input type="checkbox" id="showNextWeek" checked style="display:none;">
+                        <input type="checkbox" id="showNextWeek" style="display:none;">
                         <span style="font-size: 13px; font-weight: 600; color: #1565c0; white-space:nowrap;">下周计划</span>
                     </label>
                 </div>
@@ -658,6 +658,17 @@
                     <div class="form-group">
                         <label for="planTitleSuffix">补充说明</label>
                         <input type="text" id="planTitleSuffix" placeholder="如：2025年第1期">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="workTicketNo">工作票号</label>
+                        <input type="text" id="workTicketNo" placeholder="如：D2025-0318-001（选填）">
+                    </div>
+                    <div class="form-group">
+                        <label for="planNo">计划编号</label>
+                        <input type="text" id="planNo" placeholder="如：P2025-0318-001（选填）">
                     </div>
                 </div>
 
@@ -948,6 +959,8 @@
                             titleBase: plan.title_base,
                             titleSuffix: plan.title_suffix,
                             content: plan.content,
+                            workTicketNo: plan.work_ticket_no || '',
+                            planNo: plan.plan_no || '',
                             startDate: plan.start_date,
                             endDate: plan.end_date,
                             ticketType: plan.ticket_type,
@@ -1065,6 +1078,8 @@
                 title_base: planData.titleBase,
                 title_suffix: planData.titleSuffix,
                 content: planData.content,
+                work_ticket_no: planData.workTicketNo || null,
+                plan_no: planData.planNo || null,
                 start_date: planData.startDate,
                 end_date: planData.endDate,
                 ticket_type: planData.ticketType,
@@ -1378,6 +1393,8 @@
                     }
 
                     document.getElementById('planContent').value = plan.content;
+                    document.getElementById('workTicketNo').value = plan.workTicketNo || '';
+                    document.getElementById('planNo').value = plan.planNo || '';
 
                     // 填充开始时间
                     var startDateTime = new Date(plan.startDate);
@@ -1500,6 +1517,8 @@
                 titleBase: titleBase,
                 titleSuffix: titleSuffix,
                 content: document.getElementById('planContent').value,
+                workTicketNo: document.getElementById('workTicketNo').value,
+                planNo: document.getElementById('planNo').value,
                 startDate: startDateTime.toISOString(),
                 endDate: endDateTime.toISOString(),
                 ticketType: document.getElementById('ticketType').value,
@@ -1726,18 +1745,46 @@
                 console.log('周计划筛选条件 - 待开始:', statusPending, '进行中:', statusInProgress, '间断中:', statusPaused, '下周计划:', showNextWeek);
 
                 filteredPlans = plans.filter(function(p) {
-                    if (p.isDeleted) return false;
+                    if (p.isDeleted) {
+                        console.log('[过滤] 排除:', p.title, '原因: isDeleted');
+                        return false;
+                    }
                     // 首先排除已完成的计划
-                    if (p.status === 'completed') return false;
+                    if (p.status === 'completed') {
+                        console.log('[过滤] 排除:', p.title, '原因: status=completed');
+                        return false;
+                    }
 
                     // 然后根据类型筛选
-                    if (p.type !== currentTab) return false;
+                    if (p.type !== currentTab) {
+                        console.log('[过滤] 排除:', p.title, '原因: type=' + p.type + ' 不匹配 currentTab=' + currentTab);
+                        return false;
+                    }
 
-                    // 根据选中的状态筛选
-                    if (p.status === 'pending' && !statusPending) return false;
-                    if (p.status === 'in-progress' && !statusInProgress) return false;
-                    if (p.status === 'paused' && !statusPaused) return false;
+                    // 下周计划判断
+                    var isNextWeek = isInNextWeek(p.startDate);
 
+                    // 独立筛选逻辑：勾选了哪个就只显示哪个
+                    var matchStatus = (p.status === 'pending' && statusPending) ||
+                                   (p.status === 'in-progress' && statusInProgress) ||
+                                   (p.status === 'paused' && statusPaused);
+                    var matchNextWeek = isNextWeek && showNextWeek;
+
+                    // 如果勾选了"下周计划"，只显示下周计划（忽略状态）
+                    if (showNextWeek) {
+                        if (!isNextWeek) {
+                            console.log('[过滤] 排除:', p.title, '原因: 不在下周范围内');
+                            return false;
+                        }
+                    } else {
+                        // 否则按状态筛选
+                        if (!matchStatus) {
+                            console.log('[过滤] 排除:', p.title, '原因: 状态不匹配');
+                            return false;
+                        }
+                    }
+
+                    console.log('[过滤] 保留:', p.title, '| status:', p.status, '| startDate:', p.startDate, '| isNextWeek:', isNextWeek, '| sourceType:', p.sourceType);
                     return true;
                 });
 
@@ -1795,6 +1842,14 @@
                     // 搜索动火监护人
                     if (plan.fireWorkGuardian) {
                         searchText += ' ' + plan.fireWorkGuardian.toLowerCase();
+                    }
+                    // 搜索工作票号
+                    if (plan.workTicketNo) {
+                        searchText += ' ' + plan.workTicketNo.toLowerCase();
+                    }
+                    // 搜索计划编号
+                    if (plan.planNo) {
+                        searchText += ' ' + plan.planNo.toLowerCase();
                     }
                     // 搜索办票人员
                     if (plan.ticketPersonnel) {
@@ -1966,15 +2021,18 @@
                     ticketPersonnelHtml += '</div>';
                 }
 
-                // 来源标记：仅当计划开始日期仍在下一周时显示"下周计划"标签
+                // 来源标记 & 下周计划标签
                 var sourceTag = '';
                 var cardClass = plan.urgencyClass || 'plan-card';
                 if (plan.sourceType === 'monthly') {
                     cardClass = 'plan-card from-monthly ' + (plan.urgencyClass || '');
-                    if (isInNextWeek(plan.startDate)) {
-                        sourceTag = '<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">下周计划</span>';
-                    }
                 }
+                // 只要开始时间落在下一周范围内，就显示"下周计划"标签（适用于所有周计划）
+                var isNextWeekForTag = isInNextWeek(plan.startDate);
+                if (isNextWeekForTag) {
+                    sourceTag = '<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">下周计划</span>';
+                }
+                console.log('[渲染卡片]', plan.title, '| type:', plan.type, '| sourceType:', plan.sourceType, '| startDate:', plan.startDate, '| isNextWeekForTag:', isNextWeekForTag);
 
                 // 计算剩余天数提示
                 var daysBadge = '';
@@ -2031,6 +2089,7 @@
                     '</div>' +
                     '</div>' +
                     '<div style="margin-top: 14px; padding: 16px; background: linear-gradient(135deg, #fff9c4 0%, #ffecb3 100%); border-radius: 10px; border-left: 5px solid #ffc107; color: #333; line-height: 1.8; font-size: 15px; font-weight: 700;">' + escapeHtml(plan.content) + '</div>' +
+                    ((plan.workTicketNo || plan.planNo) ? '<div style="margin-top:8px; display:flex; gap:10px; flex-wrap:wrap;">' + (plan.workTicketNo ? '<span style="background:#e8f5e9; color:#2e7d32; padding:4px 12px; border-radius:8px; font-size:13px;">🎫 工作票号：' + escapeHtml(plan.workTicketNo) + '</span>' : '') + (plan.planNo ? '<span style="background:#e3f2fd; color:#1565c0; padding:4px 12px; border-radius:8px; font-size:13px;">📋 计划编号：' + escapeHtml(plan.planNo) + '</span>' : '') + '</div>' : '') +
                     ticketPersonnelHtml +
                     fireWorkHtml +
                     '</div>';
@@ -2162,7 +2221,11 @@
             var weekRange = getNextWeekRange();
             var date = parseLocalDate(dateStr);
             if (!date) return false;
-            return date >= weekRange.start && date <= weekRange.end;
+            var result = date >= weekRange.start && date <= weekRange.end;
+            console.log('[isInNextWeek] 输入日期:', dateStr, '解析后:', date.toISOString(),
+                        '下周范围:', weekRange.start.toISOString(), '~', weekRange.end.toISOString(),
+                        '结果:', result);
+            return result;
         }
 
         // 检查今天是否是周一
