@@ -1879,13 +1879,22 @@
 
             // 将已标记为转移的月计划纳入周计划显示（持久生效，无论今天是否周一）
             if (currentTab === 'weekly') {
-                var showNextWeekFilter = document.getElementById('showNextWeek') ? document.getElementById('showNextWeek').checked : true;
+                var showNextWeekFilter = document.getElementById('showNextWeek') ? document.getElementById('showNextWeek').checked : false;
+                var statusPendingF = document.getElementById('statusPending').checked;
+                var statusInProgressF = document.getElementById('statusInProgress').checked;
+                var statusPausedF = document.getElementById('statusPaused').checked;
+
                 var monthlyPlans = plans.filter(function(p) {
-                    return p.type === 'monthly'
-                        && !p.isDeleted
-                        && p.status !== 'completed'
-                        && p.isTransferred
-                        && showNextWeekFilter; // 未勾选"下周计划"时不纳入
+                    if (!( p.type === 'monthly' && !p.isDeleted && p.status !== 'completed' && p.isTransferred )) return false;
+
+                    // 如果勾选了"下周计划"，只显示下周范围内的月转移计划
+                    if (showNextWeekFilter) {
+                        return isInNextWeek(p.startDate);
+                    }
+                    // 否则按状态筛选
+                    return (p.status === 'pending' && statusPendingF) ||
+                           (p.status === 'in-progress' && statusInProgressF) ||
+                           (p.status === 'paused' && statusPausedF);
                 });
 
                 monthlyPlans.forEach(function(monthlyPlan) {
@@ -1992,7 +2001,7 @@
 
                 // 显示票型（突出显示）
                 var ticketHtml = '';
-                if (plan.ticketType) {
+                if (plan.ticketType && plan.ticketType !== '') {
                     ticketHtml = '<span style="margin-left: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">🎫 ' + escapeHtml(plan.ticketType) + '</span>';
                 }
 
