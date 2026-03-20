@@ -997,6 +997,8 @@
                     console.log('加载计划:', plans.length, '个');
                     // 每周一自动将下一周的月计划标记为已转移
                     autoTransferMonthlyPlans();
+                    // 检查是否有计划已到结束时间，自动标记为已完成
+                    autoCompleteExpiredPlans();
                 });
         }
 
@@ -1062,6 +1064,54 @@
                     updateStats();
                 });
         }
+
+        // 自动检查结束时间已过的计划，将其状态更新为已完成
+        function autoCompleteExpiredPlans() {
+            if (!supabaseClient) return;
+
+            var now = new Date();
+            // 找出结束时间已过、状态不是已完成、也未被删除的计划
+            var toComplete = plans.filter(function(p) {
+                return !p.isDeleted
+                    && p.status !== 'completed'
+                    && p.endDate
+                    && new Date(p.endDate) < now;
+            });
+
+            if (toComplete.length === 0) return;
+
+            console.log('[自动完成] 发现', toComplete.length, '个已过期计划，准备自动标记为已完成');
+
+            var nowIso = now.toISOString();
+            var ids = toComplete.map(function(p) { return p.id; });
+
+            supabaseClient.from('plans')
+                .update({ status: 'completed', updated_at: nowIso })
+                .in('id', ids)
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('[自动完成] 数据库更新失败:', result.error);
+                        return;
+                    }
+                    console.log('[自动完成] 已自动完成:', toComplete.map(function(p){ return p.title; }).join('、'));
+                    // 更新本地数据
+                    plans.forEach(function(p) {
+                        if (ids.indexOf(p.id) !== -1) {
+                            p.status = 'completed';
+                            p.updatedAt = nowIso;
+                        }
+                    });
+                    renderPlans();
+                    updateStats();
+                });
+        }
+
+        // 每分钟检查一次是否有计划到期
+        setInterval(function() {
+            if (plans && plans.length > 0) {
+                autoCompleteExpiredPlans();
+            }
+        }, 60 * 1000);
 
         function savePlanToCloud(planData) {
             if (!supabaseClient) {
