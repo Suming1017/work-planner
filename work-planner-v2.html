@@ -1956,11 +1956,17 @@
                             id: monthlyPlan.id + '_weekly',
                             type: 'weekly',
                             title: monthlyPlan.title,
+                            titleBase: monthlyPlan.titleBase || '',
+                            titleSuffix: monthlyPlan.titleSuffix || '',
                             content: monthlyPlan.content,
+                            workTicketNo: monthlyPlan.workTicketNo || '',
+                            planNo: monthlyPlan.planNo || '',
                             startDate: monthlyPlan.startDate,
                             endDate: monthlyPlan.endDate,
+                            ticketType: monthlyPlan.ticketType,
                             priority: monthlyPlan.priority,
                             status: monthlyPlan.status,
+                            equipmentStatus: monthlyPlan.equipmentStatus || '',
                             responsible: monthlyPlan.responsible || '',
                             members: monthlyPlan.members || '',
                             group1Leader: monthlyPlan.group1Leader || '',
@@ -1973,6 +1979,10 @@
                             group4Members: monthlyPlan.group4Members || '',
                             group5Leader: monthlyPlan.group5Leader || '',
                             group5Members: monthlyPlan.group5Members || '',
+                            ticketPersonnel: monthlyPlan.ticketPersonnel || '',
+                            fireWorkLeader: monthlyPlan.fireWorkLeader || '',
+                            fireWorkExecutor: monthlyPlan.fireWorkExecutor || '',
+                            fireWorkGuardian: monthlyPlan.fireWorkGuardian || '',
                             sourceType: 'monthly', // 标记来源
                             sourceId: monthlyPlan.id,
                             createdAt: monthlyPlan.createdAt,
@@ -2070,9 +2080,9 @@
 
                 // 显示办票人员信息
                 var ticketPersonnelHtml = '';
-                if (plan.ticketPersonnel) {
+                if (plan.ticketPersonnel && plan.ticketPersonnel.trim()) {
                     ticketPersonnelHtml = '<div style="margin-top: 12px; padding: 12px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 8px; border-left: 4px solid #9c27b0;">';
-                    ticketPersonnelHtml += '<div><span style="color: #9c27b0; font-weight: bold;">📝 办票人员:</span> ' + escapeHtml(plan.ticketPersonnel) + '</div>';
+                    ticketPersonnelHtml += '<div><span style="color: #9c27b0; font-weight: bold;">📝 办票人员:</span> ' + escapeHtml(plan.ticketPersonnel.trim()) + '</div>';
                     ticketPersonnelHtml += '</div>';
                 }
 
