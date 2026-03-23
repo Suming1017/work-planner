@@ -1013,20 +1013,21 @@
             console.log('[转移] 下一周范围:', nextWeekRange.start.toLocaleDateString(), '~', nextWeekRange.end.toLocaleDateString());
             console.log('[转移] 当前所有计划数量:', plans.length);
 
-            // 找出开始时间在下一周内、尚未标记转移的月计划
+            // 找出开始时间在本周或下一周内、尚未标记转移的月计划
             var toTransfer = plans.filter(function(p) {
                 var ok = p.type === 'monthly'
                     && !p.isDeleted
                     && !p.isTransferred
                     && p.status !== 'completed'
                     && p.startDate
-                    && isInNextWeek(p.startDate);
+                    && (isInCurrentWeek(p.startDate) || isInNextWeek(p.startDate));
                 if (p.type === 'monthly') {
                     console.log('[转移] 月计划检查 -', p.title,
                         '| startDate:', p.startDate,
                         '| isDeleted:', p.isDeleted,
                         '| isTransferred:', p.isTransferred,
                         '| status:', p.status,
+                        '| isInCurrentWeek:', isInCurrentWeek(p.startDate),
                         '| isInNextWeek:', isInNextWeek(p.startDate),
                         '| 符合转移:', ok);
                 }
@@ -1842,14 +1843,10 @@
                 // 其他标签（月计划）显示对应类型的计划，排除已完成的
                 filteredPlans = plans.filter(function(p) {
                     if (p.isDeleted) return false;
-                    // 排除已完成的计划
                     if (p.status === 'completed') return false;
-
                     if (p.type !== currentTab) return false;
-
                     // 已转移到周计划的月计划，永久不再在月计划中显示
                     if (currentTab === 'monthly' && p.isTransferred) return false;
-
                     return true;
                 });
             }
@@ -2283,11 +2280,7 @@
             var weekRange = getNextWeekRange();
             var date = parseLocalDate(dateStr);
             if (!date) return false;
-            var result = date >= weekRange.start && date <= weekRange.end;
-            console.log('[isInNextWeek] 输入日期:', dateStr, '解析后:', date.toISOString(),
-                        '下周范围:', weekRange.start.toISOString(), '~', weekRange.end.toISOString(),
-                        '结果:', result);
-            return result;
+            return date >= weekRange.start && date <= weekRange.end;
         }
 
         // 检查今天是否是周一
