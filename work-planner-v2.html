@@ -504,9 +504,6 @@
                             onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">清空</button>
                     </div>
                 </div>
-                <div id="searchResults" style="margin-top: 10px; padding: 10px 16px; background: var(--primary-light); border-radius: 8px; display: none; border-left: 3px solid var(--primary);">
-                    <span style="color: var(--primary-dark); font-weight: 600; font-size: 13px;">找到 <span id="searchCount">0</span> 个匹配计划</span>
-                </div>
             </div>
 
             <!-- 状态筛选器（仅周计划显示） -->
@@ -1710,7 +1707,6 @@
 
             // 获取搜索关键词
             var searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim();
-            var searchResultsDiv = document.getElementById('searchResults');
 
             // 回收站标签：显示已删除的计划
             if (currentTab === 'trash') {
@@ -1722,10 +1718,6 @@
                         var searchText = (plan.title || '') + ' ' + (plan.content || '') + ' ' + (plan.responsible || '');
                         return searchText.toLowerCase().indexOf(searchKeyword) !== -1;
                     });
-                    searchResultsDiv.style.display = 'block';
-                    document.getElementById('searchCount').textContent = filteredPlans.length;
-                } else {
-                    searchResultsDiv.style.display = 'none';
                 }
 
                 // 按删除时间降序
@@ -1916,12 +1908,6 @@
                     // 匹配关键词
                     return searchText.indexOf(searchKeyword) !== -1;
                 });
-
-                // 显示搜索结果统计
-                searchResultsDiv.style.display = 'block';
-                document.getElementById('searchCount').textContent = filteredPlans.length;
-            } else {
-                searchResultsDiv.style.display = 'none';
             }
 
             // 将已标记为转移的月计划纳入周计划显示（持久生效，无论今天是否周一）
@@ -1943,6 +1929,57 @@
                            (p.status === 'in-progress' && statusInProgressF) ||
                            (p.status === 'paused' && statusPausedF);
                 });
+
+                // 如果有搜索关键词，对月计划也进行搜索过滤
+                if (searchKeyword) {
+                    monthlyPlans = monthlyPlans.filter(function(plan) {
+                        var searchText = '';
+                        if (plan.title) {
+                            searchText += plan.title.toLowerCase();
+                        }
+                        if (plan.content) {
+                            searchText += ' ' + plan.content.toLowerCase();
+                        }
+                        if (plan.responsible) {
+                            searchText += ' ' + plan.responsible.toLowerCase();
+                        }
+                        if (plan.members) {
+                            searchText += ' ' + plan.members.toLowerCase();
+                        }
+                        if (plan.ticketType) {
+                            searchText += ' ' + plan.ticketType.toLowerCase();
+                        }
+                        if (plan.fireWorkLeader) {
+                            searchText += ' ' + plan.fireWorkLeader.toLowerCase();
+                        }
+                        if (plan.fireWorkExecutor) {
+                            searchText += ' ' + plan.fireWorkExecutor.toLowerCase();
+                        }
+                        if (plan.fireWorkGuardian) {
+                            searchText += ' ' + plan.fireWorkGuardian.toLowerCase();
+                        }
+                        if (plan.workTicketNo) {
+                            searchText += ' ' + plan.workTicketNo.toLowerCase();
+                        }
+                        if (plan.planNo) {
+                            searchText += ' ' + plan.planNo.toLowerCase();
+                        }
+                        if (plan.ticketPersonnel) {
+                            searchText += ' ' + plan.ticketPersonnel.toLowerCase();
+                        }
+                        for (var i = 1; i <= 5; i++) {
+                            var leaderKey = 'group' + i + 'Leader';
+                            var membersKey = 'group' + i + 'Members';
+                            if (plan[leaderKey]) {
+                                searchText += ' ' + plan[leaderKey].toLowerCase();
+                            }
+                            if (plan[membersKey]) {
+                                searchText += ' ' + plan[membersKey].toLowerCase();
+                            }
+                        }
+                        return searchText.indexOf(searchKeyword) !== -1;
+                    });
+                }
 
                 monthlyPlans.forEach(function(monthlyPlan) {
                     // 检查是否已经有对应的周计划（通过标题匹配）
