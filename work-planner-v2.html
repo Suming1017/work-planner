@@ -587,6 +587,32 @@
     </div>
 
 
+
+
+    <!-- 补录票号对话框 -->
+    <div id="ticketNoModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26,31,54,0.55); backdrop-filter: blur(2px);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 32px 28px; width: 420px; box-shadow: 0 16px 56px rgba(26,31,54,0.25);">
+            <div style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">✏️ 补录票号</div>
+            <div id="ticketNoModalTitle" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);"></div>
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 7px;">🎫 工作票号</label>
+                <input type="text" id="ticketNoInput" placeholder="输入工作票号" style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
+                    onfocus="this.style.borderColor='var(--primary)'"
+                    onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div style="margin-bottom: 28px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 7px;">📋 计划编号</label>
+                <input type="text" id="planNoInput" placeholder="输入计划编号" style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
+                    onfocus="this.style.borderColor='var(--primary)'"
+                    onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="ticketNoCancelBtn" style="padding: 10px 22px; border: 1.5px solid var(--border); border-radius: 10px; background: white; color: var(--text-secondary); font-size: 14px; font-weight: 600; cursor: pointer;">取消</button>
+                <button id="ticketNoSaveBtn" style="padding: 10px 22px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none; border-radius: 10px; color: white; font-size: 14px; font-weight: 600; cursor: pointer;">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 删除确认对话框 -->
     <div id="deleteConfirmModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26,31,54,0.55); backdrop-filter: blur(2px);">
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 36px 32px; width: 360px; box-shadow: 0 16px 56px rgba(26,31,54,0.25); text-align: center;">
@@ -1366,7 +1392,12 @@
 
                 if (editBtn) {
                     var planId = editBtn.dataset.planId;
-                    openModal(planId);
+                    var ticketPlanId = editBtn.dataset.ticketPlanId;
+                    if (ticketPlanId) {
+                        openTicketNoModal(ticketPlanId);
+                    } else if (planId) {
+                        openModal(planId);
+                    }
                 } else if (deleteBtn) {
                     var planId = deleteBtn.dataset.planId;
                     deletePlan(planId);
@@ -1602,6 +1633,58 @@
                     alert('保存失败: ' + error.message);
                     setSyncStatus('error', '保存失败');
                 });
+        }
+
+        // 补录票号弹窗
+        function openTicketNoModal(planId) {
+            var plan = plans.find(function(p) { return p.id === planId; });
+            if (!plan) return;
+
+            var modal = document.getElementById('ticketNoModal');
+            document.getElementById('ticketNoModalTitle').textContent = plan.title;
+            document.getElementById('ticketNoInput').value = plan.workTicketNo || '';
+            document.getElementById('planNoInput').value = plan.planNo || '';
+            modal.style.display = 'block';
+
+            // 克隆按钮清除旧事件
+            var saveBtn = document.getElementById('ticketNoSaveBtn');
+            var cancelBtn = document.getElementById('ticketNoCancelBtn');
+            var newSaveBtn = saveBtn.cloneNode(true);
+            var newCancelBtn = cancelBtn.cloneNode(true);
+            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+            newCancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            newSaveBtn.addEventListener('click', function() {
+                var workTicketNo = document.getElementById('ticketNoInput').value.trim();
+                var planNo = document.getElementById('planNoInput').value.trim();
+
+                setSyncStatus('syncing', '保存中...');
+                supabaseClient.from('plans')
+                    .update({
+                        work_ticket_no: workTicketNo || null,
+                        plan_no: planNo || null,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', planId)
+                    .then(function(result) {
+                        if (result.error) {
+                            console.error('补录票号失败:', result.error);
+                            alert('保存失败: ' + result.error.message);
+                            setSyncStatus('error', '保存失败');
+                            return;
+                        }
+                        // 更新本地数据
+                        plan.workTicketNo = workTicketNo;
+                        plan.planNo = planNo;
+                        modal.style.display = 'none';
+                        renderPlans();
+                        setSyncStatus('connected', '已连接');
+                    });
+            });
         }
 
         function deletePlan(planId) {
@@ -2191,7 +2274,7 @@
                     (groupsHtml ? '<div style="margin-top: 10px; padding: 10px; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); border-radius: 8px; border-left: 3px solid #667eea;">' + groupsHtml + '</div>' : '') +
                     '</div>' +
                     '<div class="plan-actions">' +
-                    (currentTab === 'completed' ? '' : '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">编辑</button>') +
+                    (currentTab === 'completed' ? '<button class="action-btn edit-btn" style="background: linear-gradient(135deg, #78909c, #546e7a); font-size: 12px; padding: 6px 14px;" data-ticket-plan-id="' + escapeHtml(plan.id) + '">✏️ 补录票号</button>' : '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">编辑</button>') +
                     (currentTab === 'completed' ? '' : '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">删除</button>') +
                     '</div>' +
                     '</div>' +
