@@ -413,23 +413,65 @@
             display: flex;
             align-items: flex-end;
             justify-content: space-around;
-            height: 250px;
-            padding: 20px 0;
+            min-height: 260px;
+            padding: 36px 8px 0;   /* 顶部留足空间给数字标签 */
             border-bottom: 2px solid var(--border);
+            overflow-x: auto;
         }
-        .chart-bar { flex: 1; max-width: 80px; margin: 0 10px; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .chart-bar {
+            flex: 1;
+            min-width: 60px;
+            max-width: 100px;
+            margin: 0 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
         .chart-bar-value {
             background: var(--primary-grad);
             border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-            transition: height 0.3s ease;
+            transition: height 0.4s ease;
+            width: 100%;
+            min-height: 4px;
             position: relative;
-            min-width: 50px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
         }
-        .chart-bar-value:hover { opacity: 0.82; }
-        .chart-bar-label { margin-top: 10px; font-size: 12px; color: var(--text-secondary); text-align: center; font-weight: 600; }
-        .chart-bar-count { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 14px; font-weight: 700; color: var(--primary); }
+        .chart-bar-value:hover { opacity: 0.80; }
+        /* 数字标签：始终悬在柱子正上方，不与柱子内容重叠 */
+        .chart-bar-count {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 5px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            white-space: nowrap;
+            background: var(--bg-card);
+            padding: 1px 6px;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        /* 底部标签：限宽、超长截断、tooltip 提示 */
+        .chart-bar-label {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+            font-weight: 600;
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: default;
+            padding-bottom: 8px;
+        }
         .legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--text-secondary); }
-        .legend-color { width: 14px; height: 14px; border-radius: 4px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -576,10 +618,11 @@
             </div>
 
             <!-- 统计图表（仅已完结计划显示，默认隐藏） -->
-            <div id="chartContainer" style="display: none; margin-bottom: 20px; padding: 20px; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border);">
-                <h3 style="margin-bottom: 15px; color: var(--text-primary); font-size: 15px; font-weight: 700;">已完结计划统计（按立项名）</h3>
-                <div id="chartCanvas" style="height: 300px; position: relative;"></div>
-                <div id="chartLegend" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px;"></div>
+            <div id="chartContainer" style="display: none; margin-bottom: 20px; padding: 20px 20px 16px; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                <h3 id="chartTitle" style="margin-bottom: 4px; color: var(--text-primary); font-size: 15px; font-weight: 700;">已完结计划统计（按立项名）</h3>
+                <p style="margin: 0 0 16px; font-size: 12px; color: var(--text-muted);">鼠标悬停在标签上可查看完整名称</p>
+                <div id="chartCanvas" style="position: relative; overflow-x: auto;"></div>
+                <div id="chartLegend" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 10px;"></div>
             </div>
 
             <div class="plan-list" id="planList"></div>
@@ -2452,14 +2495,31 @@
             var chartLegend = document.getElementById('chartLegend');
 
             var selectedYear = document.getElementById('yearSelect').value;
+            var selectedMonth = document.getElementById('monthSelect').value;
             var completedPlans = plans.filter(function(p) {
                 if (p.status !== 'completed') return false;
+                if (p.isDeleted) return false;
+                var planDate = new Date(p.endDate);
+                if (isNaN(planDate.getTime())) return false;
                 if (selectedYear && selectedYear !== '') {
-                    var planYear = new Date(p.endDate).getFullYear();
-                    return planYear === parseInt(selectedYear);
+                    if (planDate.getFullYear() !== parseInt(selectedYear)) return false;
+                }
+                if (selectedMonth && selectedMonth !== '') {
+                    if (planDate.getMonth() + 1 !== parseInt(selectedMonth)) return false;
                 }
                 return true;
             });
+
+            // 动态更新图表标题
+            var titleParts = ['已完结计划统计（按立项名）'];
+            var suffix = [];
+            if (selectedYear && selectedYear !== '') suffix.push(selectedYear + '年');
+            if (selectedMonth && selectedMonth !== '') suffix.push(parseInt(selectedMonth) + '月');
+            if (suffix.length > 0) {
+                titleParts = [suffix.join('') + ' · 已完结计划统计（按立项名）'];
+            }
+            var chartTitle = document.getElementById('chartTitle');
+            if (chartTitle) chartTitle.textContent = titleParts[0];
 
             // 按立项名分组统计
             var projectStats = {};
@@ -2483,16 +2543,23 @@
             ];
 
             // 生成柱状图HTML
+            if (projects.length === 0) {
+                chartCanvas.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--text-muted);font-size:14px;">暂无已完结计划数据</div>';
+                chartLegend.innerHTML = '';
+                return;
+            }
+
             var chartHtml = '<div class="chart-container">';
             projects.forEach(function(project, index) {
                 var count = projectStats[project];
-                var height = (count / maxCount) * 200; // 最大高度200px
+                var height = Math.max((count / maxCount) * 220, 8); // 最大高度220px，最小8px
                 var color = colors[index % colors.length];
 
                 chartHtml += '<div class="chart-bar">' +
-                    '<div class="chart-bar-count">' + count + '</div>' +
-                    '<div class="chart-bar-value" style="height: ' + height + 'px; background: ' + color + ';"></div>' +
-                    '<div class="chart-bar-label">' + project + '</div>' +
+                    '<div class="chart-bar-value" style="height: ' + height + 'px; background: ' + color + ';">' +
+                        '<div class="chart-bar-count">' + count + '</div>' +
+                    '</div>' +
+                    '<div class="chart-bar-label" title="' + project + '">' + project + '</div>' +
                     '</div>';
             });
             chartHtml += '</div>';
