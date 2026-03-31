@@ -1669,6 +1669,7 @@
             savePlanToCloud(planData)
                 .then(function() {
                     closeModal();
+                    loadPlans();
                     console.log('计划保存成功');
                 })
                 .catch(function(error) {
