@@ -2108,9 +2108,9 @@
                 }
 
                 monthlyPlans.forEach(function(monthlyPlan) {
-                    // 检查是否已经有对应的周计划（通过标题匹配）
+                    // 检查是否已经有对应的周计划（通过源ID精确匹配，避免同名不同记录被误判）
                     var hasWeeklyPlan = filteredPlans.some(function(wp) {
-                        return wp.title === monthlyPlan.title && wp.sourceType === 'monthly';
+                        return wp.sourceId === monthlyPlan.id && wp.sourceType === 'monthly';
                     });
 
                     if (!hasWeeklyPlan) {
