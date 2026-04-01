@@ -321,18 +321,21 @@
             flex-wrap: wrap;
         }
 
-        .plan-actions { display: flex; gap: 7px; flex-shrink: 0; }
+        .plan-actions { display: flex; gap: 7px; flex-shrink: 0; margin-left: 12px; }
 
         .action-btn {
-            padding: 6px 13px;
+            padding: 6px 16px;
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 12px;
+            font-size: 12.5px;
             font-weight: 600;
             transition: all 0.15s ease;
-            letter-spacing: 0.1px;
+            letter-spacing: 0.2px;
             white-space: nowrap;
+            min-width: 52px;
+            text-align: center;
+            line-height: 1.4;
         }
         .edit-btn   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
         .delete-btn { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
@@ -585,14 +588,24 @@
             /* 计划卡片 */
             .plan-card { padding: 14px 14px; border-radius: var(--radius-sm); }
             .plan-header { flex-direction: column; gap: 10px; margin-bottom: 10px; }
-            .plan-actions { display: flex; gap: 6px; width: 100%; }
+            .plan-actions {
+                display: flex;
+                gap: 8px;
+                width: 100%;
+                margin-left: 0;        /* 消除桌面端的 margin-left */
+            }
             .action-btn {
                 flex: 1;
-                padding: 8px 10px;
-                font-size: 12px;
+                padding: 10px 8px;
+                font-size: 13px;
                 text-align: center;
                 border-radius: var(--radius-sm);
-                min-height: 36px;
+                min-height: 42px;      /* 符合 iOS HIG 触控最小尺寸 */
+                min-width: 0;          /* 重置桌面端 min-width，让 flex:1 真正平分 */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 1.2;
             }
             .plan-title { font-size: 1em; margin-bottom: 6px; }
             .plan-meta { font-size: 12px; gap: 6px; }
@@ -2219,9 +2232,9 @@
                     '</div>' +
                     (groupsHtml ? '<div style="margin-top:10px;padding:12px 14px;background:var(--bg-subtle);border-radius:var(--radius-md);border:1px solid var(--border);">' + groupsHtml + '</div>' : '') +
                     '</div>' +
-                    '<div class="plan-actions" style="margin-left:12px;">' +
-                    (currentTab === 'completed' ? '<button class="action-btn" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;font-size:12px;padding:6px 13px;" data-ticket-plan-id="' + escapeHtml(plan.id) + '">✏️ 补录票号</button>' : '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">编辑</button>') +
-                    (currentTab === 'completed' ? '' : '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">删除</button>') +
+                    '<div class="plan-actions">' +
+                    (currentTab === 'completed' ? '<button class="action-btn" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;" data-ticket-plan-id="' + escapeHtml(plan.id) + '">✏️ 补录票号</button>' : '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">✏️ 编辑</button>') +
+                    (currentTab === 'completed' ? '' : '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">🗑️ 删除</button>') +
                     '</div>' +
                     '</div>' +
                     '<div style="margin-top:12px;padding:14px 16px;background:var(--bg-subtle);border-radius:var(--radius-md);border-left:3px solid #fbbf24;color:var(--text-secondary);line-height:1.75;font-size:14px;">' + escapeHtml(plan.content) + '</div>' +
