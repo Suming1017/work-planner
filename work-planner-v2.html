@@ -212,7 +212,7 @@
             padding: 24px 28px;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
-            min-height: 600px;
+            min-height: clamp(300px, 60vh, 600px);
             border: 1px solid var(--border);
         }
 
@@ -508,6 +508,147 @@
         .legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--text-secondary); }
         .legend-color { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
 
+        /* ===== 通用标签/徽章 ===== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            line-height: 1.6;
+        }
+        .badge-sm { font-size: 11px; padding: 2px 7px; }
+        .badge-date   { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; padding: 4px 10px; font-size: 12px; }
+        .badge-urgent { background: #fef2f2; color: #dc2626; border-color: #fecaca; font-weight: 700; }
+        .badge-warn3  { background: #fff7ed; color: #ea580c; border-color: #fed7aa; font-weight: 700; }
+        .badge-warn7  { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+        .badge-far    { background: #f9fafb; color: #6b7280; border-color: #e5e7eb; font-weight: 400; }
+        .badge-next   { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .badge-ticket { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; }
+        .badge-work-no { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .badge-plan-no { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .badge-person  { background: #fff7ed; color: #c2410c; border-color: #fed7aa; font-size: 13px; padding: 4px 11px; }
+        .badge-members { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; font-size: 13px; padding: 4px 11px; }
+        .badge-trash   { background: #eeeeee; color: #9e9e9e; border-color: #e0e0e0; font-size: 11px; }
+        .badge-trash-date { background: #eeeeee; color: #757575; border-color: #e0e0e0; padding: 4px 10px; font-size: 12px; }
+
+        /* ===== 搜索框 ===== */
+        .search-wrap { margin-bottom: 16px; }
+        .search-inner { display: flex; gap: 8px; align-items: center; }
+        .search-input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-xl);
+            font-size: 13.5px;
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            font-family: var(--font);
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79,110,242,0.10);
+            background: white;
+        }
+        .search-clear {
+            padding: 10px 18px;
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-xl);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: var(--font);
+        }
+        .search-clear:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* ===== 状态筛选器 ===== */
+        .status-filter { display: none; margin-bottom: 20px; }
+        .filter-label {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            padding: 7px 16px;
+            background: white;
+            border-radius: var(--radius-xl);
+            border: 1.5px solid #d1d5db;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-shadow: var(--shadow-sm);
+            user-select: none;
+        }
+        .filter-label:hover { box-shadow: var(--shadow-md); }
+        .filter-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .filter-text { font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+        /* 小组信息卡片 */
+        .group-block {
+            margin-top: 10px;
+            padding: 12px 14px;
+            background: var(--bg-subtle);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+        .group-item {
+            padding: 10px 12px;
+            background: white;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .group-item + .group-item { margin-top: 8px; }
+        .group-label { font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 5px; }
+        .group-row   { font-size: 13px; color: var(--text-secondary); margin-bottom: 3px; }
+        .group-row:last-child { margin-bottom: 0; }
+        .group-val   { color: var(--text-primary); font-weight: 600; }
+
+        /* 动火作业信息块 */
+        .firework-block {
+            margin-top: 10px;
+            padding: 11px 14px;
+            background: #fff7f7;
+            border-radius: var(--radius-md);
+            border: 1px solid #fecdd3;
+            border-left: 3px solid #ef4444;
+        }
+        .firework-title { font-size: 12px; font-weight: 700; color: #ef4444; margin-bottom: 6px; }
+        .firework-row   { font-size: 13px; color: var(--text-secondary); margin-bottom: 3px; }
+        .firework-row:last-child { margin-bottom: 0; }
+
+        /* 办票人员块 */
+        .ticket-person-block {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: #fdf4ff;
+            border-radius: var(--radius-md);
+            border: 1px solid #e9d5ff;
+            border-left: 3px solid #9333ea;
+            font-size: 13px;
+        }
+
+        /* 卡片内容文本区 */
+        .card-content {
+            margin-top: 12px;
+            padding: 14px 16px;
+            background: var(--bg-subtle);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--warning);
+            color: var(--text-secondary);
+            line-height: 1.75;
+            font-size: 14px;
+        }
+
         /* ===== 滚动条美化（桌面端） ===== */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -515,6 +656,8 @@
         ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
         /* ===== 输入框统一过渡 ===== */
+        html { overscroll-behavior-y: none; }
+        body { overscroll-behavior-y: contain; }
         input, textarea, select, button {
             -webkit-tap-highlight-color: transparent;
         }
@@ -638,6 +781,20 @@
 
             /* 空状态 */
             .empty-state { padding: 40px 16px; }
+
+            /* 搜索框 */
+            .search-input { font-size: 16px; padding: 10px 14px; } /* 防 iOS 缩放 */
+            .search-clear { padding: 10px 14px; font-size: 13px; }
+
+            /* 筛选器 */
+            .status-filter { margin-bottom: 14px; }
+            .filter-label { padding: 6px 12px; }
+            .filter-text  { font-size: 12px; }
+
+            /* 小组信息 / 动火块 */
+            .group-block { padding: 10px 10px; }
+            .group-item  { padding: 8px 10px; }
+            .firework-block { padding: 10px 12px; }
         }
 
         /* ===== 极小屏（≤380px） ===== */
@@ -709,53 +866,37 @@
             </div>
 
             <!-- 全局搜索框 -->
-            <div style="margin-bottom: 16px;">
-                <div style="display: flex; gap: 8px; align-items: center;">
+            <div class="search-wrap">
+                <div class="search-inner">
                     <input type="text" id="searchInput" placeholder="🔍 搜索计划（立项名、工作内容、负责人、票型...）"
-                           autocomplete="off" autocorrect="off" autocapitalize="off"
-                           style="flex: 1; padding: 10px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-xl); font-size: 13.5px; background: var(--bg-subtle); color: var(--text-primary); outline: none; transition: border-color 0.2s, box-shadow 0.2s; font-family: var(--font);"
-                           onfocus="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px rgba(79,110,242,0.10)';this.style.background='white'"
-                           onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none';this.style.background='var(--bg-subtle)'">
-                    <button id="clearSearchBtn" style="padding: 10px 18px; background: var(--bg-subtle); border: 1.5px solid var(--border); border-radius: var(--radius-xl); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-secondary); transition: all 0.2s; white-space: nowrap;"
-                        onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)';this.style.background='var(--primary-light)'"
-                        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)';this.style.background='var(--bg-subtle)'">✕ 清空</button>
+                           class="search-input"
+                           autocomplete="off" autocorrect="off" autocapitalize="off">
+                    <button id="clearSearchBtn" class="search-clear">✕ 清空</button>
                 </div>
             </div>
 
             <!-- 状态筛选器（仅周计划显示） -->
-            <div id="weeklyStatusFilter" style="display: none; margin-bottom: 20px;">
+            <div id="weeklyStatusFilter" class="status-filter">
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <label style="display: flex; align-items: center; gap: 7px; cursor: pointer; padding: 7px 16px; background: white; border-radius: var(--radius-xl); border: 1.5px solid #d1d5db; transition: all 0.2s ease; box-shadow: var(--shadow-sm); user-select: none;"
-                        id="label-statusPending"
-                        onmouseover="this.style.borderColor='#6b7280';this.style.boxShadow='var(--shadow-md)'"
-                        onmouseout="this.style.boxShadow='var(--shadow-sm)';this.style.borderColor=document.getElementById('statusPending').checked?'#6b7280':'#d1d5db'">
-                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#9ca3af; flex-shrink:0;"></span>
+                    <label class="filter-label" id="label-statusPending">
+                        <span class="filter-dot" style="background:#9ca3af;"></span>
                         <input type="checkbox" id="statusPending" checked style="display:none;">
-                        <span style="font-size: 13px; font-weight: 600; color: #6b7280; white-space:nowrap;">待开始</span>
+                        <span class="filter-text" style="color:#6b7280;">待开始</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 7px; cursor: pointer; padding: 7px 16px; background: white; border-radius: var(--radius-xl); border: 1.5px solid #6ee7b7; transition: all 0.2s ease; box-shadow: var(--shadow-sm); user-select: none;"
-                        id="label-statusInProgress"
-                        onmouseover="this.style.borderColor='#10b981';this.style.boxShadow='var(--shadow-md)'"
-                        onmouseout="this.style.boxShadow='var(--shadow-sm)';this.style.borderColor=document.getElementById('statusInProgress').checked?'#10b981':'#6ee7b7'">
-                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; flex-shrink:0;"></span>
+                    <label class="filter-label" id="label-statusInProgress" style="border-color:#6ee7b7;">
+                        <span class="filter-dot" style="background:#10b981;"></span>
                         <input type="checkbox" id="statusInProgress" checked style="display:none;">
-                        <span style="font-size: 13px; font-weight: 600; color: #059669; white-space:nowrap;">进行中</span>
+                        <span class="filter-text" style="color:#059669;">进行中</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 7px; cursor: pointer; padding: 7px 16px; background: white; border-radius: var(--radius-xl); border: 1.5px solid #fcd34d; transition: all 0.2s ease; box-shadow: var(--shadow-sm); user-select: none;"
-                        id="label-statusPaused"
-                        onmouseover="this.style.borderColor='#f59e0b';this.style.boxShadow='var(--shadow-md)'"
-                        onmouseout="this.style.boxShadow='var(--shadow-sm)';this.style.borderColor=document.getElementById('statusPaused').checked?'#f59e0b':'#fcd34d'">
-                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f59e0b; flex-shrink:0;"></span>
+                    <label class="filter-label" id="label-statusPaused" style="border-color:#fcd34d;">
+                        <span class="filter-dot" style="background:#f59e0b;"></span>
                         <input type="checkbox" id="statusPaused" checked style="display:none;">
-                        <span style="font-size: 13px; font-weight: 600; color: #d97706; white-space:nowrap;">间断中</span>
+                        <span class="filter-text" style="color:#d97706;">间断中</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 7px; cursor: pointer; padding: 7px 16px; background: white; border-radius: var(--radius-xl); border: 1.5px solid #93c5fd; transition: all 0.2s ease; box-shadow: var(--shadow-sm); user-select: none;"
-                        id="label-showNextWeek"
-                        onmouseover="this.style.borderColor='#3b82f6';this.style.boxShadow='var(--shadow-md)'"
-                        onmouseout="this.style.boxShadow='var(--shadow-sm)';this.style.borderColor=document.getElementById('showNextWeek').checked?'#3b82f6':'#93c5fd'">
-                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#3b82f6; flex-shrink:0;"></span>
+                    <label class="filter-label" id="label-showNextWeek" style="border-color:#93c5fd;">
+                        <span class="filter-dot" style="background:#3b82f6;"></span>
                         <input type="checkbox" id="showNextWeek" style="display:none;">
-                        <span style="font-size: 13px; font-weight: 600; color: #2563eb; white-space:nowrap;">下周计划</span>
+                        <span class="filter-text" style="color:#2563eb;">下周计划</span>
                     </label>
                 </div>
             </div>
@@ -1949,10 +2090,10 @@
                         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">' +
                         '<div style="flex:1;min-width:0;">' +
                         '<div class="plan-title" style="color:#888;">' + escapeHtml(plan.title) +
-                        '<span style="margin-left:8px; background:#eeeeee; color:#9e9e9e; padding:2px 8px; border-radius:4px; font-size:11px;">' + typeLabel + '</span>' +
+                        '<span class="badge badge-trash" style="margin-left:8px;">' + typeLabel + '</span>' +
                         '</div>' +
                         '<div class="plan-meta" style="margin-top:6px;">' +
-                        '<span style="background:#eeeeee; color:#757575; padding:4px 10px; border-radius:6px; font-size:12px;">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' 至 ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
+                        '<span class="badge badge-trash-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' 至 ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
                         '<span style="color:#bbb; font-size:12px;">🗑️ 删除于 ' + deletedTimeStr + '</span>' +
                         '</div>' +
                         '</div>' +
@@ -1961,7 +2102,7 @@
                         '<button class="action-btn" style="background:linear-gradient(135deg,#b71c1c,#f44336);color:white;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;min-height:36px;" onclick="permanentDelete(\'' + escapeHtml(plan.id) + '\')" title="永久删除">🗑️ 永久删除</button>' +
                         '</div>' +
                         '</div>' +
-                        '<div style="margin-top:12px; padding:12px 16px; background:#f5f5f5; border-radius:8px; color:#888; font-size:14px; line-height:1.7;">' + escapeHtml(plan.content) + '</div>' +
+                        '<div class="card-content" style="border-left-color:#9ca3af;">' + escapeHtml(plan.content) + '</div>' +
                         '</div>';
                 }).join('');
                 return;
@@ -2110,11 +2251,11 @@
             container.innerHTML = filteredPlans.map(function(plan) {
                 var personnelHtml = '';
                 if (plan.responsible) {
-                    personnelHtml += '<span style="background:#fff7ed;color:#c2410c;padding:4px 11px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid #fed7aa;">👤 ' + escapeHtml(plan.responsible) + '</span>';
+                    personnelHtml += '<span class="badge badge-person">👤 ' + escapeHtml(plan.responsible) + '</span>';
                 }
                 if (plan.members) {
                     if (personnelHtml) personnelHtml += ' ';
-                    personnelHtml += '<span style="background:#faf5ff;color:#7c3aed;padding:4px 11px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid #ddd6fe;">👥 ' + escapeHtml(plan.members) + '</span>';
+                    personnelHtml += '<span class="badge badge-members">👥 ' + escapeHtml(plan.members) + '</span>';
                 }
 
                 // 显示小组信息
@@ -2124,14 +2265,13 @@
                     var membersKey = 'group' + i + 'Members';
 
                     if (plan[leaderKey] || plan[membersKey]) {
-                        if (groupsHtml) groupsHtml += '<div style="height:8px;"></div>';
-                        var groupText = '<div style="padding:10px 12px;background:white;border-radius:var(--radius-sm);border:1px solid var(--border);">';
-                        groupText += '<div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:5px;">小组 ' + i + '</div>';
+                        var groupText = '<div class="group-item">';
+                        groupText += '<div class="group-label">小组 ' + i + '</div>';
                         if (plan[leaderKey]) {
-                            groupText += '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:3px;">👤 负责人：<span style="color:var(--text-primary);font-weight:600;">' + escapeHtml(plan[leaderKey]) + '</span></div>';
+                            groupText += '<div class="group-row">👤 负责人：<span class="group-val">' + escapeHtml(plan[leaderKey]) + '</span></div>';
                         }
                         if (plan[membersKey]) {
-                            groupText += '<div style="font-size:13px;color:var(--text-secondary);">👥 组员：<span style="color:var(--text-primary);font-weight:600;">' + escapeHtml(plan[membersKey]) + '</span></div>';
+                            groupText += '<div class="group-row">👥 组员：<span class="group-val">' + escapeHtml(plan[membersKey]) + '</span></div>';
                         }
                         groupText += '</div>';
                         groupsHtml += groupText;
@@ -2141,22 +2281,22 @@
                 // 显示票型
                 var ticketHtml = '';
                 if (plan.ticketType && plan.ticketType !== '') {
-                    ticketHtml = '<span style="background:var(--primary-light);color:var(--primary-dark);padding:2px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #c7d2fe;">🎫 ' + escapeHtml(plan.ticketType) + '</span>';
+                    ticketHtml = '<span class="badge badge-ticket">🎫 ' + escapeHtml(plan.ticketType) + '</span>';
                 }
 
                 // 显示动火票信息
                 var fireWorkHtml = '';
                 if (plan.fireWorkLeader || plan.fireWorkExecutor || plan.fireWorkGuardian) {
-                    fireWorkHtml = '<div style="margin-top:10px;padding:11px 14px;background:#fff7f7;border-radius:var(--radius-md);border:1px solid #fecdd3;border-left:3px solid #ef4444;">';
-                    fireWorkHtml += '<div style="font-size:12px;font-weight:700;color:#ef4444;margin-bottom:6px;">🔥 动火作业信息</div>';
+                    fireWorkHtml = '<div class="firework-block">';
+                    fireWorkHtml += '<div class="firework-title">🔥 动火作业信息</div>';
                     if (plan.fireWorkLeader) {
-                        fireWorkHtml += '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:3px;">负责人：<span style="color:var(--text-primary);font-weight:600;">' + escapeHtml(plan.fireWorkLeader) + '</span></div>';
+                        fireWorkHtml += '<div class="firework-row">负责人：<span class="group-val">' + escapeHtml(plan.fireWorkLeader) + '</span></div>';
                     }
                     if (plan.fireWorkExecutor) {
-                        fireWorkHtml += '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:3px;">执行人：<span style="color:var(--text-primary);font-weight:600;">' + escapeHtml(plan.fireWorkExecutor) + '</span></div>';
+                        fireWorkHtml += '<div class="firework-row">执行人：<span class="group-val">' + escapeHtml(plan.fireWorkExecutor) + '</span></div>';
                     }
                     if (plan.fireWorkGuardian) {
-                        fireWorkHtml += '<div style="font-size:13px;color:var(--text-secondary);">监护人：<span style="color:var(--text-primary);font-weight:600;">' + escapeHtml(plan.fireWorkGuardian) + '</span></div>';
+                        fireWorkHtml += '<div class="firework-row">监护人：<span class="group-val">' + escapeHtml(plan.fireWorkGuardian) + '</span></div>';
                     }
                     fireWorkHtml += '</div>';
                 }
@@ -2164,9 +2304,10 @@
                 // 显示办票人员信息
                 var ticketPersonnelHtml = '';
                 if (plan.ticketPersonnel && plan.ticketPersonnel.trim()) {
-                    ticketPersonnelHtml = '<div style="margin-top:10px;padding:10px 14px;background:#fdf4ff;border-radius:var(--radius-md);border:1px solid #e9d5ff;border-left:3px solid #9333ea;">';
-                    ticketPersonnelHtml += '<span style="font-size:13px;color:var(--text-secondary);">📝 办票人员：</span><span style="font-size:13px;color:var(--text-primary);font-weight:600;">' + escapeHtml(plan.ticketPersonnel.trim()) + '</span>';
-                    ticketPersonnelHtml += '</div>';
+                    ticketPersonnelHtml = '<div class="ticket-person-block">' +
+                        '<span style="color:var(--text-secondary);">📝 办票人员：</span>' +
+                        '<span class="group-val">' + escapeHtml(plan.ticketPersonnel.trim()) + '</span>' +
+                        '</div>';
                 }
 
                 // 来源标记 & 下周计划标签
@@ -2174,7 +2315,7 @@
                 var cardClass = plan.urgencyClass || 'plan-card';
                 var isNextWeekForTag = isInNextWeek(plan.startDate);
                 if (isNextWeekForTag) {
-                    sourceTag = '<span style="background:#eff6ff;color:#2563eb;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid #bfdbfe;">下周</span>';
+                    sourceTag = '<span class="badge badge-next badge-sm">下周</span>';
                 }
 
                 // 计算剩余天数提示
@@ -2183,13 +2324,13 @@
                 var diffTime = startDate - new Date();
                 var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 if (diffDays <= 0) {
-                    daysBadge = '<span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;border:1px solid #fecaca;">进行中</span>';
+                    daysBadge = '<span class="badge badge-urgent badge-sm">进行中</span>';
                 } else if (diffDays <= 3) {
-                    daysBadge = '<span style="background:#fff7ed;color:#ea580c;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;border:1px solid #fed7aa;">' + diffDays + '天后</span>';
+                    daysBadge = '<span class="badge badge-warn3 badge-sm">' + diffDays + '天后</span>';
                 } else if (diffDays <= 7) {
-                    daysBadge = '<span style="background:#fffbeb;color:#d97706;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid #fde68a;">' + diffDays + '天后</span>';
+                    daysBadge = '<span class="badge badge-warn7 badge-sm">' + diffDays + '天后</span>';
                 } else {
-                    daysBadge = '<span style="background:#f9fafb;color:#6b7280;padding:2px 8px;border-radius:6px;font-size:11px;border:1px solid #e5e7eb;">' + diffDays + '天后</span>';
+                    daysBadge = '<span class="badge badge-far badge-sm">' + diffDays + '天后</span>';
                 }
 
                 // 在已完结标签页中，不显示"进行中/已开始"，显示实际状态
@@ -2219,24 +2360,24 @@
                     sourceTag +
                     daysBadge +
                     ticketHtml +
-                    (plan.workTicketNo ? '<span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #bbf7d0;">🎫 ' + escapeHtml(plan.workTicketNo) + '</span>' : '') +
-                    (plan.planNo ? '<span style="background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #bfdbfe;">📋 ' + escapeHtml(plan.planNo) + '</span>' : '') +
+                    (plan.workTicketNo ? '<span class="badge badge-work-no">🎫 ' + escapeHtml(plan.workTicketNo) + '</span>' : '') +
+                    (plan.planNo ? '<span class="badge badge-plan-no">📋 ' + escapeHtml(plan.planNo) + '</span>' : '') +
                     '</div>' +
                     '<div class="plan-meta">' +
-                    '<span style="background:var(--primary-light);color:var(--primary-dark);padding:4px 10px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' — ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
+                    '<span class="badge badge-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' — ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
                     '<span>' + getPriorityText(plan.priority) + '</span>' +
                     (equipmentBadge ? '<span>' + equipmentBadge + '</span>' : '') +
                     (statusBadge ? '<span>' + statusBadge + '</span>' : '') +
                     (personnelHtml ? '</div><div class="plan-meta" style="margin-top:7px;">' + personnelHtml : '') +
                     '</div>' +
-                    (groupsHtml ? '<div style="margin-top:10px;padding:12px 14px;background:var(--bg-subtle);border-radius:var(--radius-md);border:1px solid var(--border);">' + groupsHtml + '</div>' : '') +
+                    (groupsHtml ? '<div class="group-block">' + groupsHtml + '</div>' : '') +
                     '</div>' +
                     '<div class="plan-actions">' +
                     (currentTab === 'completed' ? '<button class="action-btn" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;" data-ticket-plan-id="' + escapeHtml(plan.id) + '">✏️ 补录票号</button>' : '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">✏️ 编辑</button>') +
                     (currentTab === 'completed' ? '' : '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">🗑️ 删除</button>') +
                     '</div>' +
                     '</div>' +
-                    '<div style="margin-top:12px;padding:14px 16px;background:var(--bg-subtle);border-radius:var(--radius-md);border-left:3px solid #fbbf24;color:var(--text-secondary);line-height:1.75;font-size:14px;">' + escapeHtml(plan.content) + '</div>' +
+                    '<div class="card-content">' + escapeHtml(plan.content) + '</div>' +
                     fireWorkHtml +
                     ticketPersonnelHtml +
                     '</div>';
