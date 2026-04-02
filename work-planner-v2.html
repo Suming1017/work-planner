@@ -1554,19 +1554,18 @@
                 togglePersonnelFields(e.target.value);
             });
 
-            // 使用事件委托处理编辑和删除按钮点击
+            // 使用事件委托处理编辑、补录票号和删除按钮点击
             document.getElementById('planList').addEventListener('click', function(e) {
-                var editBtn = e.target.closest('.edit-btn');
+                // 优先判断补录票号按钮（有 data-ticket-plan-id 属性）
+                var ticketBtn = e.target.closest('[data-ticket-plan-id]');
+                var editBtn   = e.target.closest('.edit-btn');
                 var deleteBtn = e.target.closest('.delete-btn');
 
-                if (editBtn) {
+                if (ticketBtn) {
+                    openTicketNoModal(ticketBtn.dataset.ticketPlanId);
+                } else if (editBtn) {
                     var planId = editBtn.dataset.planId;
-                    var ticketPlanId = editBtn.dataset.ticketPlanId;
-                    if (ticketPlanId) {
-                        openTicketNoModal(ticketPlanId);
-                    } else if (planId) {
-                        openModal(planId);
-                    }
+                    if (planId) openModal(planId);
                 } else if (deleteBtn) {
                     var planId = deleteBtn.dataset.planId;
                     deletePlan(planId);
