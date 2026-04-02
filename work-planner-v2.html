@@ -2224,11 +2224,16 @@
             var now = new Date();
             filteredPlans = filteredPlans.map(function(plan) {
                 var startDate = new Date(plan.startDate);
+                var endDate = plan.endDate ? new Date(plan.endDate) : null;
+                var isFinished = plan.status === 'completed' || (endDate && endDate < now);
+
                 var diffTime = startDate - now;
                 var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                // 添加样式类
-                if (diffDays <= 0) {
+                // 添加样式类：已完成/结束时间已过 不再标为 urgent/near
+                if (isFinished) {
+                    plan.urgencyClass = 'plan-card'; // 正常样式，不突出
+                } else if (diffDays <= 0) {
                     plan.urgencyClass = 'urgent'; // 今天或已开始
                 } else if (diffDays <= 3) {
                     plan.urgencyClass = 'urgent'; // 3天内
@@ -2318,31 +2323,45 @@
                     sourceTag = '<span class="badge badge-next badge-sm">下周</span>';
                 }
 
-                // 计算剩余天数提示
+                // 计算剩余天数提示（考虑已完成/结束时间已过的情况）
                 var daysBadge = '';
                 var startDate = new Date(plan.startDate);
-                var diffTime = startDate - new Date();
-                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays <= 0) {
-                    daysBadge = '<span class="badge badge-urgent badge-sm">进行中</span>';
-                } else if (diffDays <= 3) {
-                    daysBadge = '<span class="badge badge-warn3 badge-sm">' + diffDays + '天后</span>';
-                } else if (diffDays <= 7) {
-                    daysBadge = '<span class="badge badge-warn7 badge-sm">' + diffDays + '天后</span>';
+                var endDate = plan.endDate ? new Date(plan.endDate) : null;
+                var isFinished = plan.status === 'completed' || (endDate && endDate < now);
+
+                if (isFinished) {
+                    // 已完成或结束时间已过，不显示"进行中"，改显示对应真实状态
+                    daysBadge = '';
                 } else {
-                    daysBadge = '<span class="badge badge-far badge-sm">' + diffDays + '天后</span>';
+                    var diffTime = startDate - now;
+                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (diffDays <= 0) {
+                        daysBadge = '<span class="badge badge-urgent badge-sm">进行中</span>';
+                    } else if (diffDays <= 3) {
+                        daysBadge = '<span class="badge badge-warn3 badge-sm">' + diffDays + '天后</span>';
+                    } else if (diffDays <= 7) {
+                        daysBadge = '<span class="badge badge-warn7 badge-sm">' + diffDays + '天后</span>';
+                    } else {
+                        daysBadge = '<span class="badge badge-far badge-sm">' + diffDays + '天后</span>';
+                    }
                 }
 
-                // 在已完结标签页中，不显示"进行中/已开始"，显示实际状态
-                // 在其他标签页中，显示所有状态
+                // 状态徽章：实时反映真实状态
+                // 在已完结标签页中，不重复显示"已完成"，仅显示非 completed 的异常状态
+                // 在其他标签页中，若结束时间已过但状态未更新，也显示"已完成"
                 var statusBadge = '';
                 if (currentTab === 'completed') {
                     if (plan.status && plan.status !== 'completed') {
                         statusBadge = getStatusText(plan.status);
                     }
                 } else {
-                    if (plan.status) {
-                        statusBadge = getStatusText(plan.status);
+                    // 结束时间已过，但数据库状态尚未同步完成时，也实时显示"已完成"
+                    var effectiveStatus = plan.status;
+                    if (endDate && endDate < now && effectiveStatus !== 'completed') {
+                        effectiveStatus = 'completed';
+                    }
+                    if (effectiveStatus) {
+                        statusBadge = getStatusText(effectiveStatus);
                     }
                 }
 
