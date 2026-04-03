@@ -417,6 +417,58 @@
         .form-row { display: flex; gap: 14px; }
         .form-row .form-group { flex: 1; }
 
+        /* 时间输入行：日期 + 时 + 分 */
+        .time-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+        .time-row .time-date {
+            flex: 1;
+            min-width: 0;
+        }
+        .time-row .time-hm {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .time-row .time-hm input {
+            width: 56px !important;
+            padding: 10px 6px !important;
+            text-align: center;
+        }
+        .time-colon {
+            font-weight: 700;
+            color: #666;
+            line-height: 1;
+        }
+
+        /* 人员信息分区 */
+        .personnel-section {
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 2px solid var(--border);
+        }
+        .section-title {
+            margin-bottom: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .sub-section-title {
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .sub-divider {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1.5px dashed var(--border);
+        }
+
         .modal-actions {
             display: flex;
             gap: 10px;
@@ -779,6 +831,17 @@
             .modal-actions { gap: 8px; margin-top: 16px; }
             .modal-actions button { padding: 12px; font-size: 14px; min-height: 44px; }
 
+            /* 时间输入行：手机端 date 占满，时分紧跟 */
+            .time-row { flex-wrap: nowrap; gap: 6px; }
+            .time-row .time-date { min-width: 0; }
+            .time-row .time-hm input { width: 46px !important; padding: 10px 4px !important; font-size: 15px !important; }
+
+            /* 人员信息分区 */
+            .personnel-section { margin-top: 16px; padding-top: 14px; }
+            .section-title { font-size: 14px; margin-bottom: 12px; }
+            .sub-section-title { font-size: 13px; }
+            .sub-divider { margin-top: 14px; padding-top: 12px; }
+
             /* 空状态 */
             .empty-state { padding: 40px 16px; }
 
@@ -1025,7 +1088,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="planTitle">立项名</label>
-                        <select id="planTitle" required style="width: 100%;">
+                        <select id="planTitle" required>
                             <option value="">选择立项名</option>
                             <option value="厚街基建">厚街基建</option>
                             <option value="厚街中压抢修">厚街中压抢修</option>
@@ -1060,20 +1123,24 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="startDate">开始时间</label>
-                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                            <input type="date" id="startDate" required style="flex: 1; min-width: 120px;">
-                            <input type="number" id="startHour" min="0" max="23" placeholder="时" style="width: 64px;" inputmode="numeric" required>
-                            <span style="font-weight: bold; color: #666;">:</span>
-                            <input type="number" id="startMinute" min="0" max="59" placeholder="分" style="width: 64px;" inputmode="numeric" required>
+                        <div class="time-row">
+                            <input type="date" id="startDate" required class="time-date">
+                            <div class="time-hm">
+                                <input type="number" id="startHour" min="0" max="23" placeholder="时" inputmode="numeric" required>
+                                <span class="time-colon">:</span>
+                                <input type="number" id="startMinute" min="0" max="59" placeholder="分" inputmode="numeric" required>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="endDate">结束时间</label>
-                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                            <input type="date" id="endDate" required style="flex: 1; min-width: 120px;">
-                            <input type="number" id="endHour" min="0" max="23" placeholder="时" style="width: 64px;" inputmode="numeric" required>
-                            <span style="font-weight: bold; color: #666;">:</span>
-                            <input type="number" id="endMinute" min="0" max="59" placeholder="分" style="width: 64px;" inputmode="numeric" required>
+                        <div class="time-row">
+                            <input type="date" id="endDate" required class="time-date">
+                            <div class="time-hm">
+                                <input type="number" id="endHour" min="0" max="23" placeholder="时" inputmode="numeric" required>
+                                <span class="time-colon">:</span>
+                                <input type="number" id="endMinute" min="0" max="59" placeholder="分" inputmode="numeric" required>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1081,7 +1148,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="ticketType">票型</label>
-                        <select id="ticketType" style="width: 100%;">
+                        <select id="ticketType">
                             <option value="">选择票型</option>
                             <option value="线路一种票">线路一种票</option>
                             <option value="线路二种票">线路二种票</option>
@@ -1091,7 +1158,7 @@
                     </div>
                     <div class="form-group">
                         <label for="equipmentStatus">电气设备</label>
-                        <select id="equipmentStatus" style="width: 100%;">
+                        <select id="equipmentStatus">
                             <option value="none">无设备</option>
                             <option value="not-arrived">未到货</option>
                             <option value="pending">待试验</option>
@@ -1104,7 +1171,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="priority">风险等级</label>
-                        <select id="priority" style="width: 100%;">
+                        <select id="priority">
                             <option value="low" selected>低</option>
                             <option value="medium">中</option>
                             <option value="high">高</option>
@@ -1112,7 +1179,7 @@
                     </div>
                     <div class="form-group">
                         <label for="status">计划状态</label>
-                        <select id="status" style="width: 100%;">
+                        <select id="status">
                             <option value="pending">待开始</option>
                             <option value="in-progress">进行中</option>
                             <option value="paused">间断中</option>
@@ -1122,8 +1189,8 @@
                 </div>
 
                 <!-- 只在周计划时显示人员信息 -->
-                <div id="personnelFields" style="margin-top: 22px; padding-top: 18px; border-top: 2px solid var(--border);">
-                    <div style="margin-bottom: 16px; font-size: 15px; font-weight: 700; color: var(--primary);">👥 人员信息</div>
+                <div id="personnelFields" class="personnel-section">
+                    <div class="section-title">👥 人员信息</div>
 
                     <div class="form-row" style="margin-bottom: 12px;">
                         <div class="form-group">
@@ -1137,7 +1204,7 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 12px;">
-                        <label style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary);">📋 小组票</label>
+                        <label class="sub-section-title">📋 小组票</label>
                         <div class="form-row" style="margin-bottom: 10px;">
                             <div class="form-group">
                                 <label for="group1Leader" style="font-size: 13px; color: #666;">小组1负责人</label>
@@ -1190,7 +1257,7 @@
                         </div>
                     </div>
 
-                    <div class="form-row" style="margin-top: 18px; padding-top: 14px; border-top: 1.5px dashed var(--border);">
+                    <div class="form-row sub-divider">
                         <div class="form-group">
                             <label for="fireWorkLeader" style="color: #ef4444;">🔥 动火票负责人</label>
                             <input type="text" id="fireWorkLeader" placeholder="输入动火票负责人">
@@ -1207,10 +1274,10 @@
                         </div>
                     </div>
 
-                    <div class="form-row" style="margin-top: 18px; padding-top: 14px; border-top: 1.5px dashed var(--border);">
+                    <div class="form-row sub-divider">
                         <div class="form-group" style="flex: 1;">
                             <label for="ticketPersonnel" style="color: var(--primary);">📝 办票人员</label>
-                            <input type="text" id="ticketPersonnel" placeholder="输入办票人员姓名" style="width: 100%;">
+                            <input type="text" id="ticketPersonnel" placeholder="输入办票人员姓名">
                         </div>
                     </div>
                 </div>
