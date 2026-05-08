@@ -41,6 +41,94 @@
             --font: 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif;
         }
 
+        /* ===== 对话框公共类（替代大量 inline style） ===== */
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            z-index: 999999;
+            inset: 0;
+            background: rgba(17,24,39,0.52);
+            backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+        }
+        .dialog-overlay.show { display: flex; }
+        .dialog-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 32px 24px 24px;
+            width: min(380px, 94vw);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .dialog-box.dialog-wide { width: min(440px, 94vw); text-align: left; }
+        .dialog-icon { font-size: 44px; margin-bottom: 12px; line-height: 1; }
+        .dialog-title { font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .dialog-title.danger { color: #b71c1c; }
+        .dialog-title.success { color: #1b5e20; }
+        .dialog-body { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.85; }
+        .dialog-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+        .dialog-input {
+            width: 100%;
+            padding: 9px 13px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: var(--font);
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+            margin-bottom: 14px;
+        }
+        .dialog-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79,110,242,0.10);
+            background: white;
+        }
+        .dialog-actions { display: flex; gap: 10px; }
+        .dialog-actions.center { justify-content: center; }
+        .dialog-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            min-height: 44px;
+            transition: all 0.18s;
+            font-family: var(--font);
+        }
+        .dialog-btn.secondary {
+            background: white;
+            border: 1.5px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .dialog-btn.secondary:hover { background: var(--bg-subtle); }
+        .dialog-btn.primary-btn {
+            background: var(--primary-grad);
+            color: white;
+            box-shadow: 0 2px 8px rgba(79,110,242,0.30);
+        }
+        .dialog-btn.danger-btn {
+            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(229,57,53,0.28);
+        }
+        .dialog-btn.danger-dark-btn {
+            background: linear-gradient(135deg, #b71c1c 0%, #7f0000 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(183,28,28,0.28);
+        }
+        .dialog-btn.success-btn {
+            background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(67,160,71,0.28);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -251,12 +339,12 @@
         }
 
         /* ===== 计划列表 ===== */
-        .plan-list { display: flex; flex-direction: column; gap: 10px; }
+        .plan-list { display: flex; flex-direction: column; gap: 12px; }
 
         .plan-card {
             background: var(--bg-card);
             border-radius: var(--radius-md);
-            padding: 18px 20px;
+            padding: 16px 18px;
             transition: box-shadow 0.2s, transform 0.2s;
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--border);
@@ -271,70 +359,74 @@
             border-left-color: var(--danger);
             box-shadow: 0 2px 10px rgba(239,68,68,0.10);
         }
-        .plan-card.urgent .plan-title { color: var(--danger); }
-
         .plan-card.near {
             background: linear-gradient(160deg, #fffbeb 0%, #fff 80%);
             border-left-color: var(--warning);
-            box-shadow: 0 2px 10px rgba(245,158,11,0.10);
         }
-
         .plan-card.normal {
             background: linear-gradient(160deg, #f0fdf4 0%, #fff 80%);
             border-left-color: var(--success);
         }
-
         .plan-card.far {
             background: var(--bg-subtle);
             border-left-color: #d1d5db;
-            opacity: 0.88;
+            opacity: 0.9;
         }
-
         .plan-card.from-monthly { }
+        .plan-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 
-        .plan-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-        }
-
-        .plan-header {
+        /* 卡片顶部：标题行 */
+        .plan-title-row {
             display: flex;
-            justify-content: space-between;
             align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 12px;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
         }
-
         .plan-title {
-            font-size: 1.05em;
+            font-size: 1.06em;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 8px;
             letter-spacing: 0.2px;
-            line-height: 1.4;
+            line-height: 1.45;
+            flex: 1;
+            min-width: 0;
+        }
+        .plan-card.urgent .plan-title { color: var(--danger); }
+
+        /* 卡片徽章行（来源标记、天数等） */
+        .plan-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 8px;
         }
 
+        /* 卡片元信息行（日期+状态等） */
         .plan-meta {
             display: flex;
-            gap: 8px;
-            color: var(--text-secondary);
+            gap: 7px;
             font-size: 12.5px;
             align-items: center;
             flex-wrap: wrap;
             min-width: 0;
         }
 
-        .plan-actions { display: flex; gap: 7px; flex-shrink: 0; margin-left: 12px; }
+        /* 卡片操作按钮区 */
+        .plan-actions {
+            display: flex;
+            gap: 7px;
+            flex-shrink: 0;
+        }
 
         .action-btn {
-            padding: 6px 16px;
+            padding: 6px 14px;
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 12.5px;
             font-weight: 600;
             transition: all 0.15s ease;
-            letter-spacing: 0.2px;
             white-space: nowrap;
             min-width: 52px;
             text-align: center;
@@ -342,6 +434,7 @@
         }
         .edit-btn   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
         .delete-btn { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+        .ticket-btn { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
         .action-btn:hover { filter: brightness(0.93); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 
         /* ===== 弹窗 ===== */
@@ -607,19 +700,36 @@
             line-height: 1.6;
         }
         .badge-sm { font-size: 11px; padding: 2px 7px; }
-        .badge-date   { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; padding: 4px 10px; font-size: 12px; }
-        .badge-urgent { background: #fef2f2; color: #dc2626; border-color: #fecaca; font-weight: 700; }
-        .badge-warn3  { background: #fff7ed; color: #ea580c; border-color: #fed7aa; font-weight: 700; }
-        .badge-warn7  { background: #fffbeb; color: #d97706; border-color: #fde68a; }
-        .badge-far    { background: #f9fafb; color: #6b7280; border-color: #e5e7eb; font-weight: 400; }
-        .badge-next   { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
-        .badge-ticket { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; }
+        .badge-date    { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; padding: 4px 10px; font-size: 12px; }
+        .badge-urgent  { background: #fef2f2; color: #dc2626; border-color: #fecaca; font-weight: 700; }
+        .badge-warn3   { background: #fff7ed; color: #ea580c; border-color: #fed7aa; font-weight: 700; }
+        .badge-warn7   { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+        .badge-far     { background: #f9fafb; color: #6b7280; border-color: #e5e7eb; font-weight: 400; }
+        .badge-next    { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .badge-ticket  { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; }
         .badge-work-no { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
         .badge-plan-no { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
         .badge-person  { background: #fff7ed; color: #c2410c; border-color: #fed7aa; font-size: 13px; padding: 4px 11px; white-space: normal; word-break: break-all; overflow-wrap: anywhere; }
         .badge-members { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; font-size: 13px; padding: 4px 11px; white-space: normal; word-break: break-all; overflow-wrap: anywhere; }
         .badge-trash   { background: #eeeeee; color: #9e9e9e; border-color: #e0e0e0; font-size: 11px; }
         .badge-trash-date { background: #eeeeee; color: #757575; border-color: #e0e0e0; padding: 4px 10px; font-size: 12px; }
+
+        /* 状态徽章（从 getStatusText 中提取为 CSS 类） */
+        .bdg-status-pending    { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+        .bdg-status-progress   { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+        .bdg-status-paused     { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+        .bdg-status-completed  { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+        /* 风险徽章 */
+        .bdg-risk-high   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 700; }
+        .bdg-risk-medium { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 700; }
+        .bdg-risk-low    { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 700; }
+        .bdg-risk-none   { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; }
+        /* 设备状态徽章 */
+        .bdg-equip-none        { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+        .bdg-equip-not-arrived { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+        .bdg-equip-pending     { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+        .bdg-equip-testing     { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+        .bdg-equip-tested      { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
 
         /* ===== 搜索框 ===== */
         .search-wrap { margin-bottom: 16px; }
@@ -848,29 +958,27 @@
             .add-btn { padding: 8px 16px; font-size: 13px; }
 
             /* 计划卡片 */
-            .plan-card { padding: 14px 14px; border-radius: var(--radius-sm); }
-            .plan-header { flex-direction: column; gap: 10px; margin-bottom: 10px; }
+            .plan-card { padding: 13px 13px; border-radius: var(--radius-sm); }
+            /* 手机端卡片：标题+动作按钮同行，按钮缩小 */
+            .plan-title-row { align-items: flex-start; gap: 8px; }
             .plan-actions {
-                display: flex;
-                gap: 8px;
-                width: 100%;
-                margin-left: 0;        /* 消除桌面端的 margin-left */
+                flex-direction: column;
+                gap: 6px;
+                flex-shrink: 0;
             }
             .action-btn {
-                flex: 1;
-                padding: 10px 8px;
-                font-size: 13px;
-                text-align: center;
+                padding: 8px 10px;
+                font-size: 12px;
+                min-height: 38px;
+                min-width: 60px;
                 border-radius: var(--radius-sm);
-                min-height: 42px;      /* 符合 iOS HIG 触控最小尺寸 */
-                min-width: 0;          /* 重置桌面端 min-width，让 flex:1 真正平分 */
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                line-height: 1.2;
             }
-            .plan-title { font-size: 1em; margin-bottom: 6px; }
-            .plan-meta { font-size: 12px; gap: 6px; }
+            .plan-title { font-size: 1em; }
+            .plan-badges { gap: 4px; margin-bottom: 6px; }
+            .plan-meta { font-size: 12px; gap: 5px; }
 
             /* 弹窗 */
             .modal { padding: 0; align-items: flex-start; }
@@ -976,6 +1084,9 @@
 
             /* plan-meta badge 换行后垂直对齐 */
             .plan-meta { align-items: flex-start; }
+
+            /* 对话框弹窗在手机端铺满底部 */
+            .dialog-box { width: min(400px, 96vw); }
         }
 
         /* ===== 极小屏（≤380px） ===== */
@@ -1137,64 +1248,56 @@
 
 
     <!-- 补录票号对话框 -->
-    <div id="ticketNoModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.50); backdrop-filter: blur(3px);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: var(--radius-lg); padding: 28px; width: min(420px, 94vw); box-shadow: 0 20px 60px rgba(17,24,39,0.22); border: 1px solid var(--border);">
-            <div style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px;">✏️ 补录票号</div>
-            <div id="ticketNoModalTitle" style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1.5px solid var(--border);"></div>
-            <div style="margin-bottom: 14px;">
-                <label style="display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">工作票号</label>
-                <input type="text" id="ticketNoInput" placeholder="输入工作票号" style="width: 100%; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13.5px; box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s; font-family: var(--font); background: var(--bg-subtle);"
-                    onfocus="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px rgba(79,110,242,0.10)';this.style.background='white'"
-                    onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none';this.style.background='var(--bg-subtle)'">
-            </div>
-            <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">计划编号</label>
-                <input type="text" id="planNoInput" placeholder="输入计划编号" style="width: 100%; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13.5px; box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s; font-family: var(--font); background: var(--bg-subtle);"
-                    onfocus="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px rgba(79,110,242,0.10)';this.style.background='white'"
-                    onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none';this.style.background='var(--bg-subtle)'">
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="ticketNoCancelBtn" style="flex:1; padding: 10px; border: 1.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg-subtle); color: var(--text-secondary); font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background 0.15s;">取消</button>
-                <button id="ticketNoSaveBtn" style="flex:1; padding: 10px; background: var(--primary-grad); border: none; border-radius: var(--radius-md); color: white; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: var(--font); box-shadow: 0 2px 8px rgba(79,110,242,0.30);">💾 保存</button>
+    <div id="ticketNoModal" class="dialog-overlay">
+        <div class="dialog-box dialog-wide">
+            <div class="dialog-title">✏️ 补录票号</div>
+            <div id="ticketNoModalTitle" style="font-size:12.5px;color:var(--text-secondary);margin-bottom:20px;padding-bottom:14px;border-bottom:1.5px solid var(--border);"></div>
+            <label class="dialog-label">工作票号</label>
+            <input type="text" id="ticketNoInput" class="dialog-input" placeholder="输入工作票号">
+            <label class="dialog-label">计划编号</label>
+            <input type="text" id="planNoInput" class="dialog-input" placeholder="输入计划编号" style="margin-bottom:24px;">
+            <div class="dialog-actions">
+                <button id="ticketNoCancelBtn" class="dialog-btn secondary">取消</button>
+                <button id="ticketNoSaveBtn" class="dialog-btn primary-btn">💾 保存</button>
             </div>
         </div>
     </div>
 
     <!-- 删除确认对话框 -->
-    <div id="deleteConfirmModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26,31,54,0.55); backdrop-filter: blur(2px);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 32px 24px; width: min(360px, 92vw); box-shadow: 0 16px 56px rgba(26,31,54,0.25); text-align: center;">
-            <div style="font-size: 44px; margin-bottom: 12px;">🗑️</div>
-            <div style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">移入回收站</div>
-            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.8;">计划将移入回收站，<br>可在回收站中恢复或永久删除。</div>
-            <div style="display: flex; gap: 12px;">
-                <button id="deleteCancelBtn" style="flex: 1; padding: 12px 8px; border: 1.5px solid var(--border); border-radius: 24px; background: white; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; min-height: 44px;">取消</button>
-                <button id="deleteConfirmBtn" style="flex: 1; padding: 12px 8px; border: none; border-radius: 24px; background: linear-gradient(135deg, #e53935 0%, #c62828 100%); font-size: 14px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(229,57,53,0.3); min-height: 44px;">移入回收站</button>
+    <div id="deleteConfirmModal" class="dialog-overlay">
+        <div class="dialog-box">
+            <div class="dialog-icon">🗑️</div>
+            <div class="dialog-title">移入回收站</div>
+            <div class="dialog-body">计划将移入回收站，<br>可在回收站中恢复或永久删除。</div>
+            <div class="dialog-actions">
+                <button id="deleteCancelBtn" class="dialog-btn secondary">取消</button>
+                <button id="deleteConfirmBtn" class="dialog-btn danger-btn">移入回收站</button>
             </div>
         </div>
     </div>
 
     <!-- 永久删除确认对话框 -->
-    <div id="permanentDeleteModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26,31,54,0.65); backdrop-filter: blur(2px);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 32px 24px; width: min(380px, 92vw); box-shadow: 0 16px 56px rgba(26,31,54,0.28); text-align: center;">
-            <div style="font-size: 44px; margin-bottom: 12px;">⚠️</div>
-            <div style="font-size: 17px; font-weight: 700; color: #b71c1c; margin-bottom: 8px;">永久删除</div>
-            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.8;">此操作<strong style="color:#c62828;">不可恢复</strong>，<br>计划数据将被彻底删除！</div>
-            <div style="display: flex; gap: 12px;">
-                <button id="permanentDeleteCancelBtn" style="flex: 1; padding: 12px 8px; border: 1.5px solid var(--border); border-radius: 24px; background: white; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; min-height: 44px;">取消</button>
-                <button id="permanentDeleteConfirmBtn" style="flex: 1; padding: 12px 8px; border: none; border-radius: 24px; background: linear-gradient(135deg, #b71c1c 0%, #7f0000 100%); font-size: 14px; font-weight: 600; color: white; cursor: pointer; box-shadow: 0 2px 8px rgba(183,28,28,0.3); min-height: 44px;">确认永久删除</button>
+    <div id="permanentDeleteModal" class="dialog-overlay">
+        <div class="dialog-box">
+            <div class="dialog-icon">⚠️</div>
+            <div class="dialog-title danger">永久删除</div>
+            <div class="dialog-body">此操作<strong style="color:#c62828;">不可恢复</strong>，<br>计划数据将被彻底删除！</div>
+            <div class="dialog-actions">
+                <button id="permanentDeleteCancelBtn" class="dialog-btn secondary">取消</button>
+                <button id="permanentDeleteConfirmBtn" class="dialog-btn danger-dark-btn">确认永久删除</button>
             </div>
         </div>
     </div>
 
     <!-- 恢复确认对话框 -->
-    <div id="restoreConfirmModal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26,31,54,0.55); backdrop-filter: blur(2px);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 32px 24px; width: min(360px, 92vw); box-shadow: 0 16px 56px rgba(26,31,54,0.25); text-align: center;">
-            <div style="font-size: 44px; margin-bottom: 12px;">↩️</div>
-            <div style="font-size: 17px; font-weight: 700; color: #1b5e20; margin-bottom: 8px;">恢复计划</div>
-            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.8;">确认将这条计划从回收站恢复<br>到原来的计划列表？</div>
-            <div style="display: flex; gap: 12px;">
-                <button id="restoreCancelBtn" style="flex: 1; padding: 12px 8px; border: 1.5px solid var(--border); border-radius: 24px; background: white; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; min-height: 44px;">取消</button>
-                <button id="restoreConfirmBtn" style="flex: 1; padding: 12px 8px; border: none; border-radius: 24px; background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%); font-size: 14px; font-weight: 600; color: white; cursor: pointer; box-shadow: 0 2px 8px rgba(67,160,71,0.3); min-height: 44px;">确认恢复</button>
+    <div id="restoreConfirmModal" class="dialog-overlay">
+        <div class="dialog-box">
+            <div class="dialog-icon">↩️</div>
+            <div class="dialog-title success">恢复计划</div>
+            <div class="dialog-body">确认将这条计划从回收站恢复<br>到原来的计划列表？</div>
+            <div class="dialog-actions">
+                <button id="restoreCancelBtn" class="dialog-btn secondary">取消</button>
+                <button id="restoreConfirmBtn" class="dialog-btn success-btn">确认恢复</button>
             </div>
         </div>
     </div>
@@ -2081,6 +2184,9 @@
                 groupFields['group' + gi + 'Members'] = getVal('group' + gi + 'Members');
             }
 
+            // 保留原始计划的 isTransferred / transferredAt
+            var existingPlan = editingPlanId ? plans.find(function(p) { return p.id === editingPlanId; }) : null;
+
             var planData = Object.assign({
                 id:             editingPlanId || String(Date.now()),
                 type:           getVal('planType'),
@@ -2102,9 +2208,28 @@
                 fireWorkLeader: getVal('fireWorkLeader'),
                 fireWorkExecutor:getVal('fireWorkExecutor'),
                 fireWorkGuardian:getVal('fireWorkGuardian'),
+                isTransferred:  existingPlan ? (existingPlan.isTransferred || false) : false,
+                transferredAt:  existingPlan ? (existingPlan.transferredAt || null) : null,
                 createdAt:      new Date().toISOString(),
                 updatedAt:      new Date().toISOString()
             }, groupFields);
+
+            // ── 时间范围自动重分类 ──────────────────────────────────────────
+            // 情况A：周计划（type=weekly）的开始时间被修改到本周/下周范围之外
+            //         → 自动降级为月计划，待时间满足条件后由 autoTransferMonthlyPlans 再转回
+            // 情况B：已转移的月计划（isTransferred=true）开始时间被改出本周/下周范围
+            //         → 清除 isTransferred，让它回到月计划栏
+            var startInWeekRange = isInCurrentWeek(planData.startDate) || isInNextWeek(planData.startDate);
+
+            if (planData.type === 'weekly' && !startInWeekRange) {
+                planData.type = 'monthly';
+                planData.isTransferred = false;
+                planData.transferredAt = null;
+            } else if (planData.type === 'monthly' && planData.isTransferred && !startInWeekRange) {
+                planData.isTransferred = false;
+                planData.transferredAt = null;
+            }
+            // ────────────────────────────────────────────────────────────────
 
             savePlanToCloud(planData)
                 .then(function() {
@@ -2127,7 +2252,7 @@
             document.getElementById('ticketNoModalTitle').textContent = plan.title;
             document.getElementById('ticketNoInput').value = plan.workTicketNo || '';
             document.getElementById('planNoInput').value = plan.planNo || '';
-            modal.style.display = 'block';
+            modal.classList.add('show');
 
             // 克隆按钮清除旧事件
             var saveBtn = document.getElementById('ticketNoSaveBtn');
@@ -2138,7 +2263,7 @@
             cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
             newCancelBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
+                modal.classList.remove('show');
             });
 
             newSaveBtn.addEventListener('click', function() {
@@ -2163,7 +2288,7 @@
                         // 更新本地数据
                         plan.workTicketNo = workTicketNo;
                         plan.planNo = planNo;
-                        modal.style.display = 'none';
+                        modal.classList.remove('show');
                         renderPlans();
                         setSyncStatus('connected', '已连接');
                     });
@@ -2186,7 +2311,7 @@
                 : planId;
 
             var modal = document.getElementById('deleteConfirmModal');
-            modal.style.display = 'block';
+            modal.classList.add('show');
 
             var confirmBtn = document.getElementById('deleteConfirmBtn');
             var cancelBtn = document.getElementById('deleteCancelBtn');
@@ -2198,11 +2323,11 @@
             cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
             newCancelBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
+                modal.classList.remove('show');
             });
 
             newConfirmBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
+                modal.classList.remove('show');
                 setSyncStatus('syncing', '处理中...');
 
                 // 乐观更新：立即修改本地 plans 数组，界面立刻响应
@@ -2240,7 +2365,7 @@
 
         function restorePlan(planId) {
             var modal = document.getElementById('restoreConfirmModal');
-            modal.style.display = 'block';
+            modal.classList.add('show');
 
             var confirmBtn = document.getElementById('restoreConfirmBtn');
             var cancelBtn = document.getElementById('restoreCancelBtn');
@@ -2251,11 +2376,11 @@
             cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
             newCancelBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
+                modal.classList.remove('show');
             });
 
             newConfirmBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
+                modal.classList.remove('show');
                 setSyncStatus('syncing', '恢复中...');
                 restorePlanFromTrash(planId)
                     .then(function() {
@@ -2271,7 +2396,7 @@
 
         function permanentDelete(planId) {
             var modal = document.getElementById('permanentDeleteModal');
-            modal.style.display = 'block';
+            modal.classList.add('show');
 
             var confirmBtn = document.getElementById('permanentDeleteConfirmBtn');
             var cancelBtn = document.getElementById('permanentDeleteCancelBtn');
@@ -2282,11 +2407,11 @@
             cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
             newCancelBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
+                modal.classList.remove('show');
             });
 
             newConfirmBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
+                modal.classList.remove('show');
                 setSyncStatus('syncing', '删除中...');
                 permanentDeletePlan(planId)
                     .then(function() {
@@ -2332,20 +2457,18 @@
                 container.innerHTML = filteredPlans.map(function(plan) {
                     var deletedTimeStr = plan.deletedAt ? formatDateTimeForDisplay(plan.deletedAt) : '未知时间';
                     var typeLabel = plan.type === 'weekly' ? '周计划' : plan.type === 'monthly' ? '月计划' : '已完结';
-                    return '<div class="plan-card far" style="opacity:0.85;">' +
-                        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">' +
+                    return '<div class="plan-card far" style="opacity:0.88;">' +
+                        '<div class="plan-title-row">' +
                         '<div style="flex:1;min-width:0;">' +
                         '<div class="plan-title" style="color:#888;">' + escapeHtml(plan.title) +
-                        '<span class="badge badge-trash" style="margin-left:8px;">' + typeLabel + '</span>' +
-                        '</div>' +
+                        ' <span class="badge badge-trash">' + typeLabel + '</span></div>' +
                         '<div class="plan-meta" style="margin-top:6px;">' +
-                        '<span class="badge badge-trash-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' 至 ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
-                        '<span style="color:#bbb; font-size:12px;">🗑️ 删除于 ' + deletedTimeStr + '</span>' +
-                        '</div>' +
-                        '</div>' +
-                        '<div style="display:flex;gap:8px;flex-shrink:0;">' +
-                        '<button class="action-btn" style="background:linear-gradient(135deg,#43a047,#1b5e20);color:white;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;min-height:36px;" onclick="restorePlan(\'' + escapeHtml(plan.id) + '\')" title="恢复计划">↩️ 恢复</button>' +
-                        '<button class="action-btn" style="background:linear-gradient(135deg,#b71c1c,#f44336);color:white;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;min-height:36px;" onclick="permanentDelete(\'' + escapeHtml(plan.id) + '\')" title="永久删除">🗑️ 永久删除</button>' +
+                        '<span class="badge badge-trash-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' — ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
+                        '<span style="color:#bbb;font-size:12px;">🗑️ 删除于 ' + deletedTimeStr + '</span>' +
+                        '</div></div>' +
+                        '<div class="plan-actions">' +
+                        '<button class="action-btn" style="background:linear-gradient(135deg,#43a047,#1b5e20);color:white;min-height:36px;" onclick="restorePlan(\'' + escapeHtml(plan.id) + '\')">↩️ 恢复</button>' +
+                        '<button class="action-btn" style="background:linear-gradient(135deg,#b71c1c,#f44336);color:white;min-height:36px;" onclick="permanentDelete(\'' + escapeHtml(plan.id) + '\')">🗑️ 删除</button>' +
                         '</div>' +
                         '</div>' +
                         '<div class="card-content" style="border-left-color:#9ca3af;">' + escapeHtml(plan.content) + '</div>' +
@@ -2618,31 +2741,38 @@
                 }
 
                 return '<div class="' + cardClass + '">' +
-                    '<div class="plan-header">' +
-                    '<div style="flex:1;min-width:0;">' +
-                    '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:9px;">' +
-                    '<span style="font-size:1.1em;font-weight:700;color:var(--text-primary);letter-spacing:0.2px;line-height:1.4;">' + escapeHtml(plan.title) + '</span>' +
+                    /* ── 顶部：标题 + 操作按钮 ── */
+                    '<div class="plan-title-row">' +
+                    '<div class="plan-title">' + escapeHtml(plan.title) + '</div>' +
+                    '<div class="plan-actions">' +
+                    (currentTab === 'completed'
+                        ? '<button class="action-btn ticket-btn" data-ticket-plan-id="' + escapeHtml(plan.id) + '">✏️ 票号</button>'
+                        : '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">✏️ 编辑</button>') +
+                    '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">🗑️ 删除</button>' +
+                    '</div>' +
+                    '</div>' +
+                    /* ── 徽章行：时间标签 + 紧急度 + 票型 + 票号 ── */
+                    '<div class="plan-badges">' +
                     sourceTag +
                     daysBadge +
                     ticketHtml +
                     (plan.workTicketNo ? '<span class="badge badge-work-no">🎫 ' + escapeHtml(plan.workTicketNo) + '</span>' : '') +
                     (plan.planNo ? '<span class="badge badge-plan-no">📋 ' + escapeHtml(plan.planNo) + '</span>' : '') +
                     '</div>' +
+                    /* ── 元信息行：日期 + 状态 + 风险 + 设备 ── */
                     '<div class="plan-meta">' +
                     '<span class="badge badge-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' — ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
-                    '<span>' + getPriorityText(plan.priority) + '</span>' +
-                    (equipmentBadge ? '<span>' + equipmentBadge + '</span>' : '') +
-                    (statusBadge ? '<span>' + statusBadge + '</span>' : '') +
-                    (personnelHtml ? '</div><div class="plan-meta" style="margin-top:7px;">' + personnelHtml : '') +
+                    (statusBadge ? statusBadge : '') +
+                    getPriorityText(plan.priority) +
+                    (equipmentBadge ? equipmentBadge : '') +
                     '</div>' +
+                    /* ── 人员行（有数据时显示） ── */
+                    (personnelHtml ? '<div class="plan-meta" style="margin-top:6px;">' + personnelHtml + '</div>' : '') +
+                    /* ── 小组信息 ── */
                     (groupsHtml ? '<div class="group-block">' + groupsHtml + '</div>' : '') +
-                    '</div>' +
-                    '<div class="plan-actions">' +
-                    (currentTab === 'completed' ? '<button class="action-btn" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;" data-ticket-plan-id="' + escapeHtml(plan.id) + '">✏️ 补录票号</button>' : '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">✏️ 编辑</button>') +
-                    '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">🗑️ 删除</button>' +
-                    '</div>' +
-                    '</div>' +
+                    /* ── 工作内容 ── */
                     '<div class="card-content">' + escapeHtml(plan.content) + '</div>' +
+                    /* ── 动火/办票信息 ── */
                     fireWorkHtml +
                     ticketPersonnelHtml +
                     '</div>';
@@ -2650,35 +2780,38 @@
         }
 
         function getPriorityText(priority) {
-            var texts = {
-                high:   '<span style="background:#fef2f2;color:#dc2626;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:700;border:1px solid #fecaca;">高风险</span>',
-                medium: '<span style="background:#fff7ed;color:#ea580c;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:700;border:1px solid #fed7aa;">中风险</span>',
-                low:    '<span style="background:#f0fdf4;color:#16a34a;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:700;border:1px solid #bbf7d0;">低风险</span>'
+            var map = {
+                high:   ['bdg-risk-high',   '高风险'],
+                medium: ['bdg-risk-medium', '中风险'],
+                low:    ['bdg-risk-low',    '低风险']
             };
-            return texts[priority] || '<span style="background:#f9fafb;color:#6b7280;padding:3px 9px;border-radius:6px;font-size:11.5px;border:1px solid #e5e7eb;">普通</span>';
+            var v = map[priority] || ['bdg-risk-none', '普通'];
+            return '<span class="' + v[0] + '">' + v[1] + '</span>';
         }
 
         function getStatusText(status) {
-            var texts = {
-                pending:     '<span style="background:#f9fafb;color:#6b7280;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #e5e7eb;">待开始</span>',
-                'in-progress': '<span style="background:#ecfdf5;color:#059669;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #a7f3d0;">进行中</span>',
-                paused:      '<span style="background:#fffbeb;color:#d97706;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #fde68a;">间断中</span>',
-                completed:   '<span style="background:#eff6ff;color:#2563eb;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #bfdbfe;">已完成</span>'
+            var map = {
+                'pending':     ['bdg-status-pending',   '待开始'],
+                'in-progress': ['bdg-status-progress',  '进行中'],
+                'paused':      ['bdg-status-paused',    '间断中'],
+                'completed':   ['bdg-status-completed', '已完成']
             };
-            return texts[status] || '<span style="background:#f9fafb;color:#6b7280;padding:3px 9px;border-radius:6px;font-size:11.5px;border:1px solid #e5e7eb;">未知</span>';
+            var v = map[status] || ['bdg-status-pending', '未知'];
+            return '<span class="' + v[0] + '">' + v[1] + '</span>';
         }
 
         function getEquipmentStatusText(status) {
-            var texts = {
-                'none':       '<span style="background:#f9fafb;color:#6b7280;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #e5e7eb;">无设备</span>',
-                'not-arrived':'<span style="background:#fff1f2;color:#be123c;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #fecdd3;">未到货</span>',
-                'pending':    '<span style="background:#fff7ed;color:#ea580c;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #fed7aa;">待试验</span>',
-                'testing':    '<span style="background:#eff6ff;color:#2563eb;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #bfdbfe;">试验中</span>',
-                'tested':     '<span style="background:#ecfdf5;color:#059669;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid #a7f3d0;">已试验</span>'
+            var map = {
+                'none':        ['bdg-equip-none',        '无设备'],
+                'not-arrived': ['bdg-equip-not-arrived', '未到货'],
+                'pending':     ['bdg-equip-pending',     '待试验'],
+                'testing':     ['bdg-equip-testing',     '试验中'],
+                'tested':      ['bdg-equip-tested',      '已试验']
             };
-            return texts[status] || '<span style="background:#f9fafb;color:#6b7280;padding:3px 9px;border-radius:6px;font-size:11.5px;border:1px solid #e5e7eb;">未知</span>';
+            var v = map[status];
+            if (!v) return '';
+            return '<span class="' + v[0] + '">' + v[1] + '</span>';
         }
-
         // 构建计划的搜索全文（用于关键词过滤）
         function buildSearchText(plan) {
             var fields = [
@@ -2721,40 +2854,21 @@
             return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
         }
 
-        // 获取当前周的起始和结束日期
-        function getCurrentWeekRange() {
+        // 获取周范围；offset=0 当前周，offset=1 下一周
+        function getWeekRange(offset) {
             var now = new Date();
             var day = now.getDay();
             var monday = new Date(now);
-            monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+            monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + (offset || 0) * 7);
             monday.setHours(0, 0, 0, 0);
-
             var sunday = new Date(monday);
             sunday.setDate(monday.getDate() + 6);
             sunday.setHours(23, 59, 59, 999);
-
             return { start: monday, end: sunday };
         }
 
-        // 获取下一周的起始和结束日期
-        function getNextWeekRange() {
-            var now = new Date();
-            var day = now.getDay();
-            var thisMonday = new Date(now);
-            thisMonday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-            thisMonday.setHours(0, 0, 0, 0);
-
-            // 下周一 = 本周一 + 7天
-            var nextMonday = new Date(thisMonday);
-            nextMonday.setDate(thisMonday.getDate() + 7);
-
-            // 下周日 = 下周一 + 6天
-            var nextSunday = new Date(nextMonday);
-            nextSunday.setDate(nextMonday.getDate() + 6);
-            nextSunday.setHours(23, 59, 59, 999);
-
-            return { start: nextMonday, end: nextSunday };
-        }
+        function getCurrentWeekRange() { return getWeekRange(0); }
+        function getNextWeekRange()    { return getWeekRange(1); }
 
         // 将 "YYYY-MM-DD" 格式的日期字符串解析为本地时间的 Date 对象（避免UTC时区偏移）
         function parseLocalDate(dateStr) {
