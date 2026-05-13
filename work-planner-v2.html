@@ -9,34 +9,34 @@
     <style>
         /* ===== 设计令牌 ===== */
         :root {
-            --primary:       #4f6ef2;
-            --primary-dark:  #3451d1;
-            --primary-light: #eef1fd;
-            --primary-grad:  linear-gradient(135deg, #4f6ef2 0%, #7c52e8 100%);
+            --primary:       #1e3a5f;
+            --primary-dark:  #152d4a;
+            --primary-light: #e8eef5;
+            --primary-grad:  linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
 
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger:  #ef4444;
-            --info:    #3b82f6;
-            --gray:    #6b7280;
+            --success: #2e7d32;
+            --warning: #e65100;
+            --danger:  #c62828;
+            --info:    #1565c0;
+            --gray:    #546e7a;
 
-            --bg-body:   #f0f2f8;
+            --bg-body:   #f5f6fa;
             --bg-card:   #ffffff;
             --bg-subtle: #f8f9fc;
 
-            --border:    #e5e7ef;
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 24px;
+            --border:    #dce1e8;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 10px;
+            --radius-xl: 20px;
 
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-            --shadow-lg: 0 10px 30px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 2px 8px rgba(0,0,0,0.07);
+            --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);
 
-            --text-primary:   #111827;
-            --text-secondary: #4b5563;
-            --text-muted:     #9ca3af;
+            --text-primary:   #1a2a3a;
+            --text-secondary: #4a5568;
+            --text-muted:     #8a95a5;
 
             --font: 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif;
         }
@@ -85,7 +85,7 @@
         }
         .dialog-input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79,110,242,0.10);
+            box-shadow: 0 0 0 3px rgba(30,58,95,0.10);
             background: white;
         }
         .dialog-actions { display: flex; gap: 10px; }
@@ -109,24 +109,24 @@
         }
         .dialog-btn.secondary:hover { background: var(--bg-subtle); }
         .dialog-btn.primary-btn {
-            background: var(--primary-grad);
+            background: var(--primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(79,110,242,0.30);
+            box-shadow: var(--shadow-sm);
         }
         .dialog-btn.danger-btn {
-            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            background: #c62828;
             color: white;
-            box-shadow: 0 2px 8px rgba(229,57,53,0.28);
+            box-shadow: var(--shadow-sm);
         }
         .dialog-btn.danger-dark-btn {
-            background: linear-gradient(135deg, #b71c1c 0%, #7f0000 100%);
+            background: #8e0000;
             color: white;
-            box-shadow: 0 2px 8px rgba(183,28,28,0.28);
+            box-shadow: var(--shadow-sm);
         }
         .dialog-btn.success-btn {
-            background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%);
+            background: #2e7d32;
             color: white;
-            box-shadow: 0 2px 8px rgba(67,160,71,0.28);
+            box-shadow: var(--shadow-sm);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -143,36 +143,16 @@
 
         /* ===== Header ===== */
         .header {
-            background: linear-gradient(135deg, #4f6ef2 0%, #7c52e8 100%);
-            padding: 22px 32px;
+            background: var(--primary);
+            padding: 18px 28px;
             border-radius: var(--radius-lg);
-            box-shadow: 0 8px 24px rgba(79,110,242,0.30);
-            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 12px;
-            position: relative;
-            overflow: hidden;
-        }
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -40px; right: -40px;
-            width: 160px; height: 160px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.07);
-            pointer-events: none;
-        }
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: -30px; left: 20%;
-            width: 100px; height: 100px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.05);
-            pointer-events: none;
+            gap: 10px;
         }
 
         .header h1 {
@@ -224,27 +204,26 @@
         /* ===== Tabs ===== */
         .tabs {
             display: flex;
-            gap: 4px;
+            gap: 0;
             margin-bottom: 18px;
             background: var(--bg-card);
-            padding: 6px;
-            border-radius: var(--radius-xl);
+            border-radius: var(--radius-md);
             box-shadow: var(--shadow-sm);
             flex-wrap: wrap;
             border: 1px solid var(--border);
+            overflow: hidden;
         }
 
         .tab {
-            padding: 9px 22px;
+            padding: 10px 22px;
             background: transparent;
             border: none;
-            border-radius: 20px;
+            border-bottom: 3px solid transparent;
             cursor: pointer;
             font-size: 13.5px;
             font-weight: 600;
             color: var(--text-secondary);
             transition: all 0.2s ease;
-            letter-spacing: 0.2px;
             white-space: nowrap;
         }
         .tab:hover {
@@ -252,9 +231,9 @@
             color: var(--primary);
         }
         .tab.active {
-            background: var(--primary-grad);
-            color: white;
-            box-shadow: 0 3px 10px rgba(79,110,242,0.35);
+            color: var(--primary);
+            background: var(--primary-light);
+            border-bottom-color: var(--primary);
         }
 
         /* ===== 统计卡片 ===== */
@@ -285,14 +264,14 @@
             border-radius: var(--radius-md);
             flex-shrink: 0;
         }
-        .stat-card:nth-child(1) .stat-icon { background: #eef1fd; }
-        .stat-card:nth-child(2) .stat-icon { background: #eff6ff; }
-        .stat-card:nth-child(3) .stat-icon { background: #ecfdf5; }
-        .stat-card:nth-child(4) .stat-icon { background: #f9fafb; }
+        .stat-card:nth-child(1) .stat-icon { background: #e8eef5; }
+        .stat-card:nth-child(2) .stat-icon { background: #e3f2fd; }
+        .stat-card:nth-child(3) .stat-icon { background: #e8f5e9; }
+        .stat-card:nth-child(4) .stat-icon { background: #f5f5f5; }
 
         .stat-info { flex: 1; }
         .stat-label { color: var(--text-muted); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
-        .stat-value { color: var(--text-primary); font-size: 2em; font-weight: 800; line-height: 1; letter-spacing: -0.5px; }
+        .stat-value { color: var(--text-primary); font-size: 2em; font-weight: 700; line-height: 1; letter-spacing: -0.5px; }
 
         /* ===== 内容区 ===== */
         .content-area {
@@ -322,20 +301,20 @@
         /* ===== 按钮 ===== */
         .add-btn {
             padding: 9px 20px;
-            background: var(--primary-grad);
+            background: var(--primary);
             color: white;
             border: none;
-            border-radius: var(--radius-xl);
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 13.5px;
             font-weight: 600;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(79,110,242,0.30);
+            box-shadow: var(--shadow-sm);
             letter-spacing: 0.2px;
         }
         .add-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(79,110,242,0.42);
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-md);
         }
 
         /* ===== 计划列表 ===== */
@@ -355,21 +334,20 @@
         }
 
         .plan-card.urgent {
-            background: linear-gradient(160deg, #fff5f5 0%, #fff 80%);
+            background: #fef7f7;
             border-left-color: var(--danger);
-            box-shadow: 0 2px 10px rgba(239,68,68,0.10);
         }
         .plan-card.near {
-            background: linear-gradient(160deg, #fffbeb 0%, #fff 80%);
+            background: #fff9f0;
             border-left-color: var(--warning);
         }
         .plan-card.normal {
-            background: linear-gradient(160deg, #f0fdf4 0%, #fff 80%);
+            background: #f5faf5;
             border-left-color: var(--success);
         }
         .plan-card.far {
             background: var(--bg-subtle);
-            border-left-color: #d1d5db;
+            border-left-color: #b0bec5;
             opacity: 0.9;
         }
         .plan-card.from-monthly { }
@@ -381,7 +359,7 @@
             align-items: flex-start;
             justify-content: space-between;
             gap: 10px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .plan-title {
             font-size: 1.06em;
@@ -507,7 +485,7 @@
             outline: none;
             border-color: var(--primary);
             background: white;
-            box-shadow: 0 0 0 3px rgba(79,110,242,0.10);
+            box-shadow: 0 0 0 3px rgba(30,58,95,0.10);
         }
         .form-group textarea { resize: vertical; min-height: 88px; }
 
@@ -613,11 +591,11 @@
             font-family: var(--font);
         }
         .save-btn {
-            background: var(--primary-grad);
+            background: var(--primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(79,110,242,0.30);
+            box-shadow: var(--shadow-sm);
         }
-        .save-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79,110,242,0.40); }
+        .save-btn:hover { background: var(--primary-dark); box-shadow: var(--shadow-md); }
         .cancel-btn { background: var(--bg-subtle); color: var(--text-secondary); border: 1.5px solid var(--border); }
         .cancel-btn:hover { background: var(--border); }
 
@@ -644,8 +622,8 @@
             align-items: center;
             position: relative;
         }
-        .chart-bar-value {
-            background: var(--primary-grad);
+            .chart-bar-value {
+            background: var(--primary);
             border-radius: var(--radius-sm) var(--radius-sm) 0 0;
             transition: height 0.4s ease;
             width: 100%;
@@ -714,22 +692,25 @@
         .badge-trash   { background: #eeeeee; color: #9e9e9e; border-color: #e0e0e0; font-size: 11px; }
         .badge-trash-date { background: #eeeeee; color: #757575; border-color: #e0e0e0; padding: 4px 10px; font-size: 12px; }
 
-        /* 状态徽章（从 getStatusText 中提取为 CSS 类） */
-        .bdg-status-pending    { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
-        .bdg-status-progress   { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
-        .bdg-status-paused     { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
-        .bdg-status-completed  { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
-        /* 风险徽章 */
-        .bdg-risk-high   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 700; }
-        .bdg-risk-medium { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 700; }
-        .bdg-risk-low    { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 700; }
-        .bdg-risk-none   { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; }
-        /* 设备状态徽章 */
-        .bdg-equip-none        { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
-        .bdg-equip-not-arrived { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
-        .bdg-equip-pending     { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
-        .bdg-equip-testing     { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
-        .bdg-equip-tested      { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+        /* 徽章基础类（消除 bdg-* 重复属性） */
+        .bdg { display: inline-block; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; border: 1px solid transparent; line-height: 1.5; white-space: nowrap; }
+        .bdg-bold { font-weight: 700; }
+        /* 状态 */
+        .bdg-status-pending    { background: #f9fafb; color: #6b7280; border-color: #e5e7eb; }
+        .bdg-status-progress   { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+        .bdg-status-paused     { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+        .bdg-status-completed  { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        /* 风险 */
+        .bdg-risk-high   { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+        .bdg-risk-medium { background: #fff7ed; color: #ea580c; border-color: #fed7aa; }
+        .bdg-risk-low    { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+        .bdg-risk-none   { background: #f9fafb; color: #6b7280; border-color: #e5e7eb; font-weight: 400; }
+        /* 设备 */
+        .bdg-equip-none        { background: #f9fafb; color: #6b7280; border-color: #e5e7eb; }
+        .bdg-equip-not-arrived { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+        .bdg-equip-pending     { background: #fff7ed; color: #ea580c; border-color: #fed7aa; }
+        .bdg-equip-testing     { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .bdg-equip-tested      { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
 
         /* ===== 搜索框 ===== */
         .search-wrap { margin-bottom: 16px; }
@@ -748,7 +729,7 @@
         }
         .search-input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79,110,242,0.10);
+            box-shadow: 0 0 0 3px rgba(30,58,95,0.10);
             background: white;
         }
         .search-clear {
@@ -928,9 +909,9 @@
 
             /* Tabs */
             .tabs {
-                gap: 3px;
-                padding: 5px;
-                border-radius: var(--radius-lg);
+                gap: 0;
+                padding: 0;
+                border-radius: var(--radius-md);
                 overflow-x: auto;
                 flex-wrap: nowrap;
                 -webkit-overflow-scrolling: touch;
@@ -941,7 +922,6 @@
                 padding: 8px 14px;
                 font-size: 12.5px;
                 flex-shrink: 0;
-                border-radius: 16px;
             }
 
             /* 统计卡片 */
@@ -1124,7 +1104,7 @@
             <button class="tab active" data-tab="weekly">周计划</button>
             <button class="tab" data-tab="monthly">月计划</button>
             <button class="tab" data-tab="completed">已完结计划</button>
-            <button class="tab" data-tab="trash" style="color: #c62828;">🗑️ 回收站 <span id="trashCount" style="display:inline-block; background:#f44336; color:white; border-radius:10px; padding:1px 7px; font-size:12px; margin-left:4px; vertical-align:middle;">0</span></button>
+            <button class="tab" data-tab="trash" style="color: #c62828;">🗑️ 回收站 <span id="trashCount" style="display:inline-block; background:#c62828; color:white; border-radius:10px; padding:1px 7px; font-size:12px; margin-left:4px; vertical-align:middle;">0</span></button>
         </div>
 
         <!-- 统计卡片 -->
@@ -1312,7 +1292,16 @@
             </div>
             <form id="planForm">
                 <input type="hidden" id="planId">
-                <input type="hidden" id="planType">
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label for="planType">计划类型</label>
+                        <select id="planType">
+                            <option value="weekly">周计划</option>
+                            <option value="monthly">月计划</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div class="form-row">
                     <div class="form-group">
@@ -1686,28 +1675,31 @@
                 });
         }
 
-        // 自动将开始时间在下一周内的月计划标记为已转移（持久化到数据库，任何时候加载都检测）
+        // 自动将月计划标记为已转移（开始时间已到本周/下周，或开始时间已过但尚未完成）
         function autoTransferMonthlyPlans() {
             if (!supabaseClient) return;
 
-            // 找出开始时间在本周或下一周内、尚未标记转移的月计划
+            var now = new Date();
+            // 找出需要出现在周计划里的月计划：
+            //   1. 开始时间在本周或下周（即将开始）
+            //   2. 开始时间已经过了（已开始但尚未完成，如 in-progress / paused / pending）
             var toTransfer = plans.filter(function(p) {
                 return p.type === 'monthly'
                     && !p.isDeleted
                     && !p.isTransferred
                     && p.status !== 'completed'
                     && p.startDate
-                    && (isInCurrentWeek(p.startDate) || isInNextWeek(p.startDate));
+                    && (isInCurrentWeek(p.startDate) || isInNextWeek(p.startDate) || new Date(p.startDate) < now);
             });
 
             if (toTransfer.length === 0) return;
 
-            var now = new Date().toISOString();
+            var nowIso = now.toISOString();
             var ids = toTransfer.map(function(p) { return p.id; });
             console.log('[转移] 准备转移月计划:', ids.length, '个');
 
             supabaseClient.from('plans')
-                .update({ is_transferred: true, transferred_at: now })
+                .update({ is_transferred: true, transferred_at: nowIso })
                 .in('id', ids)
                 .then(function(result) {
                     if (result.error) {
@@ -1717,7 +1709,7 @@
                     plans.forEach(function(p) {
                         if (ids.indexOf(p.id) !== -1) {
                             p.isTransferred = true;
-                            p.transferredAt = now;
+                            p.transferredAt = nowIso;
                         }
                     });
                     renderPlans();
@@ -2214,22 +2206,28 @@
                 updatedAt:      new Date().toISOString()
             }, groupFields);
 
-            // ── 时间范围自动重分类 ──────────────────────────────────────────
-            // 情况A：周计划（type=weekly）的开始时间被修改到本周/下周范围之外
-            //         → 自动降级为月计划，待时间满足条件后由 autoTransferMonthlyPlans 再转回
-            // 情况B：已转移的月计划（isTransferred=true）开始时间被改出本周/下周范围
-            //         → 清除 isTransferred，让它回到月计划栏
+            // ── 类型联动逻辑 ─────────────────────────────────────────────────
+            // 编辑时：用户手动选择了类型，完全尊重，不做任何自动覆盖
+            // 新建时：若选了周计划但时间不在本周/下周范围，自动降级为月计划
+            // 特殊情况：若类型改为周计划，清除 isTransferred（它不再是"月转周"了）
+            var isNewPlan = !editingPlanId;
             var startInWeekRange = isInCurrentWeek(planData.startDate) || isInNextWeek(planData.startDate);
 
-            if (planData.type === 'weekly' && !startInWeekRange) {
+            if (isNewPlan && planData.type === 'weekly' && !startInWeekRange) {
+                // 新建时：时间超出范围，自动降级为月计划
                 planData.type = 'monthly';
                 planData.isTransferred = false;
                 planData.transferredAt = null;
-            } else if (planData.type === 'monthly' && planData.isTransferred && !startInWeekRange) {
+            } else if (!isNewPlan && planData.type === 'weekly') {
+                // 编辑时：用户手动改回周计划，清除月转周标记，直接作为原生周计划
+                planData.isTransferred = false;
+                planData.transferredAt = null;
+            } else if (!isNewPlan && planData.type === 'monthly' && planData.isTransferred && !startInWeekRange) {
+                // 编辑时：已转移月计划的时间被改出本/下周范围，取消转移，回到月计划栏
                 planData.isTransferred = false;
                 planData.transferredAt = null;
             }
-            // ────────────────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────────────
 
             savePlanToCloud(planData)
                 .then(function() {
@@ -2467,8 +2465,8 @@
                         '<span style="color:#bbb;font-size:12px;">🗑️ 删除于 ' + deletedTimeStr + '</span>' +
                         '</div></div>' +
                         '<div class="plan-actions">' +
-                        '<button class="action-btn" style="background:linear-gradient(135deg,#43a047,#1b5e20);color:white;min-height:36px;" onclick="restorePlan(\'' + escapeHtml(plan.id) + '\')">↩️ 恢复</button>' +
-                        '<button class="action-btn" style="background:linear-gradient(135deg,#b71c1c,#f44336);color:white;min-height:36px;" onclick="permanentDelete(\'' + escapeHtml(plan.id) + '\')">🗑️ 删除</button>' +
+                        '<button class="action-btn" style="background:#2e7d32;color:white;min-height:36px;" onclick="restorePlan(\'' + escapeHtml(plan.id) + '\')">↩️ 恢复</button>' +
+                        '<button class="action-btn" style="background:#c62828;color:white;min-height:36px;" onclick="permanentDelete(\'' + escapeHtml(plan.id) + '\')">🗑️ 删除</button>' +
                         '</div>' +
                         '</div>' +
                         '<div class="card-content" style="border-left-color:#9ca3af;">' + escapeHtml(plan.content) + '</div>' +
@@ -2502,24 +2500,36 @@
                     return true;
                 });
             } else if (currentTab === 'weekly') {
-                // 周计划：根据状态筛选（不包括已完成）
+                // 周计划：统一筛选原生周计划 + 已转移的月计划
                 var statusPending   = document.getElementById('statusPending').checked;
                 var statusInProgress = document.getElementById('statusInProgress').checked;
                 var statusPaused    = document.getElementById('statusPaused').checked;
                 var showNextWeek    = document.getElementById('showNextWeek').checked;
 
                 filteredPlans = plans.filter(function(p) {
-                    if (p.isDeleted) return false;
-                    if (p.status === 'completed') return false;
-                    if (p.type !== currentTab) return false;
+                    if (p.isDeleted || p.status === 'completed') return false;
+                    // 原生周计划 或 已转移的月计划
+                    var isWeeklyPlan = p.type === 'weekly';
+                    var isTransferredMonthly = p.type === 'monthly' && p.isTransferred;
+                    if (!isWeeklyPlan && !isTransferredMonthly) return false;
 
-                    var isNextWeek = isInNextWeek(p.startDate);
-                    if (showNextWeek) {
-                        return isNextWeek;
-                    }
+                    if (showNextWeek) return isInNextWeek(p.startDate);
                     return (p.status === 'pending'      && statusPending) ||
                            (p.status === 'in-progress'  && statusInProgress) ||
                            (p.status === 'paused'       && statusPaused);
+                });
+
+                // 给已转移月计划标记虚拟ID（供编辑/删除识别来源）
+                filteredPlans = filteredPlans.map(function(p) {
+                    if (p.type === 'monthly' && p.isTransferred) {
+                        return Object.assign({}, p, {
+                            id: p.id + '_weekly',
+                            sourceType: 'monthly',
+                            sourceId: p.id,
+                            _fromMonthly: true
+                        });
+                    }
+                    return p;
                 });
 
             } else {
@@ -2538,49 +2548,6 @@
             if (searchKeyword) {
                 filteredPlans = filteredPlans.filter(function(plan) {
                     return buildSearchText(plan).indexOf(searchKeyword) !== -1;
-                });
-            }
-
-            // 将已标记为转移的月计划纳入周计划显示（持久生效，无论今天是否周一）
-            if (currentTab === 'weekly') {
-                var showNextWeekFilter = document.getElementById('showNextWeek') ? document.getElementById('showNextWeek').checked : false;
-                var statusPendingF = document.getElementById('statusPending').checked;
-                var statusInProgressF = document.getElementById('statusInProgress').checked;
-                var statusPausedF = document.getElementById('statusPaused').checked;
-
-                var monthlyPlans = plans.filter(function(p) {
-                    if (!( p.type === 'monthly' && !p.isDeleted && p.status !== 'completed' && p.isTransferred )) return false;
-                    if (showNextWeekFilter) {
-                        return isInNextWeek(p.startDate);
-                    }
-                    return (p.status === 'pending' && statusPendingF) ||
-                           (p.status === 'in-progress' && statusInProgressF) ||
-                           (p.status === 'paused' && statusPausedF);
-                });
-
-                // 对月转移计划同样应用搜索过滤
-                if (searchKeyword) {
-                    monthlyPlans = monthlyPlans.filter(function(plan) {
-                        return buildSearchText(plan).indexOf(searchKeyword) !== -1;
-                    });
-                }
-
-                monthlyPlans.forEach(function(monthlyPlan) {
-                    // 检查是否已经有对应的周计划（通过源ID精确匹配，避免同名不同记录被误判）
-                    var hasWeeklyPlan = filteredPlans.some(function(wp) {
-                        return wp.sourceId === monthlyPlan.id && wp.sourceType === 'monthly';
-                    });
-
-                    if (!hasWeeklyPlan) {
-                        // 从月计划复制所有字段，仅覆盖必要属性
-                        var weeklyPlan = Object.assign({}, monthlyPlan, {
-                            id: monthlyPlan.id + '_weekly',
-                            type: 'weekly',
-                            sourceType: 'monthly',
-                            sourceId: monthlyPlan.id
-                        });
-                        filteredPlans.push(weeklyPlan);
-                    }
                 });
             }
 
@@ -2740,6 +2707,12 @@
                     equipmentBadge = getEquipmentStatusText(plan.equipmentStatus);
                 }
 
+                // 组装徽章行内容，为空则不输出
+                var badgesContent = sourceTag + daysBadge + ticketHtml +
+                    (plan.workTicketNo ? '<span class="badge badge-work-no">🎫 ' + escapeHtml(plan.workTicketNo) + '</span>' : '') +
+                    (plan.planNo ? '<span class="badge badge-plan-no">📋 ' + escapeHtml(plan.planNo) + '</span>' : '');
+                var badgesRow = badgesContent ? '<div class="plan-badges">' + badgesContent + '</div>' : '';
+
                 return '<div class="' + cardClass + '">' +
                     /* ── 顶部：标题 + 操作按钮 ── */
                     '<div class="plan-title-row">' +
@@ -2751,14 +2724,8 @@
                     '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">🗑️ 删除</button>' +
                     '</div>' +
                     '</div>' +
-                    /* ── 徽章行：时间标签 + 紧急度 + 票型 + 票号 ── */
-                    '<div class="plan-badges">' +
-                    sourceTag +
-                    daysBadge +
-                    ticketHtml +
-                    (plan.workTicketNo ? '<span class="badge badge-work-no">🎫 ' + escapeHtml(plan.workTicketNo) + '</span>' : '') +
-                    (plan.planNo ? '<span class="badge badge-plan-no">📋 ' + escapeHtml(plan.planNo) + '</span>' : '') +
-                    '</div>' +
+                    /* ── 徽章行（有内容时才渲染） ── */
+                    badgesRow +
                     /* ── 元信息行：日期 + 状态 + 风险 + 设备 ── */
                     '<div class="plan-meta">' +
                     '<span class="badge badge-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' — ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
@@ -2779,38 +2746,27 @@
             }).join('');
         }
 
+        // 通用徽章生成（替代三个重复函数）
+        function makeBadge(cls, text, bold) {
+            return '<span class="bdg ' + cls + (bold ? ' bdg-bold' : '') + '">' + text + '</span>';
+        }
+
         function getPriorityText(priority) {
-            var map = {
-                high:   ['bdg-risk-high',   '高风险'],
-                medium: ['bdg-risk-medium', '中风险'],
-                low:    ['bdg-risk-low',    '低风险']
-            };
-            var v = map[priority] || ['bdg-risk-none', '普通'];
-            return '<span class="' + v[0] + '">' + v[1] + '</span>';
+            var m = { high:['bdg-risk-high','高风险',1], medium:['bdg-risk-medium','中风险',1], low:['bdg-risk-low','低风险',1] };
+            var v = m[priority] || ['bdg-risk-none','普通',0];
+            return makeBadge(v[0], v[1], v[2]);
         }
 
         function getStatusText(status) {
-            var map = {
-                'pending':     ['bdg-status-pending',   '待开始'],
-                'in-progress': ['bdg-status-progress',  '进行中'],
-                'paused':      ['bdg-status-paused',    '间断中'],
-                'completed':   ['bdg-status-completed', '已完成']
-            };
-            var v = map[status] || ['bdg-status-pending', '未知'];
-            return '<span class="' + v[0] + '">' + v[1] + '</span>';
+            var m = { 'pending':['bdg-status-pending','待开始'], 'in-progress':['bdg-status-progress','进行中'], 'paused':['bdg-status-paused','间断中'], 'completed':['bdg-status-completed','已完成'] };
+            var v = m[status] || ['bdg-status-pending','未知'];
+            return makeBadge(v[0], v[1]);
         }
 
         function getEquipmentStatusText(status) {
-            var map = {
-                'none':        ['bdg-equip-none',        '无设备'],
-                'not-arrived': ['bdg-equip-not-arrived', '未到货'],
-                'pending':     ['bdg-equip-pending',     '待试验'],
-                'testing':     ['bdg-equip-testing',     '试验中'],
-                'tested':      ['bdg-equip-tested',      '已试验']
-            };
-            var v = map[status];
-            if (!v) return '';
-            return '<span class="' + v[0] + '">' + v[1] + '</span>';
+            var m = { 'none':['bdg-equip-none','无设备'], 'not-arrived':['bdg-equip-not-arrived','未到货'], 'pending':['bdg-equip-pending','待试验'], 'testing':['bdg-equip-testing','试验中'], 'tested':['bdg-equip-tested','已试验'] };
+            var v = m[status];
+            return v ? makeBadge(v[0], v[1]) : '';
         }
         // 构建计划的搜索全文（用于关键词过滤）
         function buildSearchText(plan) {
@@ -2961,11 +2917,11 @@
             var counts = Object.values(projectStats);
             var maxCount = Math.max.apply(null, counts) || 1;
 
-            // 颜色数组
+            // 颜色数组（沉稳办公色系）
             var colors = [
-                '#667eea', '#764ba2', '#f093fb', '#f5576c',
-                '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
-                '#fa709a', '#fee140'
+                '#1e3a5f', '#2c5282', '#1565c0', '#0d47a1',
+                '#2e7d32', '#388e3c', '#455a64', '#546e7a',
+                '#6a1b9a', '#bf360c'
             ];
 
             // 生成柱状图HTML
