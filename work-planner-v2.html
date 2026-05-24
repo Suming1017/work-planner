@@ -12,7 +12,6 @@
             --primary:       #1e3a5f;
             --primary-dark:  #152d4a;
             --primary-light: #e8eef5;
-            --primary-grad:  linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
 
             --success: #2e7d32;
             --warning: #e65100;
@@ -20,25 +19,27 @@
             --info:    #1565c0;
             --gray:    #546e7a;
 
-            --bg-body:   #f5f6fa;
+            --bg-body:   #f0f2f5;
             --bg-card:   #ffffff;
-            --bg-subtle: #f8f9fc;
+            --bg-subtle: #f7f8fa;
 
             --border:    #dce1e8;
             --radius-sm: 6px;
             --radius-md: 8px;
-            --radius-lg: 10px;
-            --radius-xl: 20px;
+            --radius-lg: 12px;
+            --radius-xl: 24px;
 
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-            --shadow-md: 0 2px 8px rgba(0,0,0,0.07);
-            --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-md: 0 2px 10px rgba(0,0,0,0.06);
+            --shadow-lg: 0 4px 20px rgba(0,0,0,0.10);
 
             --text-primary:   #1a2a3a;
             --text-secondary: #4a5568;
             --text-muted:     #8a95a5;
 
-            --font: 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Arial, sans-serif;
+            --font: 'Microsoft YaHei', 'PingFang SC', system-ui, -apple-system, sans-serif;
+            --font-size-base: 14.5px;
+            --line-height-base: 1.6;
         }
 
         /* ===== 对话框公共类（替代大量 inline style） ===== */
@@ -64,17 +65,17 @@
         }
         .dialog-box.dialog-wide { width: min(440px, 94vw); text-align: left; }
         .dialog-icon { font-size: 44px; margin-bottom: 12px; line-height: 1; }
-        .dialog-title { font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .dialog-title { font-size: 17.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
         .dialog-title.danger { color: #b71c1c; }
         .dialog-title.success { color: #1b5e20; }
-        .dialog-body { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.85; }
-        .dialog-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+        .dialog-body { font-size: 13.5px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.85; }
+        .dialog-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
         .dialog-input {
             width: 100%;
             padding: 9px 13px;
             border: 1.5px solid var(--border);
             border-radius: var(--radius-sm);
-            font-size: 13.5px;
+            font-size: 14px;
             box-sizing: border-box;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
@@ -94,7 +95,7 @@
             flex: 1;
             padding: 12px 8px;
             border-radius: 24px;
-            font-size: 14px;
+            font-size: 14.5px;
             font-weight: 600;
             cursor: pointer;
             border: none;
@@ -133,6 +134,8 @@
 
         body {
             font-family: var(--font);
+            font-size: var(--font-size-base);
+            line-height: var(--line-height-base);
             background: var(--bg-body);
             min-height: 100vh;
             padding: 24px 20px 40px;
@@ -144,27 +147,27 @@
         /* ===== Header ===== */
         .header {
             background: var(--primary);
-            padding: 18px 28px;
+            padding: 22px 32px;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
 
         .header h1 {
             color: #fff;
-            font-size: 1.55em;
+            font-size: 1.45em;
             font-weight: 700;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
         }
 
         .header p {
             color: rgba(255,255,255,0.85);
-            font-size: 0.9em;
+            font-size: 0.92em;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -215,12 +218,12 @@
         }
 
         .tab {
-            padding: 10px 22px;
+            padding: 11px 24px;
             background: transparent;
             border: none;
             border-bottom: 3px solid transparent;
             cursor: pointer;
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--text-secondary);
             transition: all 0.2s ease;
@@ -246,7 +249,7 @@
 
         .stat-card {
             background: var(--bg-card);
-            padding: 18px 20px;
+            padding: 20px 22px;
             border-radius: var(--radius-md);
             box-shadow: var(--shadow-sm);
             display: flex;
@@ -258,11 +261,12 @@
         .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 
         .stat-icon {
-            font-size: 1.6em;
+            font-size: 1.5em;
             width: 48px; height: 48px;
             display: flex; align-items: center; justify-content: center;
             border-radius: var(--radius-md);
             flex-shrink: 0;
+            font-weight: 700;
         }
         .stat-card:nth-child(1) .stat-icon { background: #e8eef5; }
         .stat-card:nth-child(2) .stat-icon { background: #e3f2fd; }
@@ -294,23 +298,23 @@
 
         .section-header h2 {
             color: var(--text-primary);
-            font-size: 1.3em;
+            font-size: 1.25em;
             font-weight: 700;
         }
 
         /* ===== 按钮 ===== */
         .add-btn {
-            padding: 9px 20px;
+            padding: 10px 22px;
             background: var(--primary);
             color: white;
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 600;
             transition: all 0.2s ease;
             box-shadow: var(--shadow-sm);
-            letter-spacing: 0.2px;
+            letter-spacing: 0.3px;
         }
         .add-btn:hover {
             background: var(--primary-dark);
@@ -323,7 +327,7 @@
         .plan-card {
             background: var(--bg-card);
             border-radius: var(--radius-md);
-            padding: 16px 18px;
+            padding: 18px 20px;
             transition: box-shadow 0.2s, transform 0.2s;
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--border);
@@ -346,12 +350,11 @@
             border-left-color: var(--success);
         }
         .plan-card.far {
-            background: var(--bg-subtle);
+            background: #fafbfc;
             border-left-color: #b0bec5;
-            opacity: 0.9;
+            opacity: 0.92;
         }
-        .plan-card.from-monthly { }
-        .plan-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .plan-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 
         /* 卡片顶部：标题行 */
         .plan-title-row {
@@ -362,11 +365,11 @@
             margin-bottom: 6px;
         }
         .plan-title {
-            font-size: 1.06em;
+            font-size: 1.05em;
             font-weight: 700;
             color: var(--text-primary);
-            letter-spacing: 0.2px;
-            line-height: 1.45;
+            letter-spacing: 0.3px;
+            line-height: 1.5;
             flex: 1;
             min-width: 0;
         }
@@ -376,7 +379,7 @@
         .plan-badges {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 6px;
             margin-bottom: 8px;
         }
 
@@ -384,7 +387,7 @@
         .plan-meta {
             display: flex;
             gap: 7px;
-            font-size: 12.5px;
+            font-size: 13px;
             align-items: center;
             flex-wrap: wrap;
             min-width: 0;
@@ -393,26 +396,25 @@
         /* 卡片操作按钮区 */
         .plan-actions {
             display: flex;
-            gap: 7px;
+            gap: 8px;
             flex-shrink: 0;
         }
 
         .action-btn {
-            padding: 6px 14px;
+            padding: 7px 16px;
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 12.5px;
+            font-size: 13px;
             font-weight: 600;
             transition: all 0.15s ease;
             white-space: nowrap;
             min-width: 52px;
             text-align: center;
-            line-height: 1.4;
+            line-height: 1.5;
         }
         .edit-btn   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
         .delete-btn { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
-        .ticket-btn { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
         .action-btn:hover { filter: brightness(0.93); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 
         /* ===== 弹窗 ===== */
@@ -448,9 +450,9 @@
             padding-bottom: 14px;
             border-bottom: 1.5px solid var(--border);
         }
-        .modal-header h3 { color: var(--text-primary); font-size: 1.25em; font-weight: 700; }
+        .modal-header h3 { color: var(--text-primary); font-size: 1.2em; font-weight: 700; }
 
-        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); transition: color 0.2s; line-height: 1; }
+        .close-btn { background: none; border: none; font-size: 26px; cursor: pointer; color: var(--text-muted); transition: color 0.2s; line-height: 1; }
         .close-btn:hover { color: var(--text-primary); }
 
         /* ===== 表单 ===== */
@@ -460,8 +462,8 @@
             margin-bottom: 6px;
             color: var(--text-secondary);
             font-weight: 600;
-            font-size: 12.5px;
-            letter-spacing: 0.3px;
+            font-size: 13px;
+            letter-spacing: 0.2px;
         }
         .form-group input,
         .form-group textarea,
@@ -470,7 +472,7 @@
             padding: 10px 13px;
             border: 1.5px solid var(--border);
             border-radius: var(--radius-sm);
-            font-size: 13.5px;
+            font-size: 14px;
             box-sizing: border-box;
             color: var(--text-primary);
             background: var(--bg-subtle);
@@ -486,6 +488,15 @@
             border-color: var(--primary);
             background: white;
             box-shadow: 0 0 0 3px rgba(30,58,95,0.10);
+        }
+        .form-group input:disabled,
+        .form-group textarea:disabled,
+        .form-group select:disabled {
+            background: #f1f3f6;
+            color: #9aa3b0;
+            border-color: #dce1e8;
+            cursor: not-allowed;
+            opacity: 0.8;
         }
         .form-group textarea { resize: vertical; min-height: 88px; }
 
@@ -581,10 +592,10 @@
         }
         .modal-actions button {
             flex: 1;
-            padding: 11px;
+            padding: 12px;
             border: none;
             border-radius: var(--radius-md);
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -669,16 +680,16 @@
         .badge {
             display: inline-flex;
             align-items: center;
-            padding: 2px 8px;
+            padding: 3px 9px;
             border-radius: 6px;
-            font-size: 11.5px;
+            font-size: 12px;
             font-weight: 600;
             border: 1px solid transparent;
             white-space: nowrap;
             line-height: 1.6;
         }
-        .badge-sm { font-size: 11px; padding: 2px 7px; }
-        .badge-date    { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; padding: 4px 10px; font-size: 12px; }
+        .badge-sm { font-size: 11.5px; padding: 2px 7px; }
+        .badge-date    { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; padding: 4px 10px; font-size: 12.5px; }
         .badge-urgent  { background: #fef2f2; color: #dc2626; border-color: #fecaca; font-weight: 700; }
         .badge-warn3   { background: #fff7ed; color: #ea580c; border-color: #fed7aa; font-weight: 700; }
         .badge-warn7   { background: #fffbeb; color: #d97706; border-color: #fde68a; }
@@ -693,7 +704,7 @@
         .badge-trash-date { background: #eeeeee; color: #757575; border-color: #e0e0e0; padding: 4px 10px; font-size: 12px; }
 
         /* 徽章基础类（消除 bdg-* 重复属性） */
-        .bdg { display: inline-block; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; border: 1px solid transparent; line-height: 1.5; white-space: nowrap; }
+        .bdg { display: inline-block; border-radius: 6px; padding: 3px 9px; font-size: 12px; font-weight: 600; border: 1px solid transparent; line-height: 1.5; white-space: nowrap; }
         .bdg-bold { font-weight: 700; }
         /* 状态 */
         .bdg-status-pending    { background: #f9fafb; color: #6b7280; border-color: #e5e7eb; }
@@ -717,10 +728,10 @@
         .search-inner { display: flex; gap: 8px; align-items: center; }
         .search-input {
             flex: 1;
-            padding: 10px 16px;
+            padding: 10px 18px;
             border: 1.5px solid var(--border);
             border-radius: var(--radius-xl);
-            font-size: 13.5px;
+            font-size: 14px;
             background: var(--bg-subtle);
             color: var(--text-primary);
             outline: none;
@@ -851,7 +862,7 @@
             border-radius: var(--radius-md);
             border-left: 3px solid var(--warning);
             color: var(--text-secondary);
-            line-height: 1.75;
+            line-height: 1.8;
             font-size: 14px;
             word-break: break-all;
             overflow-wrap: anywhere;
@@ -883,18 +894,15 @@
         @media (max-width: 900px) {
             body { padding: 16px 14px 32px; }
             .container { max-width: 100%; }
-
-            .header { padding: 16px 20px; }
-            .header h1 { font-size: 1.3em; }
-
+            .header { padding: 18px 22px; }
+            .header h1 { font-size: 1.25em; }
             .stats-container { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-
-            .content-area { padding: 18px 18px; }
+            .content-area { padding: 20px 20px; }
         }
 
         /* ===== 响应式：手机 ===== */
         @media (max-width: 640px) {
-            body { padding: 10px 10px 28px; }
+            body { padding: 8px 8px 28px; }
 
             /* Header */
             .header {
@@ -903,8 +911,9 @@
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 8px;
+                margin-bottom: 12px;
             }
-            .header h1 { font-size: 1.15em; }
+            .header h1 { font-size: 1.1em; }
             .header p { font-size: 0.82em; flex-wrap: wrap; gap: 6px; }
 
             /* Tabs */
@@ -916,11 +925,12 @@
                 flex-wrap: nowrap;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
+                margin-bottom: 12px;
             }
             .tabs::-webkit-scrollbar { display: none; }
             .tab {
-                padding: 8px 14px;
-                font-size: 12.5px;
+                padding: 9px 16px;
+                font-size: 13px;
                 flex-shrink: 0;
             }
 
@@ -932,14 +942,13 @@
             .stat-label { font-size: 10.5px; }
 
             /* 内容区 */
-            .content-area { padding: 14px 12px; border-radius: var(--radius-md); min-height: auto; }
+            .content-area { padding: 16px 14px; border-radius: var(--radius-md); min-height: auto; }
             .section-header { margin-bottom: 14px; padding-bottom: 12px; flex-wrap: wrap; gap: 8px; }
             .section-header h2 { font-size: 1.1em; }
-            .add-btn { padding: 8px 16px; font-size: 13px; }
+            .add-btn { padding: 8px 18px; font-size: 13.5px; }
 
             /* 计划卡片 */
-            .plan-card { padding: 13px 13px; border-radius: var(--radius-sm); }
-            /* 手机端卡片：标题+动作按钮同行，按钮缩小 */
+            .plan-card { padding: 14px 14px; border-radius: var(--radius-sm); }
             .plan-title-row { align-items: flex-start; gap: 8px; }
             .plan-actions {
                 flex-direction: column;
@@ -947,8 +956,8 @@
                 flex-shrink: 0;
             }
             .action-btn {
-                padding: 8px 10px;
-                font-size: 12px;
+                padding: 8px 12px;
+                font-size: 12.5px;
                 min-height: 38px;
                 min-width: 60px;
                 border-radius: var(--radius-sm);
@@ -958,7 +967,7 @@
             }
             .plan-title { font-size: 1em; }
             .plan-badges { gap: 4px; margin-bottom: 6px; }
-            .plan-meta { font-size: 12px; gap: 5px; }
+            .plan-meta { font-size: 12.5px; gap: 5px; }
 
             /* 弹窗 */
             .modal { padding: 0; align-items: flex-start; }
@@ -976,7 +985,7 @@
             /* 表单双列 → 单列 */
             .form-row { flex-direction: column; gap: 0; }
             .form-group { margin-bottom: 10px; }
-            .form-group label { font-size: 12px; margin-bottom: 4px; }
+            .form-group label { font-size: 12.5px; margin-bottom: 4px; }
             .form-group input,
             .form-group textarea,
             .form-group select {
@@ -985,7 +994,7 @@
             }
             .form-group textarea { min-height: 76px; }
 
-            /* 时间行：开始/结束各占一行，内部 date 与时分同行 */
+            /* 时间行 */
             .time-form-row { flex-direction: column; gap: 0; }
             .time-form-row .form-group { width: 100%; }
             .time-row { flex-wrap: nowrap; gap: 6px; align-items: center; }
@@ -1010,11 +1019,11 @@
 
             /* 人员信息分区 */
             .personnel-section { margin-top: 14px; padding-top: 12px; }
-            .section-title { font-size: 13px; margin-bottom: 10px; }
+            .section-title { font-size: 13.5px; margin-bottom: 10px; }
             .sub-section-title { font-size: 13px !important; font-weight: 700; }
             .sub-divider { margin-top: 12px; padding-top: 10px; }
 
-            /* 小组卡片：移动端加背景分组 */
+            /* 小组卡片移动端样式 */
             .group-card {
                 background: var(--bg-subtle);
                 border: 1px solid var(--border);
@@ -1023,18 +1032,15 @@
                 margin-bottom: 8px;
             }
             .group-card + .group-card { margin-top: 0; }
-            .group-no { display: block; } /* 移动端显示序号 */
-
-            /* 嵌套在 form-group 内的 form-row：移动端也折叠 */
+            .group-no { display: block; }
             .form-group .form-row { flex-direction: column; gap: 0; }
             .form-group .form-row .form-group { margin-bottom: 0; }
             .form-group .form-row .form-group:last-child { margin-bottom: 0; }
 
-            /* 空状态 */
             .empty-state { padding: 40px 16px; }
 
             /* 搜索框 */
-            .search-input { font-size: 16px; padding: 10px 14px; } /* 防 iOS 缩放 */
+            .search-input { font-size: 16px; padding: 10px 14px; }
             .search-clear { padding: 10px 14px; font-size: 13px; }
 
             /* 筛选器 */
@@ -1042,54 +1048,45 @@
             .filter-label { padding: 6px 12px; }
             .filter-text  { font-size: 12px; }
 
-            /* 小组信息 / 动火块 */
-            .group-block { padding: 8px 8px; }
-            .group-item  { padding: 8px 8px; }
-            .group-label { font-size: 11px; margin-bottom: 4px; }
-            .group-row   { font-size: 12px; }
+            /* 小组信息块 */
+            .group-block { padding: 10px 10px; }
+            .group-item  { padding: 9px 10px; }
+            .group-label { font-size: 11.5px; margin-bottom: 4px; }
+            .group-row   { font-size: 12.5px; }
+            .firework-block { padding: 10px 12px; }
+            .firework-title { font-size: 12px; }
+            .firework-row   { font-size: 12.5px; }
+            .ticket-person-block { padding: 9px 12px; font-size: 12.5px; }
+            .card-content   { font-size: 13.5px; padding: 12px 14px; line-height: 1.7; }
 
-            /* 动火块、办票块、卡片内容字号 */
-            .firework-block { padding: 9px 10px; }
-            .firework-title { font-size: 11.5px; }
-            .firework-row   { font-size: 12px; }
-            .ticket-person-block { padding: 8px 10px; font-size: 12px; }
-            .card-content   { font-size: 13px; padding: 12px 12px; line-height: 1.65; }
-
-            /* badge 移动端字号 */
-            .badge-date   { font-size: 11px; padding: 3px 8px; max-width: 100%; }
-            .badge-person,
-            .badge-members { font-size: 12px; padding: 3px 8px; max-width: 100%; }
-            .badge         { font-size: 11px; }
-            .badge-sm      { font-size: 10.5px; }
-
-            /* plan-meta badge 换行后垂直对齐 */
+            /* badge 移动端 */
+            .badge-date   { font-size: 11.5px; padding: 3px 8px; max-width: 100%; }
+            .badge-person, .badge-members { font-size: 12.5px; padding: 3px 9px; max-width: 100%; }
+            .badge         { font-size: 11.5px; }
+            .badge-sm      { font-size: 11px; }
             .plan-meta { align-items: flex-start; }
-
-            /* 对话框弹窗在手机端铺满底部 */
             .dialog-box { width: min(400px, 96vw); }
         }
 
         /* ===== 极小屏（≤380px） ===== */
         @media (max-width: 380px) {
-            .tabs { gap: 2px; }
-            .tab { padding: 7px 11px; font-size: 12px; }
+            .tabs { gap: 0; }
+            .tab { padding: 8px 13px; font-size: 12.5px; }
             .stats-container { grid-template-columns: repeat(2, 1fr); gap: 6px; }
             .stat-value { font-size: 1.4em; }
-
-            /* 卡片信息区极小屏再压缩 */
-            .plan-card { padding: 11px 10px; }
-            .group-block { padding: 6px 6px; }
-            .group-item  { padding: 6px 6px; }
-            .group-row, .firework-row, .ticket-person-block { font-size: 11.5px; }
-            .badge-date  { font-size: 10.5px; padding: 2px 6px; }
-            .badge-person, .badge-members { font-size: 11px; padding: 2px 6px; }
+            .plan-card { padding: 12px 11px; }
+            .group-block { padding: 8px 8px; }
+            .group-item  { padding: 7px 8px; }
+            .group-row, .firework-row { font-size: 12px; }
+            .badge-date  { font-size: 11px; padding: 2px 6px; }
+            .badge-person, .badge-members { font-size: 11.5px; padding: 2px 7px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1>📋 新意念计划管理系统</h1>
+            <h1>新意念计划管理系统</h1>
             <p>
                 多人实时协作 · 自动云端同步
                 <span class="sync-status" id="syncStatus">
@@ -1110,28 +1107,28 @@
         <!-- 统计卡片 -->
         <div class="stats-container">
             <div class="stat-card">
-                <div class="stat-icon">📊</div>
+                <div class="stat-icon">◆</div>
                 <div class="stat-info">
                     <div class="stat-label">周计划</div>
                     <div class="stat-value" id="weeklyCount">0</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📈</div>
+                <div class="stat-icon">◇</div>
                 <div class="stat-info">
                     <div class="stat-label">月计划</div>
                     <div class="stat-value" id="monthlyCount">0</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">✅</div>
+                <div class="stat-icon">●</div>
                 <div class="stat-info">
                     <div class="stat-label">已完结</div>
                     <div class="stat-value" id="completedCount">0</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📋</div>
+                <div class="stat-icon">○</div>
                 <div class="stat-info">
                     <div class="stat-label">总计</div>
                     <div class="stat-value" id="totalCount">0</div>
@@ -1227,22 +1224,6 @@
 
 
 
-    <!-- 补录票号对话框 -->
-    <div id="ticketNoModal" class="dialog-overlay">
-        <div class="dialog-box dialog-wide">
-            <div class="dialog-title">✏️ 补录票号</div>
-            <div id="ticketNoModalTitle" style="font-size:12.5px;color:var(--text-secondary);margin-bottom:20px;padding-bottom:14px;border-bottom:1.5px solid var(--border);"></div>
-            <label class="dialog-label">工作票号</label>
-            <input type="text" id="ticketNoInput" class="dialog-input" placeholder="输入工作票号">
-            <label class="dialog-label">计划编号</label>
-            <input type="text" id="planNoInput" class="dialog-input" placeholder="输入计划编号" style="margin-bottom:24px;">
-            <div class="dialog-actions">
-                <button id="ticketNoCancelBtn" class="dialog-btn secondary">取消</button>
-                <button id="ticketNoSaveBtn" class="dialog-btn primary-btn">💾 保存</button>
-            </div>
-        </div>
-    </div>
-
     <!-- 删除确认对话框 -->
     <div id="deleteConfirmModal" class="dialog-overlay">
         <div class="dialog-box">
@@ -1292,6 +1273,12 @@
             </div>
             <form id="planForm">
                 <input type="hidden" id="planId">
+
+                <!-- 已完结计划只读提示（默认隐藏） -->
+                <div id="completedEditHint" style="display:none; align-items:center; gap:8px; background:#fffbeb; border:1px solid #fde68a; border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:14px; font-size:13px; color:#92400e;">
+                    <span style="font-size:16px;">⚠️</span>
+                    <span>已完结计划仅允许修改<strong>工作票号、计划编号</strong>和<strong>计划状态</strong>，其他字段已锁定。</span>
+                </div>
 
                 <div class="form-row">
                     <div class="form-group" style="flex:1;">
@@ -1722,9 +1709,11 @@
             if (!supabaseClient) return;
 
             var now = new Date();
+            // 仅自动完成「进行中」且结束日期已过的计划
+            // 待开始(pending) / 间断中(paused) 不自动完成——结束日期过了可能是计划延期，需人工处理
             var toComplete = plans.filter(function(p) {
                 return !p.isDeleted
-                    && p.status !== 'completed'
+                    && p.status === 'in-progress'
                     && p.endDate
                     && new Date(p.endDate) < now;
             });
@@ -2000,16 +1989,12 @@
                 togglePersonnelFields(e.target.value);
             });
 
-            // 使用事件委托处理编辑、补录票号和删除按钮点击
+            // 使用事件委托处理编辑和删除按钮点击
             document.getElementById('planList').addEventListener('click', function(e) {
-                // 优先判断补录票号按钮（有 data-ticket-plan-id 属性）
-                var ticketBtn = e.target.closest('[data-ticket-plan-id]');
                 var editBtn   = e.target.closest('.edit-btn');
                 var deleteBtn = e.target.closest('.delete-btn');
 
-                if (ticketBtn) {
-                    openTicketNoModal(ticketBtn.dataset.ticketPlanId);
-                } else if (editBtn) {
+                if (editBtn) {
                     var planId = editBtn.dataset.planId;
                     if (planId) openModal(planId);
                 } else if (deleteBtn) {
@@ -2108,12 +2093,60 @@
             // 根据计划类型显示/隐藏人员字段
             togglePersonnelFields(document.getElementById('planType').value);
 
+            // 已完结计划：进入只读模式，仅允许修改票号和状态
+            var isCompletedPlan = planId && (function() {
+                var p = plans.find(function(x) { return x.id === planId || x.id === editingPlanId; });
+                return p && p.status === 'completed';
+            })();
+            setCompletedEditMode(isCompletedPlan);
+
             modal.classList.add('show');
         }
 
         function closeModal() {
             document.getElementById('planModal').classList.remove('show');
+            setCompletedEditMode(false);
             editingPlanId = null;
+        }
+
+        // 已完结编辑模式：仅保留票号（workTicketNo/planNo）和状态（status）可编辑
+        function setCompletedEditMode(enable) {
+            var modal = document.getElementById('planModal');
+            var hint = document.getElementById('completedEditHint');
+
+            // 所有表单字段
+            var allFields = [
+                'planType','planTitle','planTitleSuffix','planContent',
+                'startDate','startHour','startMinute',
+                'endDate','endHour','endMinute',
+                'ticketType','equipmentStatus','priority',
+                'responsible','members',
+                'group1Leader','group1Members','group2Leader','group2Members',
+                'group3Leader','group3Members','group4Leader','group4Members',
+                'group5Leader','group5Members',
+                'ticketPersonnel','fireWorkLeader','fireWorkExecutor','fireWorkGuardian'
+            ];
+            // 仅允许修改的字段
+            var editableFields = ['workTicketNo','planNo','status'];
+
+            if (enable) {
+                allFields.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.disabled = true;
+                });
+                editableFields.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.disabled = false;
+                });
+                document.getElementById('modalTitle').textContent = '编辑已完结计划';
+                if (hint) hint.style.display = 'flex';
+            } else {
+                allFields.concat(editableFields).forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.disabled = false;
+                });
+                if (hint) hint.style.display = 'none';
+            }
         }
 
         // 根据计划类型显示/隐藏人员字段
@@ -2241,55 +2274,20 @@
                 });
         }
 
-        // 补录票号弹窗
-        function openTicketNoModal(planId) {
-            var plan = plans.find(function(p) { return p.id === planId; });
-            if (!plan) return;
-
-            var modal = document.getElementById('ticketNoModal');
-            document.getElementById('ticketNoModalTitle').textContent = plan.title;
-            document.getElementById('ticketNoInput').value = plan.workTicketNo || '';
-            document.getElementById('planNoInput').value = plan.planNo || '';
+        // 通用确认对话框
+        function showConfirmDialog(modalId, confirmBtnId, cancelBtnId, onConfirm) {
+            var modal = document.getElementById(modalId);
             modal.classList.add('show');
-
-            // 克隆按钮清除旧事件
-            var saveBtn = document.getElementById('ticketNoSaveBtn');
-            var cancelBtn = document.getElementById('ticketNoCancelBtn');
-            var newSaveBtn = saveBtn.cloneNode(true);
-            var newCancelBtn = cancelBtn.cloneNode(true);
-            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-
-            newCancelBtn.addEventListener('click', function() {
+            var confirmBtn = document.getElementById(confirmBtnId);
+            var cancelBtn = document.getElementById(cancelBtnId);
+            var newConfirm = confirmBtn.cloneNode(true);
+            var newCancel = cancelBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+            cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+            newCancel.addEventListener('click', function() { modal.classList.remove('show'); });
+            newConfirm.addEventListener('click', function() {
                 modal.classList.remove('show');
-            });
-
-            newSaveBtn.addEventListener('click', function() {
-                var workTicketNo = document.getElementById('ticketNoInput').value.trim();
-                var planNo = document.getElementById('planNoInput').value.trim();
-
-                setSyncStatus('syncing', '保存中...');
-                supabaseClient.from('plans')
-                    .update({
-                        work_ticket_no: workTicketNo || null,
-                        plan_no: planNo || null,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', planId)
-                    .then(function(result) {
-                        if (result.error) {
-                            console.error('补录票号失败:', result.error);
-                            alert('保存失败: ' + result.error.message);
-                            setSyncStatus('error', '保存失败');
-                            return;
-                        }
-                        // 更新本地数据
-                        plan.workTicketNo = workTicketNo;
-                        plan.planNo = planNo;
-                        modal.classList.remove('show');
-                        renderPlans();
-                        setSyncStatus('connected', '已连接');
-                    });
+                onConfirm();
             });
         }
 
@@ -2308,49 +2306,19 @@
                 ? planId.replace(/_weekly$/, '')
                 : planId;
 
-            var modal = document.getElementById('deleteConfirmModal');
-            modal.classList.add('show');
-
-            var confirmBtn = document.getElementById('deleteConfirmBtn');
-            var cancelBtn = document.getElementById('deleteCancelBtn');
-
-            // 克隆按钮以清除旧事件绑定
-            var newConfirmBtn = confirmBtn.cloneNode(true);
-            var newCancelBtn = cancelBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-
-            newCancelBtn.addEventListener('click', function() {
-                modal.classList.remove('show');
-            });
-
-            newConfirmBtn.addEventListener('click', function() {
-                modal.classList.remove('show');
+            showConfirmDialog('deleteConfirmModal', 'deleteConfirmBtn', 'deleteCancelBtn', function() {
                 setSyncStatus('syncing', '处理中...');
-
-                // 乐观更新：立即修改本地 plans 数组，界面立刻响应
                 var now = new Date().toISOString();
                 plans.forEach(function(p) {
-                    if (p.id === realPlanId) {
-                        p.isDeleted = true;
-                        p.deletedAt = now;
-                    }
+                    if (p.id === realPlanId) { p.isDeleted = true; p.deletedAt = now; }
                 });
                 renderPlans();
                 updateStats();
-
-                // 再异步同步到云端
                 deletePlanFromCloud(realPlanId)
-                    .then(function() {
-                        loadPlans(); // 确保与云端数据一致
-                    })
+                    .then(function() { loadPlans(); })
                     .catch(function(error) {
-                        // 回滚本地乐观更新
                         plans.forEach(function(p) {
-                            if (p.id === realPlanId) {
-                                p.isDeleted = false;
-                                p.deletedAt = null;
-                            }
+                            if (p.id === realPlanId) { p.isDeleted = false; p.deletedAt = null; }
                         });
                         renderPlans();
                         updateStats();
@@ -2362,28 +2330,10 @@
         }
 
         function restorePlan(planId) {
-            var modal = document.getElementById('restoreConfirmModal');
-            modal.classList.add('show');
-
-            var confirmBtn = document.getElementById('restoreConfirmBtn');
-            var cancelBtn = document.getElementById('restoreCancelBtn');
-
-            var newConfirmBtn = confirmBtn.cloneNode(true);
-            var newCancelBtn = cancelBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-
-            newCancelBtn.addEventListener('click', function() {
-                modal.classList.remove('show');
-            });
-
-            newConfirmBtn.addEventListener('click', function() {
-                modal.classList.remove('show');
+            showConfirmDialog('restoreConfirmModal', 'restoreConfirmBtn', 'restoreCancelBtn', function() {
                 setSyncStatus('syncing', '恢复中...');
                 restorePlanFromTrash(planId)
-                    .then(function() {
-                        loadPlans();
-                    })
+                    .then(function() { loadPlans(); })
                     .catch(function(error) {
                         console.error('恢复失败:', error);
                         alert('恢复失败: ' + error.message);
@@ -2393,28 +2343,10 @@
         }
 
         function permanentDelete(planId) {
-            var modal = document.getElementById('permanentDeleteModal');
-            modal.classList.add('show');
-
-            var confirmBtn = document.getElementById('permanentDeleteConfirmBtn');
-            var cancelBtn = document.getElementById('permanentDeleteCancelBtn');
-
-            var newConfirmBtn = confirmBtn.cloneNode(true);
-            var newCancelBtn = cancelBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-
-            newCancelBtn.addEventListener('click', function() {
-                modal.classList.remove('show');
-            });
-
-            newConfirmBtn.addEventListener('click', function() {
-                modal.classList.remove('show');
+            showConfirmDialog('permanentDeleteModal', 'permanentDeleteConfirmBtn', 'permanentDeleteCancelBtn', function() {
                 setSyncStatus('syncing', '删除中...');
                 permanentDeletePlan(planId)
-                    .then(function() {
-                        loadPlans();
-                    })
+                    .then(function() { loadPlans(); })
                     .catch(function(error) {
                         console.error('永久删除失败:', error);
                         alert('永久删除失败: ' + error.message);
@@ -2718,10 +2650,8 @@
                     '<div class="plan-title-row">' +
                     '<div class="plan-title">' + escapeHtml(plan.title) + '</div>' +
                     '<div class="plan-actions">' +
-                    (currentTab === 'completed'
-                        ? '<button class="action-btn ticket-btn" data-ticket-plan-id="' + escapeHtml(plan.id) + '">✏️ 票号</button>'
-                        : '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">✏️ 编辑</button>') +
-                    '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">🗑️ 删除</button>' +
+                    '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">✏️ 编辑</button>' +
+                    (currentTab !== 'completed' ? '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">🗑️ 删除</button>' : '') +
                     '</div>' +
                     '</div>' +
                     /* ── 徽章行（有内容时才渲染） ── */
@@ -2826,29 +2756,22 @@
         function getCurrentWeekRange() { return getWeekRange(0); }
         function getNextWeekRange()    { return getWeekRange(1); }
 
-        // 将 "YYYY-MM-DD" 格式的日期字符串解析为本地时间的 Date 对象（避免UTC时区偏移）
+        // 解析 "YYYY-MM-DD" 为本地 Date
         function parseLocalDate(dateStr) {
             if (!dateStr) return null;
-            // 取前10位 "YYYY-MM-DD"，按本地时间解析
             var parts = dateStr.substring(0, 10).split('-');
-            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0);
+            return new Date(+parts[0], parts[1] - 1, +parts[2]);
         }
 
-        // 检查日期是否在当前周内
-        function isInCurrentWeek(dateStr) {
-            var weekRange = getCurrentWeekRange();
-            var date = parseLocalDate(dateStr);
-            if (!date) return false;
-            return date >= weekRange.start && date <= weekRange.end;
+        // 日期是否在指定周内
+        function isInWeek(dateStr, offset) {
+            var range = getWeekRange(offset);
+            var d = parseLocalDate(dateStr);
+            return d && d >= range.start && d <= range.end;
         }
+        function isInCurrentWeek(dateStr) { return isInWeek(dateStr, 0); }
+        function isInNextWeek(dateStr)    { return isInWeek(dateStr, 1); }
 
-        // 检查日期是否在下一周内
-        function isInNextWeek(dateStr) {
-            var weekRange = getNextWeekRange();
-            var date = parseLocalDate(dateStr);
-            if (!date) return false;
-            return date >= weekRange.start && date <= weekRange.end;
-        }
 
         // 更新年份筛选器
         function updateYearFilter() {
