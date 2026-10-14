@@ -1528,10 +1528,11 @@
         </div>
     </div>
 
-    <script type="module">
-        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
-
-        window.supabaseCreateClient = createClient;
+    <!-- SDK 加载方式改为「经典脚本 + 多 CDN 依次回退」：
+         原来是 type="module" + 静态 import，只要那一个 CDN 拉不到，
+         整段脚本就不会执行，页面会永远停在「连接中...」。 -->
+    <script>
+        var supabaseCreateClient = null;   // 由 loadSupabaseSdk() 注入
 
         var supabaseClient = null;
         var plans = [];
@@ -1551,9 +1552,9 @@
 
         window.onload = function() {
             console.log('页面加载完成');
-            initSupabase();
             initTabs();
             initEventListeners();
+            loadSupabaseSdk();     // SDK 到位后内部会调用 initSupabase()
         };
 
         // ── 防抖与重连辅助 ──
@@ -1574,7 +1575,7 @@
                 key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1dmtmc2h5a2FidnduaHJyZW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzIwNjksImV4cCI6MjA4ODcwODA2OX0.R3HDrqefIimS7HZsXoU1dZorB2jep-1LT5pc8O0tcP4'
             };
 
-            if (typeof supabaseCreateClient === 'undefined') {
+            if (typeof supabaseCreateClient !== 'function') {
                 console.error('Supabase 库未加载');
                 setSyncStatus('error', '库加载失败');
                 return;
@@ -2930,6 +2931,52 @@
         window.deletePlan = deletePlan;
         window.restorePlan = restorePlan;
         window.permanentDelete = permanentDelete;
+
+        // ===== Supabase SDK 多来源加载 =====
+        // 经典 <script> 标签不受模块脚本策略与跨域限制，拿不到也有明确的失败回调，
+        // 不会出现"整段脚本不执行、页面毫无反应"的情况。
+        var UMD_SOURCES = [
+            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
+            'https://registry.npmmirror.com/@supabase/supabase-js/2/files/dist/umd/supabase.js',
+            'https://fastly.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
+            'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'
+        ];
+        var umdIndex = 0;
+
+        function loadSupabaseSdk() {
+            if (typeof supabaseCreateClient === 'function') { initSupabase(); return; }
+            if (umdIndex >= UMD_SOURCES.length) {
+                console.error('全部 SDK 源都不可用');
+                setSyncStatus('error', '云端组件加载失败');
+                return;
+            }
+            var settled = false;
+            var tag = document.createElement('script');
+            tag.src = UMD_SOURCES[umdIndex++];
+            tag.async = true;
+
+            function giveUp() {
+                if (settled) return;
+                settled = true;
+                console.warn('SDK 源不可用，换下一个:', tag.src);
+                loadSupabaseSdk();
+            }
+            var timer = setTimeout(giveUp, 15000);   // 单个源卡住也不至于永远等待
+
+            tag.onload = function() {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                if (window.supabase && typeof window.supabase.createClient === 'function') {
+                    supabaseCreateClient = window.supabase.createClient;
+                    initSupabase();
+                } else {
+                    loadSupabaseSdk();
+                }
+            };
+            tag.onerror = giveUp;
+            document.head.appendChild(tag);
+        }
     </script>
 </body>
 </html>
