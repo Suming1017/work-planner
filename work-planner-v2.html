@@ -1574,18 +1574,6 @@ ${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name
             initEventListeners();
         };
 
-        // ── 防抖与重连辅助 ──
-        var syncDebounceTimer = null;
-        var reconnectAttempts = 0;
-        var maxReconnectAttempts = 10;
-
-        function debouncedReload(delay) {
-            if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-            syncDebounceTimer = setTimeout(function() {
-                loadPlans();
-            }, delay || 300);
-        }
-
         function initCloudBackend() {
             if (typeof WorkBuddyCloud === 'undefined'
                 || typeof WorkBuddyCloud.createWorkBuddyCloud !== 'function') {
@@ -1656,23 +1644,6 @@ ${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name
                 });
         }
 
-        function attemptReconnect() {
-            if (reconnectAttempts >= maxReconnectAttempts) {
-                console.error('达到最大重连次数，停止重试');
-                return;
-            }
-            reconnectAttempts++;
-            var delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-            console.log('将在 ' + (delay / 1000) + ' 秒后重连（第 ' + reconnectAttempts + ' 次）');
-            setSyncStatus('syncing', '重连中...');
-            setTimeout(function() {
-                if (supabaseClient) {
-                    setupRealtime();
-                    debouncedReload(100);
-                }
-            }, delay);
-        }
-
         function setSyncStatus(status, text) {
             var syncStatus = document.getElementById('syncStatus');
             var syncText = document.getElementById('syncText');
@@ -1698,46 +1669,7 @@ ${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name
                         return;
                     }
 
-                    plans = data.map(function(plan) {
-                        return {
-                            id: plan.id,
-                            type: plan.type,
-                            title: plan.title,
-                            titleBase: plan.title_base,
-                            titleSuffix: plan.title_suffix,
-                            content: plan.content,
-                            workTicketNo: plan.work_ticket_no || '',
-                            planNo: plan.plan_no || '',
-                            startDate: plan.start_date,
-                            endDate: plan.end_date,
-                            ticketType: plan.ticket_type,
-                            priority: plan.priority,
-                            status: plan.status,
-                            equipmentStatus: plan.equipment_status || '',
-                            responsible: plan.responsible || '',
-                            members: plan.members || '',
-                            group1Leader: plan.group1_leader || '',
-                            group1Members: plan.group1_members || '',
-                            group2Leader: plan.group2_leader || '',
-                            group2Members: plan.group2_members || '',
-                            group3Leader: plan.group3_leader || '',
-                            group3Members: plan.group3_members || '',
-                            group4Leader: plan.group4_leader || '',
-                            group4Members: plan.group4_members || '',
-                            group5Leader: plan.group5_leader || '',
-                            group5Members: plan.group5_members || '',
-                            ticketPersonnel: plan.ticket_personnel || '',
-                            fireWorkLeader: plan.fire_work_leader || '',
-                            fireWorkExecutor: plan.fire_work_executor || '',
-                            fireWorkGuardian: plan.fire_work_guardian || '',
-                            isDeleted: plan.is_deleted || false,
-                            deletedAt: plan.deleted_at || null,
-                            isTransferred: plan.is_transferred || false,
-                            transferredAt: plan.transferred_at || null,
-                            createdAt: plan.created_at,
-                            updatedAt: plan.updated_at
-                        };
-                    });
+                    plans = data.map(rowToPlan);
 
                     renderPlans();
                     updateStats();
@@ -1837,29 +1769,75 @@ ${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name
         }, 60 * 1000);
 
         // ── 数据映射辅助函数 ──
-        // 将前端 plan 对象映射为数据库字段
-        function planToDbRows(planList) {
-            return planList.map(function(plan) {
-                return {
-                    id: plan.id, type: plan.type, title: plan.title,
-                    title_base: plan.titleBase, title_suffix: plan.titleSuffix,
-                    content: plan.content, work_ticket_no: plan.workTicketNo || null,
-                    plan_no: plan.planNo || null, start_date: plan.startDate,
-                    end_date: plan.endDate, ticket_type: plan.ticketType,
-                    priority: plan.priority, status: plan.status,
-                    equipment_status: plan.equipmentStatus, responsible: plan.responsible,
-                    members: plan.members, group1_leader: plan.group1Leader,
-                    group1_members: plan.group1Members, group2_leader: plan.group2Leader,
-                    group2_members: plan.group2Members, group3_leader: plan.group3Leader,
-                    group3_members: plan.group3Members, group4_leader: plan.group4Leader,
-                    group4_members: plan.group4Members, group5_leader: plan.group5Leader,
-                    group5_members: plan.group5Members, ticket_personnel: plan.ticketPersonnel,
-                    fire_work_leader: plan.fireWorkLeader, fire_work_executor: plan.fireWorkExecutor,
-                    fire_work_guardian: plan.fireWorkGuardian,
-                    is_transferred: plan.isTransferred || false,
-                    transferred_at: plan.transferredAt || null
-                };
-            });
+        // 单一字段映射源，与数据库 plans 表列一一对应（37 列）。
+        //   第 1 列：前端 plan 对象的键
+        //   第 2 列：数据库列名
+        //   第 3 列：库值为 null/undefined 时前端兜底值
+        //   第 4 列：写库策略  raw=直传  null=||null  false=||false  skip=不写库
+        // 以后增删字段只改这一张表，读写两端自动同步。
+        var FIELD_MAP = [
+            ['id',               'id',                 null,  'raw'],
+            ['type',             'type',               null,  'raw'],
+            ['title',            'title',              null,  'raw'],
+            ['titleBase',        'title_base',         null,  'raw'],
+            ['titleSuffix',      'title_suffix',       null,  'raw'],
+            ['content',          'content',            null,  'raw'],
+            ['workTicketNo',     'work_ticket_no',     '',    'null'],
+            ['planNo',           'plan_no',            '',    'null'],
+            ['startDate',        'start_date',         null,  'raw'],
+            ['endDate',          'end_date',           null,  'raw'],
+            ['ticketType',       'ticket_type',        null,  'raw'],
+            ['priority',         'priority',           null,  'raw'],
+            ['status',           'status',             null,  'raw'],
+            ['equipmentStatus',  'equipment_status',   '',    'raw'],
+            ['responsible',      'responsible',        '',    'raw'],
+            ['members',          'members',            '',    'raw'],
+            ['workers',          'workers',            '',    'skip'],
+            ['ticketPersonnel',  'ticket_personnel',   '',    'raw'],
+            ['group1Leader',     'group1_leader',      '',    'raw'],
+            ['group1Members',    'group1_members',     '',    'raw'],
+            ['group2Leader',     'group2_leader',      '',    'raw'],
+            ['group2Members',    'group2_members',     '',    'raw'],
+            ['group3Leader',     'group3_leader',      '',    'raw'],
+            ['group3Members',    'group3_members',     '',    'raw'],
+            ['group4Leader',     'group4_leader',      '',    'raw'],
+            ['group4Members',    'group4_members',     '',    'raw'],
+            ['group5Leader',     'group5_leader',      '',    'raw'],
+            ['group5Members',    'group5_members',     '',    'raw'],
+            ['fireWorkLeader',   'fire_work_leader',   '',    'raw'],
+            ['fireWorkExecutor', 'fire_work_executor', '',    'raw'],
+            ['fireWorkGuardian', 'fire_work_guardian', '',    'raw'],
+            ['isDeleted',        'is_deleted',         false, 'skip'],
+            ['deletedAt',        'deleted_at',         null,  'skip'],
+            ['isTransferred',    'is_transferred',     false, 'false'],
+            ['transferredAt',    'transferred_at',     null,  'null'],
+            ['createdAt',        'created_at',         null,  'skip'],
+            ['updatedAt',        'updated_at',         null,  'skip']
+        ];
+
+        // 数据库一行 → 前端 plan 对象
+        function rowToPlan(row) {
+            var plan = {};
+            for (var i = 0; i < FIELD_MAP.length; i++) {
+                var m = FIELD_MAP[i];
+                var v = row[m[1]];
+                plan[m[0]] = (v === null || v === undefined) ? m[2] : v;
+            }
+            return plan;
+        }
+
+        // 前端 plan 对象 → 数据库一行（只含需要写入的列）
+        function planToDbRow(plan) {
+            var row = {};
+            for (var i = 0; i < FIELD_MAP.length; i++) {
+                var m = FIELD_MAP[i];
+                if (m[3] === 'skip') continue;
+                var v = plan[m[0]];
+                if (m[3] === 'null')       row[m[1]] = v || null;
+                else if (m[3] === 'false') row[m[1]] = v || false;
+                else                       row[m[1]] = v;
+            }
+            return row;
         }
 
         function savePlanToCloud(planData) {
@@ -1868,7 +1846,7 @@ ${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name
             }
 
             setSyncStatus('syncing', '保存中...');
-            var dbData = planToDbRows([planData])[0];
+            var dbData = planToDbRow(planData);
 
             return supabaseClient.from('plans')
                 .upsert(dbData)
@@ -2058,12 +2036,7 @@ ${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name
                 savePlan();
             });
 
-            // 禁用点击模态框外部关闭功能（锁定模态框）
-            // document.getElementById('planModal').addEventListener('click', function(e) {
-            //     if (e.target.id === 'planModal') {
-            //         closeModal();
-            //     }
-            // });
+            // 已停用「点击模态框外部关闭」，避免误触丢失已填内容
 
             // 监听计划类型变化
             document.getElementById('planType').addEventListener('change', function(e) {
