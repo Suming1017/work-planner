@@ -6,12 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新意念计划管理系统 - 云端版</title>
-    <!-- 移动端提速：提前建连 / 解析 DNS，缩短 SDK 与接口的首包延迟 -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://cuvkfshykabvwnhrremb.supabase.co" crossorigin>
-    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm" crossorigin>
-    <link rel="dns-prefetch" href="https://esm.sh">
-    <link rel="dns-prefetch" href="https://cdn.skypack.dev">
+    <!-- 说明：这里刻意**不加** <link rel="preconnect" crossorigin>。
+         实测在夸克等浏览器以 file:// 打开时，指向 supabase.co 的匿名预连接会
+         让后续 REST 的 fetch 直接失败（WebSocket 却正常，因为 WS 不走 CORS 连接
+         池），表现就是"实时通道已订阅、但整表读取 Failed to fetch"。
+         这类"提速"优化收益很小，风险却很高，故保持原始版本的做法：不预热连接。 -->
     <meta name="theme-color" content="#1e3a5f">
     <meta name="format-detection" content="telephone=no">
     <style>
@@ -200,6 +199,7 @@
         }
         .sync-status.syncing { background: rgba(245,158,11,0.25); border-color: rgba(245,158,11,0.4); }
         .sync-status.error   { background: rgba(239,68,68,0.25);  border-color: rgba(239,68,68,0.4); }
+        .sync-status.local   { background: rgba(96,165,250,0.28); border-color: rgba(96,165,250,0.45); }
 
         .sync-dot {
             width: 6px; height: 6px;
@@ -209,6 +209,7 @@
         }
         .sync-status.syncing .sync-dot { background: #fbbf24; animation: pulse 0.5s infinite; }
         .sync-status.error   .sync-dot { background: #f87171; animation: none; }
+        .sync-status.local   .sync-dot { background: #93c5fd; animation: none; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -639,6 +640,20 @@
         }
         .file-origin-tip p:first-child { font-weight: 700; margin-bottom: 4px; }
         .file-origin-tip p + p { color: #7a5a22; }
+
+        /* ===== 本地预览模式提示条 ===== */
+        .local-mode-tip {
+            margin: 0 auto 20px; max-width: 640px;
+            padding: 12px 16px;
+            background: #e8f1fd;
+            border: 1px solid #a8ccf5;
+            border-left: 4px solid #3b82f6;
+            border-radius: var(--radius-md);
+            color: #14416e;
+            font-size: 13px; line-height: 1.7; text-align: left;
+        }
+        .local-mode-tip p:first-child { font-weight: 700; margin-bottom: 4px; }
+        .local-mode-tip p + p { color: #2b5a8a; }
 
         /* ===== 加载态（弱网下先给反馈，避免白屏） ===== */
         .loading-box { text-align: center; padding: 64px 20px; color: var(--text-muted); font-size: 14px; }
@@ -1563,10 +1578,25 @@
         </div>
     </div>
 
+    <!-- ① SDK 静态导入通道（首选，与"双击就能连上"的原始版本完全一致）
+         静态 import 由浏览器模块加载器直接取资源，不经过页面自身的 fetch，
+         所以在 file://（页面源为 null）下同样有效。
+         多个源写成多个 module 块：任一成功即可，互不阻塞；全部失败时，
+         主逻辑会在 6 秒后自动降级到第 ② 步的经典脚本 UMD。 -->
     <script type="module">
-        /* SDK 不再用静态 import：单一 CDN 不可用（移动网络下很常见）时，
-           整个模块会直接不执行，页面就会永远停在"同步失败"。
-           改为多来源动态加载并依次回退，见 loadSupabaseSdk()。 */
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
+        window.__sdkReady && window.__sdkReady(createClient);
+    </script>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        window.__sdkReady && window.__sdkReady(createClient);
+    </script>
+
+    <script>
+        /* ② 主逻辑用普通（经典）脚本，保证即使浏览器不支持/拦掉模块脚本，
+           界面依然能跑起来；拿不到 SDK 时再由 loadSupabaseSdk() 用经典
+           <script> 标签加载 UMD 兜底，几条通道都自带超时，详见该函数。 */
+        (function() {
 
         /* ================================================================
          * 一、数据层：字段映射（唯一数据源）
@@ -1621,16 +1651,17 @@
             return map;
         })();
 
-        // 查询列清单：只取业务字段，排除历史遗留的 subtasks，减小移动端传输体积
+        // 列名数组，自检时逐列探测用
         var SELECT_COLUMNS = PASSTHROUGH_FIELDS
             .concat(FIELD_MAP.map(function(f) { return f[0]; }))
             .join(',');
 
-        // 实际使用的查询列。显式列清单要求库里 36 列齐备，
-        // 若线上库少跑了某个增量脚本（如 add-fire-work-fields.sql），PostgREST 会返回
-        // 42703 "column plans.xxx does not exist" 让整条查询失败。
-        // 这里一旦探测到这类架构错误就降级为 '*'，先保证页面能用。
-        var selectColumns = SELECT_COLUMNS;
+        // 实际使用的查询列。默认用 '*' —— 与"双击就能连上"的原始版本一致。
+        // 显式列清单会让请求 URL 变长许多（36 列），个别浏览器 / 网络中间层对
+        // file:// 页面发出的长 URL 跨域请求处理有差异；同时一旦线上库少跑了某个
+        // 增量脚本，PostgREST 会返回 42703 "column plans.xxx does not exist"，
+        // 整条查询直接失败。权衡下来 '*' 更稳，代价只是多传几个用不上的字段。
+        var selectColumns = '*';
 
         // 列名数组，自检时逐列探测用
         var COLS = PASSTHROUGH_FIELDS.concat(FIELD_MAP.map(function(f) { return f[0]; }));
@@ -1709,14 +1740,31 @@
          * 三、连接与实时同步
          *    移动端要点：多来源加载 SDK、请求超时保护、断线自愈、轮询兜底
          * ================================================================ */
-        // 按顺序尝试，国内网络下 jsdelivr 通常最快，skypack 作最后兜底
-        var SDK_SOURCES = [
-            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm',
+        // UMD 经典脚本源：错开启动、先到先得。国内网络下 npmmirror 通常最快
+        var UMD_SOURCES = [
+            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
+            'https://registry.npmmirror.com/@supabase/supabase-js/2.117.3/files/dist/umd/supabase.js',
+            'https://fastly.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
+            'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'
+        ];
+        var UMD_STAGGER = 2500;        // 相邻两个源的启动间隔，避免并发下载拖慢手机网络
+        var UMD_DEADLINE = 20000;      // 总期限，超时即判定失败并给出可操作提示
+        // 记住上次成功的 CDN 并排到最前：重复打开时几乎秒连，不用逐个试
+        (function() {
+            try {
+                var cached = localStorage.getItem(CDN_CACHE_KEY);
+                var idx = cached ? UMD_SOURCES.indexOf(cached) : -1;
+                if (idx > 0) UMD_SOURCES.unshift(UMD_SOURCES.splice(idx, 1)[0]);
+            } catch (e) { /* 隐私模式忽略 */ }
+        })();
+        // 最后兜底：UMD 全挂才退到 ESM
+        var ESM_SOURCES = [
             'https://esm.sh/@supabase/supabase-js@2',
             'https://cdn.skypack.dev/@supabase/supabase-js@2'
         ];
         var REQUEST_TIMEOUT = 15000;
-        var SDK_TIMEOUT = 8000;        // 单个 SDK 源的最长等待，超时即换下一个源
+        var SDK_TIMEOUT = 8000;        // 单个 ESM 源的最长等待，超时即换下一个源
+        var STATIC_IMPORT_TIMEOUT = 6000;  // 等静态模块导入的耐心，超时转用 UMD 经典脚本
 
         var syncDebounceTimer = null;
         var realtimeChannel = null;
@@ -1725,7 +1773,9 @@
         var realtimeRetryTimer = null;
         var realtimeRetryCount = 0;
         var realtimeGiveUp = false;
+        var realtimeWarned = false;
         var MAX_REALTIME_RETRY = 5;
+        var REALTIME_TIMEOUT = 20000;  // 通道订阅超时（毫秒）
         var lastSyncedAt = 0;
         var loadRetry = 0;
         var MAX_LOAD_RETRY = 6;
@@ -1738,6 +1788,9 @@
         var syncErrorHint = '';
         var guideRendered = false;      // 引导页只渲染一次，避免轮询持续失败时反复重绘
         var sdkSource = '';             // SDK 实际加载通道（ESM / UMD），自检报告里显示
+        var LOCAL_STORAGE_KEY = 'work-planner-v2-local';
+        var CDN_CACHE_KEY = 'work-planner-v2-cdn';
+        var localMode = false;          // 本地预览模式：数据只存在本浏览器，不上传云端
 
         function debouncedReload(delay) {
             clearTimeout(syncDebounceTimer);
@@ -1767,75 +1820,127 @@
             return builder;
         }
 
-        // 兜底通道：经典 <script> 加载 UMD 构建。
-        // 与 ESM 的动态 import 不同，经典脚本不受模块脚本策略与跨域限制，
-        // 所以以 file:// 直接打开本地文件时，这条通道依然能把 SDK 装进来。
-        var UMD_SOURCES = [
-            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
-            'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'
-        ];
-
-        function loadUmdSdk(index) {
-            if (index >= UMD_SOURCES.length) {
-                return Promise.reject(new Error('同步组件加载失败'));
-            }
+        // 主通道：经典 <script> 加载 UMD 构建。
+        // 与 ESM 的动态 import 不同，经典脚本由普通资源加载器处理，不受模块脚本
+        // 策略与跨域限制，所以双击本地文件（file://）时这条通道依然能把 SDK 装进来。
+        // 多个源错开时间启动、先到先得：既能绕开单一 CDN 故障，又不会同时拉几份
+        // 大文件把手机网络挤爆。
+        function loadUmdSdk() {
             // 已由别的路径注入过
             if (window.supabase && typeof window.supabase.createClient === 'function') {
                 return Promise.resolve(window.supabase.createClient);
             }
             return new Promise(function(resolve, reject) {
-                var tag = document.createElement('script');
-                tag.src = UMD_SOURCES[index];
-                tag.async = true;
-                tag.onload = function() {
-                    if (window.supabase && typeof window.supabase.createClient === 'function') {
-                        sdkSource = 'UMD · ' + UMD_SOURCES[index];
+                var settled = false;
+                var timers = [];
+                function finish(src) {
+                    if (settled) return;
+                    settled = true;
+                    timers.forEach(function(t) { clearTimeout(t); });
+                    if (src) {
+                        sdkSource = 'UMD · ' + src;
+                        try { localStorage.setItem(CDN_CACHE_KEY, src); } catch (e) { /* 忽略 */ }
                         resolve(window.supabase.createClient);
                     } else {
-                        loadUmdSdk(index + 1).then(resolve, reject);
+                        reject(new Error('同步组件加载失败：所有 CDN 均不可达'));
                     }
-                };
-                tag.onerror = function() {
-                    loadUmdSdk(index + 1).then(resolve, reject);
-                };
-                document.head.appendChild(tag);
+                }
+                UMD_SOURCES.forEach(function(src, i) {
+                    timers.push(setTimeout(function() {
+                        if (settled) return;
+                        var tag = document.createElement('script');
+                        tag.src = src;
+                        tag.async = true;
+                        tag.onload = function() {
+                            if (window.supabase && typeof window.supabase.createClient === 'function') finish(src);
+                        };
+                        tag.onerror = function() { /* 该源不可用，等下一个源启动 */ };
+                        try { document.head.appendChild(tag); } catch (e) { /* 无 DOM 环境 */ }
+                    }, i * UMD_STAGGER));
+                });
+                // 总期限：任何一个源卡住都不会让页面永远停在"同步中"
+                timers.push(setTimeout(function() { finish(null); }, UMD_DEADLINE));
             });
+        }
+
+        // 动态 import 用 Function 构造：老浏览器（部分国产壳）不认识 import() 时，
+        // 直接写在源码里会在**解析阶段**抛 SyntaxError，导致整段脚本失效。
+        function dynamicImport(url) {
+            var imp = new Function('u', 'return import(u);');
+            return imp(url);
         }
 
         // 单个 ESM 源：给动态 import 套超时保护。
         // 在 file:// 等受限环境下，动态 import 可能被浏览器静默拦掉 —— promise 既不
         // resolve 也不 reject，没有超时就会永远挂住，页面只能停在"同步失败"。
         function tryEsmSource(index) {
-            if (index >= SDK_SOURCES.length) {
+            if (index >= ESM_SOURCES.length) {
                 return Promise.reject(new Error('ESM 源全部失败'));
             }
+            var url = ESM_SOURCES[index];
             return Promise.race([
-                import(SDK_SOURCES[index]),
+                dynamicImport(url),
                 new Promise(function(_, reject) {
                     setTimeout(function() { reject(new Error('加载超时')); }, SDK_TIMEOUT);
                 })
             ]).then(function(mod) {
                 if (!mod || typeof mod.createClient !== 'function') throw new Error('SDK 格式异常');
-                sdkSource = 'ESM · ' + SDK_SOURCES[index];
+                sdkSource = 'ESM · ' + url;
                 return mod.createClient;
             }).catch(function(error) {
-                console.warn('SDK 源不可用，尝试下一个:', SDK_SOURCES[index], error.message);
+                console.warn('SDK 源不可用，尝试下一个:', url, error && error.message);
                 return tryEsmSource(index + 1);
             });
         }
 
-        function loadSupabaseSdk() {
-            // 关键：以 file:// 打开时页面源为 null，动态 import() 在夸克、UC 等
-            // 国产浏览器上会被拦掉。经典 <script> 标签不走模块加载器，不受该限制，
-            // 所以本地打开时**直接**走 UMD，不再先试 ESM。
-            if (isFileOrigin()) {
-                return loadUmdSdk(0).catch(function() { return tryEsmSource(0); });
+        // ── 静态模块导入通道（这条就是"双击就能连上"时实际走的通道）───────────
+        // HTML 里的 <script type="module"> 用**静态** import 引 SDK。静态 import 由
+        // 浏览器的模块加载器直接取资源，不经过页面自身的 fetch，因此在 file:// 下
+        // （页面源为 null）同样能成功 —— 这正是最初版本本地双击可用的原因。
+        // import 完成后调用 window.__sdkReady(createClient) 把工厂函数交回来。
+        var staticSdkFn = null;         // 静态 import 得到的 createClient
+        var staticSdkWaiters = [];      // 等待静态 import 的请求方
+
+        window.__sdkReady = function(createClient) {
+            if (typeof createClient !== 'function') return;
+            if (!staticSdkFn) {
+                staticSdkFn = createClient;
+                sdkSource = 'ESM · 静态模块导入';
             }
-            // 线上：优先体积小得多的 ESM，全部失败再退 UMD
-            return tryEsmSource(0).catch(function() { return loadUmdSdk(0); });
+            var waiters = staticSdkWaiters;
+            staticSdkWaiters = [];
+            waiters.forEach(function(fn) { fn(staticSdkFn); });
+        };
+
+        function waitStaticImport(ms) {
+            if (staticSdkFn) return Promise.resolve(staticSdkFn);
+            return new Promise(function(resolve, reject) {
+                var done = false;
+                staticSdkWaiters.push(function(fn) {
+                    if (done) return;
+                    done = true;
+                    clearTimeout(timer);
+                    resolve(fn);
+                });
+                var timer = setTimeout(function() {
+                    if (done) return;
+                    done = true;
+                    reject(new Error('静态模块导入未成功'));
+                }, ms);
+            });
+        }
+
+        // 加载顺序刻意与"最初可用版本"保持一致：
+        //   ① 静态模块导入（首选）→ ② 经典脚本 UMD → ③ 运行时动态 import
+        // 每一步都自带超时，任何一步卡住都会往下走，不会让页面停在"同步失败"。
+        function loadSupabaseSdk() {
+            return waitStaticImport(STATIC_IMPORT_TIMEOUT)
+                .catch(function() { return loadUmdSdk(); })
+                .catch(function() { return tryEsmSource(0); });
         }
 
         var initInFlight = false;
+        var sdkAttempts = 0;
 
         function initSupabase() {
             if (initInFlight || supabaseClient) return;
@@ -1858,10 +1963,23 @@
             }).catch(function(error) {
                 initInFlight = false;
                 console.error('Supabase 初始化失败:', error);
-                setSyncStatus('error', '连接失败');
+                syncErrorHint = '同步组件(SDK)加载失败：' + ((error && error.message) || '未知原因') +
+                                '。这通常是 CDN 域名被网络/防火墙拦截。';
+                sdkAttempts++;
+                // 两次都拿不到 SDK 就别一直空转了，直接把排查指引显示出来
+                if (sdkAttempts >= 2) {
+                    renderConnectionGuide();
+                    return;
+                }
+                // 本地文件打不开云端时，与其一直空转重试，不如直接给可用的预览模式
+                if (isFileOrigin()) {
+                    enterLocalMode();
+                    return;
+                }
+                setSyncStatus('error', '连接失败·重试中');
                 setTimeout(function() {
                     if (!supabaseClient) initSupabase();   // SDK 都没拿到，稍后整链重试
-                }, 8000);
+                }, 6000);
             });
         }
 
@@ -1916,15 +2034,21 @@
                         realtimeSubscribed = true;
                         realtimeRetryCount = 0;
                         realtimeGiveUp = false;
+                        realtimeWarned = false;
                         return;      // 状态栏只反映"数据能否读到"，不因通道事件抖动
                     }
                     realtimeSubscribed = false;
-                    if (status !== 'CLOSED') {
-                        console.warn('实时订阅状态:', status, err && err.message);
+                    // 只告警一次：弱网下通道事件会连续触发，刷屏会让人误以为页面一直在重连
+                    if (status !== 'CLOSED' && !realtimeWarned) {
+                        realtimeWarned = true;
+                        console.warn('实时订阅未就绪:', status, err && err.message,
+                                     '（不影响使用，已自动降级为定时轮询）');
                     }
                     // SDK 自己会重连，这里只做低频兜底探测，绝不连环重建通道
                     scheduleRealtimeRevive();
-                }, { timeout: 20000 });
+                    // 第二个参数是超时毫秒数，必须是数字；传对象会被 setTimeout 当成 0，
+                    // 导致通道一订阅就 TIMED_OUT —— 这正是"连接超时/一直刷新"的原因。
+                }, REALTIME_TIMEOUT);
         }
 
         function teardownRealtime() {
@@ -1974,7 +2098,9 @@
             document.getElementById('planList').innerHTML =
                 (isFileOrigin() ? fileOriginBanner() : '') +
                 '<div class="loading-box"><div class="loading-spin"></div>' +
-                '<p>正在加载计划数据…</p></div>';
+                '<p>正在连接云端…</p>' +
+                '<p style="color:var(--text-muted);font-size:13px;margin-top:6px;">' +
+                '若长时间无响应，会自动切换到本地预览模式</p></div>';
         }
 
         // 本地文件方式打开时的提示条。不阻断连接：桌面版 Chrome/Edge 通常仍能正常连库，
@@ -1983,13 +2109,90 @@
             return '<div class="file-origin-tip">' +
                 '<p>📂 当前以「本地文件」方式打开（file://）</p>' +
                 '<p>部分手机浏览器（夸克、UC、QQ 浏览器等）会拦截此类页面发出的云端请求。' +
-                '若下方一直显示「同步失败」，请改用 http 方式访问本页。</p>' +
+                '遇到这种情况会自动切换到「本地预览模式」，界面照常可用。</p>' +
+                '</div>';
+        }
+
+        /* ================================================================
+         * 四·补、本地预览模式
+         *   背景：浏览器安全策略禁止 file:// 页面向别的域名发 fetch 请求 ——
+ *   请求根本发不出去，fetch 直接抛 "Failed to fetch"。
+         *   这一点无法用任何 JS 写法绕过：自检里"实时通道已订阅"反而证明网络是通的，
+         *   只是 REST 跨域请求被浏览器掐掉了。
+         *   对策：本地打开时降级为「本地预览模式」，数据存在浏览器 localStorage，
+         *   界面与交互完整可用，方便先确认功能；上传到 GitHub Pages（http）后
+         *   会自动走真正的云端同步。
+         * ================================================================ */
+        function loadLocalPlans() {
+            try {
+                var arr = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+                return Array.isArray(arr) ? arr : [];
+            } catch (e) { return []; }
+        }
+
+        function saveLocalPlans() {
+            try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(plans)); }
+            catch (e) { /* 隐私模式 / 空间不足时忽略 */ }
+        }
+
+        // 判断是网络层失败（请求没发出去）而不是服务端返回的业务错误
+        function isNetworkFailure(error) {
+            if (!error) return true;
+            if (error.code) return false;                 // PostgREST 的业务错误码
+            var name = String(error.name || '');
+            var text = String(error.message || '');
+            return text.indexOf('fetch') !== -1 ||
+                   text.indexOf('Load failed') !== -1 ||
+                   text.indexOf('NetworkError') !== -1 ||
+                   name.indexOf('Abort') !== -1 ||
+                   name.indexOf('Timeout') !== -1;
+        }
+
+        function enterLocalMode() {
+            if (localMode) return;
+            localMode = true;
+            loadRetry = 0;
+            plans = loadLocalPlans();
+            lastDataSig = '';
+            lastListHtml = null;
+            setSyncStatus('local', '本地预览');
+            renderPlans();
+            updateStats();
+            if (currentTab === 'completed') { updateYearFilter(); renderChart(); }
+        }
+
+        // 退出本地模式、重新尝试连云端（按钮 / 网络恢复时调用）
+        function retryCloud() {
+            localMode = false;
+            guideRendered = false;
+            syncErrorHint = '';
+            lastDataSig = '';
+            lastListHtml = null;
+            realtimeGiveUp = false;
+            realtimeRetryCount = 0;
+            if (supabaseClient) { setSyncStatus('syncing', '连接中...'); loadPlans(); }
+            else initSupabase();
+        }
+
+        function localModeBanner() {
+            return '<div class="local-mode-tip">' +
+                '<p>💾 本地预览模式（数据只存在本浏览器，不会上传云端）</p>' +
+                '<p>当前浏览器禁止「本地文件」页面访问云端接口，已自动切换，界面与操作均可正常试用。</p>' +
+                '<p style="margin-top:8px;">需要真正多人同步时，把本文件上传到 GitHub Pages，' +
+                '用 http 地址打开即可自动切回云端模式。</p>' +
+                '<p style="margin-top:10px;">' +
+                '<button type="button" id="retryCloudBtn" style="padding:8px 18px;font-size:14px;' +
+                'border:0;border-radius:8px;background:#1565c0;color:#fff;cursor:pointer;">' +
+                '☁️ 重试连接云端</button>' +
+                '</p>' +
                 '</div>';
         }
 
         // silent=true 时不动状态栏，用于轮询 / 重连等后台刷新
         // 数据未变化时整条渲染链会被跳过，所以后台刷新不会有任何视觉闪烁
         function loadPlans(silent) {
+            // 本地预览模式下数据就在内存/localStorage 里，不需要也不能去请求云端
+            if (localMode) return;
             if (!supabaseClient || loadInFlight) return;
             loadInFlight = true;
             if (!silent) setSyncStatus('syncing', '同步中...');
@@ -2042,6 +2245,17 @@
                         details: error && error.details,
                         hint: error && error.hint
                     });
+
+                    // file:// 页面发出的跨域 fetch 会被浏览器直接掐掉（请求根本没发出去）。
+                    // 此时实时 WebSocket 往往还能连上 —— 说明网络没问题，是浏览器的安全策略。
+                    // 这种情况下自动切到本地预览模式，保证界面照常可用。
+                    if (isFileOrigin() && isNetworkFailure(error)) {
+                        syncErrorHint = '浏览器禁止「本地文件」页面访问云端接口（请求未发出）。' +
+                                        '已切换到本地预览模式。';
+                        enterLocalMode();
+                        return;
+                    }
+
                     syncErrorHint = describeError(error);
                     scheduleRetry();
                 });
@@ -2091,7 +2305,12 @@
                 }
                 return;
             }
-            setSyncStatus('error', loadRetry > 2 ? '同步失败·重试中' : '同步失败');
+            // 已经成功同步过（界面上有数据）时，后台刷新的偶发失败不打回"同步失败"。
+            // "已连接 → 同步失败 → 已连接" 的来回跳变比真实抖动更干扰使用；
+            // 真正连不上（几次都没拿到数据）时才明确报错并给排查指引。
+            if (!(lastSyncedAt > 0 && loadRetry < 3)) {
+                setSyncStatus('error', loadRetry > 2 ? '同步失败·重试中' : '同步失败');
+            }
             var delay = Math.min(2000 * Math.pow(2, loadRetry - 1), 30000);
             setTimeout(function() {
                 if (supabaseClient) loadPlans(true);
@@ -2111,12 +2330,31 @@
                 '<p>☁️ 云端数据暂时读取不到</p>' +
                 '<p>已连续重试 ' + MAX_LOAD_RETRY + ' 次仍未成功。原因：' + escapeHtml(reason) + '</p>' +
                 '<p style="margin-top:8px;">建议按以下顺序排查：</p>' +
-                '<p>1) 若当前是双击本地文件打开（file://）：夸克、UC 等手机浏览器会拦截此类请求。' +
+                '<p>1) 先点下面的「重新连接」按钮；多数情况只是刚才网络抖动。</p>' +
+                '<p>2) 若当前是双击本地文件打开（file://）：夸克、UC 等手机浏览器会拦截此类请求。' +
                 '请改用 http 方式 —— 双击本目录 start-node-server.bat，用命令行显示的地址打开。</p>' +
-                '<p>2) 手机上日常使用：直接访问 GitHub Pages 地址 ' +
-                'https://suming1017.github.io/work-planner/</p>' +
-                '<p>3) 仍不行：网址末尾加 ?diag=1 后刷新，把页面底部的自检报告复制给助手。</p>' +
+                '<p>3) 手机上日常使用：把 work-planner-v2.html 上传到 GitHub Pages 后访问站点地址即可。</p>' +
+                '<p style="margin-top:12px;">' +
+                '<button type="button" id="reconnectBtn" style="padding:10px 20px;font-size:15px;' +
+                'border:0;border-radius:8px;background:#1565c0;color:#fff;cursor:pointer;">' +
+                '🔄 重新连接</button>' +
+                '</p>' +
                 '</div>';
+
+            var btn = document.getElementById('reconnectBtn');
+            if (btn) {
+                btn.onclick = function() {
+                    loadRetry = 0;
+                    guideRendered = false;
+                    syncErrorHint = '';
+                    setSyncStatus('syncing', '重新连接中...');
+                    renderLoading();
+                    if (supabaseClient) loadPlans(true);
+                    else initSupabase();
+                };
+            }
+            // 到这一步说明确实连不上，顺手把自检报告打出来，省得再手动加 ?diag=1
+            setTimeout(runDiagnostics, 300);
         }
 
         /* ================================================================
@@ -2124,6 +2362,11 @@
          * ================================================================ */
         // 单条更新
         function dbUpdate(planId, patch) {
+            if (localMode) {                       // 本地预览：只改本地，不发请求
+                applyLocal(planId, localPatchOf(patch));
+                saveLocalPlans();
+                return Promise.resolve();
+            }
             if (!supabaseClient) return Promise.reject(new Error('未连接到数据库'));
             noteLocalWrite();
             return withTimeout(
@@ -2136,7 +2379,19 @@
 
         // 批量更新，并同步刷新本地缓存
         function batchUpdate(ids, patch) {
-            if (!supabaseClient || !ids.length) return Promise.resolve();
+            if (!ids.length) return Promise.resolve();
+            if (localMode) {                       // 本地预览：只改本地，不发请求
+                var lp = localPatchOf(patch);
+                ids.forEach(function(id) {
+                    var plan = plans.find(function(p) { return p.id === id; });
+                    if (plan) Object.assign(plan, lp);
+                });
+                saveLocalPlans();
+                renderPlans();
+                updateStats();
+                return Promise.resolve();
+            }
+            if (!supabaseClient) return Promise.resolve();
             var localPatch = localPatchOf(patch);
             noteLocalWrite();
             return withTimeout(
@@ -2162,6 +2417,17 @@
         }
 
         function savePlanToCloud(plan) {
+            if (localMode) {                       // 本地预览：存到 localStorage
+                if (!plan.createdAt) plan.createdAt = new Date().toISOString();
+                plan.updatedAt = new Date().toISOString();
+                var idx = plans.findIndex(function(p) { return p.id === plan.id; });
+                if (idx >= 0) plans[idx] = plan; else plans.unshift(plan);
+                saveLocalPlans();
+                renderPlans();
+                updateStats();
+                setSyncStatus('local', '本地预览');
+                return Promise.resolve();
+            }
             if (!supabaseClient) return Promise.reject(new Error('未连接到数据库'));
             setSyncStatus('syncing', '保存中...');
             noteLocalWrite();
@@ -2182,6 +2448,13 @@
         }
 
         function permanentDeletePlan(planId) {
+            if (localMode) {                       // 本地预览：只删本地
+                plans = plans.filter(function(p) { return p.id !== planId; });
+                saveLocalPlans();
+                renderPlans();
+                updateStats();
+                return Promise.resolve();
+            }
             if (!supabaseClient) return Promise.reject(new Error('未连接到数据库'));
             noteLocalWrite();
             return withTimeout(
@@ -2659,11 +2932,19 @@
                 }
             }
 
+            if (localMode) html = localModeBanner() + html;
+
             // 渲染结果一致就不碰 DOM。否则每次轮询/实时回读都会重建 innerHTML，
             // 触发 .plan-card 的 fadeInUp 动画重播 —— 表现就是"界面一直在刷新"。
             if (html === lastListHtml) return;
             lastListHtml = html;
             container.innerHTML = html;
+
+            // 提示条上的「重试连接云端」按钮
+            if (localMode) {
+                var rb = document.getElementById('retryCloudBtn');
+                if (rb) rb.onclick = function() { retryCloud(); };
+            }
         }
 
         // 按标签页 + 关键词筛选（回收站分支在上层单独处理）
@@ -3175,7 +3456,10 @@
                     method: 'POST',
                     body: JSON.stringify({
                         id: 'diag-probe-000', type: 'weekly', title: '__probe__',
-                        content: '', priority: 'low', status: 'pending'
+                        content: '', priority: 'low', status: 'pending',
+                        // start_date / end_date 在库里是 NOT NULL，不带上会被约束拦下，
+                        // 造成"没有写入权限"的误报
+                        start_date: '2000-01-01T00:00:00', end_date: '2000-01-01T00:00:00'
                     }),
                     headers: { Prefer: 'return=minimal' }
                 });
@@ -3197,7 +3481,7 @@
                 say('[4] SDK 加载: ' + (supabaseClient ? '[OK] 已加载' : '[X] 未加载（CDN 全部失败？）') +
                     (sdkSource ? '   通道=' + sdkSource : ''));
                 say('[5] 实时通道: ' + (realtimeSubscribed ? '[OK] 已订阅' : '[!] 未订阅（已自动降级为定时轮询兜底）'));
-                say('[6] 当前查询模式: ' + (selectColumns === '*' ? '*（降级模式，说明线上库列不齐）' : '显式 36 列'));
+                say('[6] 当前查询模式: ' + (selectColumns === '*' ? '*（取全部列，默认）' : '显式列清单'));
                 say('');
                 say('===== 请把以上全部内容复制发给助手 =====');
                 showDiag(log);
@@ -3236,6 +3520,7 @@
                 document.body.appendChild(box);
             } catch (e) { /* 无 DOM 环境时忽略 */ }
         }
+        })();
     </script>
 </body>
 </html>
