@@ -1612,6 +1612,15 @@
             .concat(FIELD_MAP.map(function(f) { return f[0]; }))
             .join(',');
 
+        // 实际使用的查询列。显式列清单要求库里 36 列齐备，
+        // 若线上库少跑了某个增量脚本（如 add-fire-work-fields.sql），PostgREST 会返回
+        // 42703 "column plans.xxx does not exist" 让整条查询失败。
+        // 这里一旦探测到这类架构错误就降级为 '*'，先保证页面能用。
+        var selectColumns = SELECT_COLUMNS;
+
+        // 列名数组，自检时逐列探测用
+        var COLS = PASSTHROUGH_FIELDS.concat(FIELD_MAP.map(function(f) { return f[0]; }));
+
         // 数据库行 → 前端对象
         function rowToPlan(row) {
             var plan = {};
@@ -1669,7 +1678,17 @@
             renderLoading();          // 先给反馈，避免弱网下白屏
             initEventListeners();
             applyTabUI(currentTab);
+            // 网址加 ?diag=1 运行连接自检，报告显示在页面底部
+            var wantDiag = typeof location !== 'undefined' && location.search &&
+                           location.search.indexOf('diag=1') !== -1;
+
+            // 注意：以 file:// 打开时不拦断，照常尝试连接。
+            // 云端网关的跨域策略是 *，Origin: null 的请求通常能正常通过，
+            // 所以本地文件既能看界面也能真实读写数据；只有个别浏览器/安全软件会拦，
+            // 那种情况会在状态栏提示改用 http:// 方式打开。
+
             initSupabase();
+            if (wantDiag) setTimeout(runDiagnostics, 1500);
         };
 
         /* ================================================================
@@ -1701,6 +1720,7 @@
         var lastSyncKey = '';
         var localWriteUntil = 0;
         var recoveryBound = false;
+        var syncErrorHint = '';
 
         function debouncedReload(delay) {
             clearTimeout(syncDebounceTimer);
@@ -1730,11 +1750,46 @@
             return builder;
         }
 
-        // 依次尝试各 CDN，任一成功即返回 createClient
+        // 兜底通道：经典 <script> 加载 UMD 构建。
+        // 与 ESM 的动态 import 不同，经典脚本不受模块脚本策略与跨域限制，
+        // 所以以 file:// 直接打开本地文件时，这条通道依然能把 SDK 装进来。
+        var UMD_SOURCES = [
+            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
+            'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'
+        ];
+
+        function loadUmdSdk(index) {
+            if (index >= UMD_SOURCES.length) {
+                return Promise.reject(new Error('同步组件加载失败'));
+            }
+            // 已由别的路径注入过
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                return Promise.resolve(window.supabase.createClient);
+            }
+            return new Promise(function(resolve, reject) {
+                var tag = document.createElement('script');
+                tag.src = UMD_SOURCES[index];
+                tag.async = true;
+                tag.onload = function() {
+                    if (window.supabase && typeof window.supabase.createClient === 'function') {
+                        resolve(window.supabase.createClient);
+                    } else {
+                        loadUmdSdk(index + 1).then(resolve, reject);
+                    }
+                };
+                tag.onerror = function() {
+                    loadUmdSdk(index + 1).then(resolve, reject);
+                };
+                document.head.appendChild(tag);
+            });
+        }
+
+        // 依次尝试各 CDN，任一成功即返回 createClient；ESM 全挂则退到 UMD
         function loadSupabaseSdk() {
             var trySource = function(index) {
                 if (index >= SDK_SOURCES.length) {
-                    return Promise.reject(new Error('同步组件加载失败'));
+                    console.warn('ESM 源全部失败，改用 UMD 兜底通道');
+                    return loadUmdSdk(0);
                 }
                 return import(SDK_SOURCES[index])
                     .then(function(mod) {
@@ -1874,7 +1929,9 @@
             var key = status + '|' + text;
             if (key === lastSyncKey) return;
             lastSyncKey = key;
-            document.getElementById('syncStatus').className = 'sync-status ' + status;
+            var badge = document.getElementById('syncStatus');
+            badge.className = 'sync-status ' + status;
+            badge.title = syncErrorHint || text;         // 长按/悬停可看到具体原因
             document.getElementById('syncText').textContent = text;
         }
 
@@ -1896,7 +1953,7 @@
             if (!silent) setSyncStatus('syncing', '同步中...');
 
             withTimeout(
-                supabaseClient.from('plans').select(SELECT_COLUMNS).order('created_at', { ascending: false }),
+                supabaseClient.from('plans').select(selectColumns).order('created_at', { ascending: false }),
                 REQUEST_TIMEOUT
             )
                 .then(function(result) {
@@ -1925,9 +1982,59 @@
                 })
                 .catch(function(error) {
                     loadInFlight = false;
-                    console.error('加载数据失败:', error);
+
+                    // 线上库列不齐 → 降级为 select('*')，页面照常可用
+                    if (isSchemaError(error) && selectColumns !== '*') {
+                        console.warn('[同步] 查询列与线上库不一致，已自动降级为 select(*)。' +
+                                     '请在 Supabase SQL Editor 执行 database-schema.sql 补齐列。',
+                                     error);
+                        selectColumns = '*';
+                        loadPlans(silent);
+                        return;
+                    }
+
+                    console.error('加载数据失败:', {
+                        code: error && error.code,
+                        message: error && error.message,
+                        details: error && error.details,
+                        hint: error && error.hint
+                    });
+                    syncErrorHint = describeError(error);
                     scheduleRetry();
                 });
+        }
+
+        // 判断是否「表/列不存在」这类架构问题
+        function isSchemaError(error) {
+            var code = String((error && error.code) || '');
+            var text = String((error && error.message) || (error && error.details) || '');
+            if (code === '42703' || code === '42P01' || code === 'PGRST204') return true;
+            return text.indexOf('does not exist') !== -1 ||
+                   text.indexOf('Could not find the') !== -1 ||
+                   text.indexOf('schema cache') !== -1;
+        }
+
+        // 把 PostgREST / 网络错误翻成人看得懂的提示
+        function describeError(error) {
+            var code = String((error && error.code) || '');
+            var text = String((error && error.message) || '');
+
+            if (code === '42703' || text.indexOf('does not exist') !== -1) {
+                var m = text.match(/plans\.([a-z0-9_]+)/);
+                return '数据库缺少列' + (m ? ' (' + m[1] + ')' : '') + '，请执行 database-schema.sql';
+            }
+            if (code === '42P01') return '找不到 plans 表，请执行 database-schema.sql';
+            if (code === '42501' || text.indexOf('row-level security') !== -1) {
+                return '被行级安全策略(RLS)拦截，请执行 fix-permissions.sql';
+            }
+            if (code === '401' || text.indexOf('Invalid API key') !== -1 || text.indexOf('No API key') !== -1) {
+                return '匿名 key 无效或已轮换，请到 Supabase → Settings → API 复制新 key';
+            }
+            if (code === '404') return '接口/表不存在(404)，请确认项目 URL 与表名';
+            if (text.indexOf('Failed to fetch') !== -1 || text.indexOf('NetworkError') !== -1 || text.indexOf('Load failed') !== -1) {
+                return '网络请求失败：检查手机网络/公司防火墙是否拦截 supabase.co。' + fileOriginHint();
+            }
+            return text || (error && error.name) || '未知错误';
         }
 
         // 失败退避重试：2s → 4s → 8s → 16s → 30s，六次仍失败则交给 60s 轮询慢慢补，不无限重试
@@ -2885,6 +2992,177 @@
 
             canvas.innerHTML = '<div class="chart-container">' + bars + '</div>';
             legend.innerHTML = legendHtml;
+        }
+
+        /* ================================================================
+         * 十五、连接自检
+         *   用法：在网址后面加 ?diag=1 后刷新，页面底部会显示一份诊断报告。
+         *   把报告复制给助手即可精确定位同步失败原因。
+         * ================================================================ */
+        function httpProbe(path, options) {
+            var config = {
+                headers: {
+                    apikey: DB_CONFIG.key,
+                    Authorization: 'Bearer ' + DB_CONFIG.key,
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                }
+            };
+            if (options) {
+                if (options.method) config.method = options.method;
+                if (options.body) config.body = options.body;
+                if (options.headers) {
+                    Object.keys(options.headers).forEach(function(k) {
+                        config.headers[k] = options.headers[k];
+                    });
+                }
+            }
+            return fetch(DB_CONFIG.url + path, config)
+                .then(function(r) {
+                    return r.text().then(function(t) { return { status: r.status, body: t || '' }; });
+                })
+                .catch(function(e) {
+                    return { status: 0, body: 'FETCH FAILED: ' + (e && e.message) };
+                });
+        }
+
+        function runDiagnostics() {
+            var log = [];
+            function say(line) { log.push(line); console.log('[diag] ' + line); }
+
+            say('===== 工作计划 · 连接自检 =====');
+            say('时间: ' + new Date().toLocaleString());
+            say('页面来源: ' + (typeof location !== 'undefined'
+                ? location.protocol + '//' + (location.host || '(无主机)')
+                : 'unknown'));
+            if (isFileOrigin()) {
+                say('  [i] 当前是「本地文件」方式打开（源为 null）。多数浏览器下仍能正常');
+                say('      连库；若下面第 [1] 步显示请求没发出去，再改用 http:// 方式。');
+            }
+            say('URL : ' + DB_CONFIG.url);
+
+            var key = DB_CONFIG.key;
+            say('KEY : ' + key.slice(0, 24) + ' ... ' + key.slice(-8) + ' (长度 ' + key.length + ')');
+
+            // 解析 anon key，确认是否过期、项目是否对得上
+            try {
+                var seg = key.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                seg += '='.repeat((4 - seg.length % 4) % 4);
+                var payload = JSON.parse(decodeURIComponent(escape(atob(seg))));
+                say('KEY : ref=' + payload.ref + '  role=' + payload.role +
+                    '  签发=' + new Date(payload.iat * 1000).toLocaleString() +
+                    '  过期=' + new Date(payload.exp * 1000).toLocaleString());
+                var urlRef = DB_CONFIG.url.split('//')[1].split('.')[0];
+                say('匹配: URL 的 ref=' + urlRef +
+                    (urlRef === payload.ref ? '  [OK] 与 key 一致' : '  [X] 与 key 不一致，key 属于别的项目'));
+                say('过期: ' + (payload.exp * 1000 < Date.now() ? '[X] key 已过期' : '[OK] 未过期'));
+            } catch (e) {
+                say('KEY : [X] 解析失败（' + e.message + '），key 可能不是合法 JWT');
+            }
+
+            var results = { table: null, missing: [], write: null, delete: null };
+
+            say('');
+            say('[1] 整表读取测试（select=id，limit=1）');
+
+            httpProbe('/rest/v1/plans?select=id&limit=1').then(function(res) {
+                results.table = res;
+                var code = res.status;
+                say('    结果: HTTP ' + code);
+                if (code === 0) {
+                    say('    [X] 请求没发出去 → 手机没联网，或公司/宿舍网络拦截了 supabase.co');
+                } else if (code === 200) {
+                    say('    [OK] 网络与鉴权正常，plans 表可访问');
+                } else if (code === 401 || code === 403) {
+                    say('    [X] key 被拒绝 → anon key 可能已轮换，去 Supabase → Settings → API 复制新的');
+                } else if (code === 404) {
+                    say('    [X] 找不到 plans 表 → 确认表名是否为 plans、URL 是否为当前项目');
+                } else {
+                    say('    [X] 异常状态码，原始响应如下');
+                }
+                say('    原始: ' + res.body.slice(0, 300));
+
+                say('');
+                say('[2] 逐列校验（前端查询清单共 ' + COLS.length + ' 列）');
+                return COLS.reduce(function(prev, col) {
+                    return prev.then(function() {
+                        return httpProbe('/rest/v1/plans?select=' + col + '&limit=1')
+                            .then(function(r) {
+                                if (r.status !== 200) {
+                                    results.missing.push(col);
+                                    say('    [X] 缺失列: ' + col + '  (HTTP ' + r.status + ') ' + r.body.slice(0, 140));
+                                }
+                            });
+                    });
+                }, Promise.resolve());
+            }).then(function() {
+                say('    ' + (results.missing.length ? '缺失列共 ' + results.missing.length + ' 个，需执行 database-schema.sql'
+                                                     : '[OK] 全部 ' + COLS.length + ' 列都存在'));
+                say('');
+                say('[3] 写入权限测试（插入一条探测数据后立即删除）');
+                return httpProbe('/rest/v1/plans', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        id: 'diag-probe-000', type: 'weekly', title: '__probe__',
+                        content: '', priority: 'low', status: 'pending'
+                    }),
+                    headers: { Prefer: 'return=minimal' }
+                });
+            }).then(function(res) {
+                results.write = res.status;
+                say('    写入 -> HTTP ' + res.status);
+                if (res.status === 200 || res.status === 201 || res.status === 204) {
+                    say('    [OK] 有写入权限');
+                } else {
+                    say('    [X] 写入被拒绝：多半是 RLS 策略没放开，执行 fix-permissions.sql，或临时关闭 RLS');
+                    say('    原始: ' + res.body.slice(0, 300));
+                }
+                return httpProbe('/rest/v1/plans?id=eq.diag-probe-000', { method: 'DELETE' });
+            }).then(function(res) {
+                results.delete = res.status;
+                say('    清理探测数据 -> HTTP ' + res.status +
+                    ((res.status === 200 || res.status === 204) ? '  [OK] 已删除' : '  [!] 需手动删除 id=diag-probe-000'));
+                say('');
+                say('[4] SDK 加载: ' + (supabaseClient ? '[OK] 已加载' : '[X] 未加载（CDN 全部失败？）'));
+                say('[5] 实时通道: ' + (realtimeSubscribed ? '[OK] 已订阅' : '[!] 未订阅（已自动降级为定时轮询兜底）'));
+                say('[6] 当前查询模式: ' + (selectColumns === '*' ? '*（降级模式，说明线上库列不齐）' : '显式 36 列'));
+                say('');
+                say('===== 请把以上全部内容复制发给助手 =====');
+                showDiag(log);
+            }).catch(function(e) {
+                say('自检过程出错: ' + (e && e.message));
+                showDiag(log);
+            });
+        }
+
+        /* ================================================================
+         * 十六、运行环境提示
+         *   以 file:// 直接打开时页面源为 null。云端网关跨域策略是 *，
+         *   多数浏览器下请求照常可通，因此不阻断；只有在请求根本发不出去
+         *   （网络层失败）且当前是 file:// 时，才把这个可能性写进提示。
+         * ================================================================ */
+        function isFileOrigin() {
+            return typeof location !== 'undefined' && location.protocol === 'file:';
+        }
+
+        // 网络层失败（请求没发出去 / 被掐断）时的补充线索
+        function fileOriginHint() {
+            return isFileOrigin()
+                ? '另外：当前是「本地文件」方式打开（file://），个别浏览器或安全软件会拦截这类请求。' +
+                  '可改为在本目录执行 npx http-server -p 3000 -c-1 --cors，再用命令行显示的地址打开。'
+                : '';
+        }
+
+        function showDiag(log) {
+            try {
+                var box = document.createElement('div');
+                box.style.cssText = 'position:fixed;left:0;right:0;bottom:0;max-height:60vh;overflow:auto;' +
+                    'z-index:99999;background:#ffffff;color:#16202b;border-top:3px solid #1565c0;' +
+                    'padding:14px 16px;font-family:Consolas,Menlo,monospace;font-size:12.5px;line-height:1.75;' +
+                    'box-shadow:0 -2px 16px rgba(0,0,0,0.15);';
+                box.textContent = log.join('\n');
+                document.body.appendChild(box);
+            } catch (e) { /* 无 DOM 环境时忽略 */ }
         }
     </script>
 </body>
