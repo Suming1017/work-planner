@@ -6,13 +6,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新意念计划管理系统 - 云端版</title>
-    <!-- 说明：这里刻意**不加** <link rel="preconnect" crossorigin>。
-         实测在夸克等浏览器以 file:// 打开时，指向 supabase.co 的匿名预连接会
-         让后续 REST 的 fetch 直接失败（WebSocket 却正常，因为 WS 不走 CORS 连接
-         池），表现就是"实时通道已订阅、但整表读取 Failed to fetch"。
-         这类"提速"优化收益很小，风险却很高，故保持原始版本的做法：不预热连接。 -->
-    <meta name="theme-color" content="#1e3a5f">
-    <meta name="format-detection" content="telephone=no">
     <style>
         /* ===== 设计令牌 ===== */
         :root {
@@ -26,28 +19,27 @@
             --info:    #1565c0;
             --gray:    #546e7a;
 
-            --bg-body:   #f0f3f7;
+            --bg-body:   #f0f2f5;
             --bg-card:   #ffffff;
-            --bg-subtle: #f7f9fc;
+            --bg-subtle: #f7f8fa;
 
-            --border:    #d7dee7;
+            --border:    #dce1e8;
             --radius-sm: 6px;
             --radius-md: 8px;
             --radius-lg: 12px;
             --radius-xl: 24px;
 
-            --shadow-sm: 0 1px 3px rgba(15,23,42,0.05);
-            --shadow-md: 0 2px 10px rgba(15,23,42,0.07);
-            --shadow-lg: 0 4px 20px rgba(15,23,42,0.11);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-md: 0 2px 10px rgba(0,0,0,0.06);
+            --shadow-lg: 0 4px 20px rgba(0,0,0,0.10);
 
-            /* 文字色按对比度校准：muted 由 #8a95a5 加深至 #6b7280（白底约 4.8:1，达 WCAG AA） */
-            --text-primary:   #16202b;
-            --text-secondary: #45505f;
-            --text-muted:     #6b7280;
+            --text-primary:   #1a2a3a;
+            --text-secondary: #4a5568;
+            --text-muted:     #8a95a5;
 
             --font: 'Microsoft YaHei', 'PingFang SC', system-ui, -apple-system, sans-serif;
-            --font-size-base: 15px;
-            --line-height-base: 1.65;
+            --font-size-base: 14.5px;
+            --line-height-base: 1.6;
         }
 
         /* ===== 对话框公共类（替代大量 inline style） ===== */
@@ -148,8 +140,6 @@
             min-height: 100vh;
             padding: 24px 20px 40px;
             color: var(--text-primary);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
         .container { max-width: 1400px; margin: 0 auto; }
@@ -199,7 +189,6 @@
         }
         .sync-status.syncing { background: rgba(245,158,11,0.25); border-color: rgba(245,158,11,0.4); }
         .sync-status.error   { background: rgba(239,68,68,0.25);  border-color: rgba(239,68,68,0.4); }
-        .sync-status.local   { background: rgba(96,165,250,0.28); border-color: rgba(96,165,250,0.45); }
 
         .sync-dot {
             width: 6px; height: 6px;
@@ -209,7 +198,6 @@
         }
         .sync-status.syncing .sync-dot { background: #fbbf24; animation: pulse 0.5s infinite; }
         .sync-status.error   .sync-dot { background: #f87171; animation: none; }
-        .sync-status.local   .sync-dot { background: #93c5fd; animation: none; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -365,8 +353,8 @@
         }
         .plan-card.far {
             background: #fafbfc;
-            border-left-color: #90a4ae;
-            opacity: 0.96;
+            border-left-color: #b0bec5;
+            opacity: 0.92;
         }
         .plan-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06); transform: translateY(-1px); }
 
@@ -401,10 +389,11 @@
         .plan-meta {
             display: flex;
             gap: 6px;
-            font-size: 13px;
+            font-size: 12.5px;
             align-items: center;
             flex-wrap: wrap;
             min-width: 0;
+            opacity: 0.92;
         }
 
         /* 卡片操作按钮区 */
@@ -627,46 +616,6 @@
         /* ===== 空状态 ===== */
         .empty-state { text-align: center; padding: 64px 20px; color: var(--text-muted); }
 
-        /* ===== 本地文件方式打开的提示条 ===== */
-        .file-origin-tip {
-            margin: 0 auto 20px; max-width: 640px;
-            padding: 12px 16px;
-            background: #fff8e1;
-            border: 1px solid #ffe082;
-            border-left: 4px solid #ffa726;
-            border-radius: var(--radius-md);
-            color: #6d4c1b;
-            font-size: 13px; line-height: 1.7; text-align: left;
-        }
-        .file-origin-tip p:first-child { font-weight: 700; margin-bottom: 4px; }
-        .file-origin-tip p + p { color: #7a5a22; }
-
-        /* ===== 本地预览模式提示条 ===== */
-        .local-mode-tip {
-            margin: 0 auto 20px; max-width: 640px;
-            padding: 12px 16px;
-            background: #e8f1fd;
-            border: 1px solid #a8ccf5;
-            border-left: 4px solid #3b82f6;
-            border-radius: var(--radius-md);
-            color: #14416e;
-            font-size: 13px; line-height: 1.7; text-align: left;
-        }
-        .local-mode-tip p:first-child { font-weight: 700; margin-bottom: 4px; }
-        .local-mode-tip p + p { color: #2b5a8a; }
-
-        /* ===== 加载态（弱网下先给反馈，避免白屏） ===== */
-        .loading-box { text-align: center; padding: 64px 20px; color: var(--text-muted); font-size: 14px; }
-        .loading-spin {
-            width: 26px; height: 26px;
-            margin: 0 auto 14px;
-            border: 3px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
         /* ===== 图表 ===== */
         .chart-container {
             display: flex;
@@ -716,7 +665,7 @@
         }
         .chart-bar-label {
             margin-top: 10px;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
             text-align: center;
             font-weight: 600;
@@ -734,15 +683,15 @@
         .badge {
             display: inline-flex;
             align-items: center;
-            padding: 3px 9px;
+            padding: 3px 8px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 600;
             border: 1px solid transparent;
             white-space: nowrap;
             line-height: 1.6;
         }
-        .badge-sm { font-size: 11.5px; padding: 2px 7px; }
+        .badge-sm { font-size: 11px; padding: 2px 6px; }
         .badge-date    { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; padding: 3px 9px; font-size: 12px; }
         .badge-urgent  { background: #fef2f2; color: #dc2626; border-color: #fecaca; font-weight: 700; }
         .badge-warn3   { background: #fff7ed; color: #ea580c; border-color: #fed7aa; font-weight: 700; }
@@ -756,8 +705,8 @@
         .badge-person::before { content: ''; display: inline-block; width: 13px; height: 13px; margin-right: 5px; background: currentColor; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='8' r='4' fill='%23000'/%3E%3Cpath d='M5 21c0-4 4-7 7-7s7 3 7 7' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center/contain no-repeat; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='8' r='4' fill='%23000'/%3E%3Cpath d='M5 21c0-4 4-7 7-7s7 3 7 7' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center/contain no-repeat; vertical-align: text-bottom; }
         .badge-members { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; font-size: 13px; padding: 4px 11px; white-space: normal; word-break: break-all; overflow-wrap: anywhere; }
         .badge-members::before { content: ''; display: inline-block; width: 15px; height: 13px; margin-right: 5px; background: currentColor; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='9' cy='7' r='3' fill='%23000'/%3E%3Ccircle cx='17' cy='7' r='3' fill='%23000'/%3E%3Cpath d='M3 20c0-3 3-6 7-6' fill='none' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M11 20c0-3 3-6 7-6' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center/contain no-repeat; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='9' cy='7' r='3' fill='%23000'/%3E%3Ccircle cx='17' cy='7' r='3' fill='%23000'/%3E%3Cpath d='M3 20c0-3 3-6 7-6' fill='none' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M11 20c0-3 3-6 7-6' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center/contain no-repeat; vertical-align: text-bottom; }
-        .badge-trash   { background: #f1f3f6; color: #5b6470; border-color: #e0e0e0; font-size: 11.5px; }
-        .badge-trash-date { background: #f1f3f6; color: #6b7280; border-color: #e0e0e0; padding: 4px 10px; font-size: 12.5px; }
+        .badge-trash   { background: #eeeeee; color: #9e9e9e; border-color: #e0e0e0; font-size: 11px; }
+        .badge-trash-date { background: #eeeeee; color: #757575; border-color: #e0e0e0; padding: 4px 10px; font-size: 12px; }
 
         /* 徽章基础类（消除 bdg-* 重复属性） */
         .bdg { display: inline-block; border-radius: 6px; padding: 3px 9px; font-size: 12px; font-weight: 600; border: 1px solid transparent; line-height: 1.5; white-space: nowrap; }
@@ -939,7 +888,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
         /* ===== 输入框统一过渡 ===== */
-        html { overscroll-behavior-y: none; -webkit-text-size-adjust: 100%; }
+        html { overscroll-behavior-y: none; }
         body { overscroll-behavior-y: contain; }
         input, textarea, select, button {
             -webkit-tap-highlight-color: transparent;
@@ -976,7 +925,7 @@
                 margin-bottom: 12px;
             }
             .header h1 { font-size: 1.1em; }
-            .header p { font-size: 0.88em; flex-wrap: wrap; gap: 6px; }
+            .header p { font-size: 0.82em; flex-wrap: wrap; gap: 6px; }
 
             /* Tabs */
             .tabs {
@@ -992,7 +941,7 @@
             .tabs::-webkit-scrollbar { display: none; }
             .tab {
                 padding: 9px 16px;
-                font-size: 13.5px;
+                font-size: 13px;
                 flex-shrink: 0;
             }
 
@@ -1000,13 +949,13 @@
             .stats-container { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
             .stat-card { padding: 14px 14px; gap: 12px; }
             .stat-icon { width: 40px; height: 40px; font-size: 1.35em; border-radius: var(--radius-sm); }
-            .stat-value { font-size: 1.75em; }
-            .stat-label { font-size: 11.5px; }
+            .stat-value { font-size: 1.6em; }
+            .stat-label { font-size: 10.5px; }
 
             /* 内容区 */
             .content-area { padding: 16px 14px; border-radius: var(--radius-md); min-height: auto; }
             .section-header { margin-bottom: 14px; padding-bottom: 12px; flex-wrap: wrap; gap: 8px; }
-            .section-header h2 { font-size: 1.15em; }
+            .section-header h2 { font-size: 1.1em; }
             .add-btn { padding: 8px 18px; font-size: 13.5px; }
 
             /* 计划列表移动端间距 */
@@ -1023,7 +972,7 @@
             }
             .action-btn {
                 padding: 7px 14px;
-                font-size: 12.5px;
+                font-size: 12px;
                 min-height: 40px;
                 min-width: 54px;
                 border-radius: var(--radius-sm);
@@ -1031,9 +980,9 @@
                 align-items: center;
                 justify-content: center;
             }
-            .plan-title { font-size: 1.08em; }
+            .plan-title { font-size: 1.05em; }
             .plan-badges { gap: 4px; margin-bottom: 8px; }
-            .plan-meta { font-size: 12.5px; gap: 4px; }
+            .plan-meta { font-size: 11.5px; gap: 4px; }
 
             /* 弹窗 */
             .modal { padding: 0; align-items: flex-start; }
@@ -1111,25 +1060,25 @@
 
             /* 筛选器 */
             .status-filter { margin-bottom: 14px; }
-            .filter-label { padding: 7px 13px; }
-            .filter-text  { font-size: 13px; }
+            .filter-label { padding: 6px 12px; }
+            .filter-text  { font-size: 12px; }
 
             /* 小组信息块 */
-            .group-block { padding: 11px 12px; }
-            .group-item  { padding: 9px 11px; }
-            .group-label { font-size: 12.5px; margin-bottom: 5px; }
-            .group-row   { font-size: 13px; }
-            .firework-block { padding: 11px 12px; }
-            .firework-title { font-size: 12.5px; }
-            .firework-row   { font-size: 13px; }
-            .ticket-person-block { padding: 10px 12px; font-size: 13px; }
-            .card-content   { font-size: 13.5px; padding: 11px 13px; line-height: 1.75; }
+            .group-block { padding: 10px 10px; }
+            .group-item  { padding: 8px 10px; }
+            .group-label { font-size: 11.5px; margin-bottom: 4px; }
+            .group-row   { font-size: 12.5px; }
+            .firework-block { padding: 10px 12px; }
+            .firework-title { font-size: 12px; }
+            .firework-row   { font-size: 12.5px; }
+            .ticket-person-block { padding: 9px 12px; font-size: 12.5px; }
+            .card-content   { font-size: 13px; padding: 10px 12px; line-height: 1.7; }
 
             /* badge 移动端 */
-            .badge-date   { font-size: 12px; padding: 3px 8px; max-width: 100%; }
-            .badge-person, .badge-members { font-size: 12.5px; padding: 3px 9px; max-width: 100%; }
-            .badge         { font-size: 12px; }
-            .badge-sm      { font-size: 11.5px; }
+            .badge-date   { font-size: 11px; padding: 2px 7px; max-width: 100%; }
+            .badge-person, .badge-members { font-size: 12px; padding: 3px 8px; max-width: 100%; }
+            .badge         { font-size: 11px; }
+            .badge-sm      { font-size: 10.5px; }
             .plan-meta { align-items: flex-start; }
             .dialog-box { width: min(400px, 96vw); }
         }
@@ -1137,16 +1086,16 @@
         /* ===== 极小屏（≤380px） ===== */
         @media (max-width: 380px) {
             .tabs { gap: 0; }
-            .tab { padding: 8px 12px; font-size: 13px; }
+            .tab { padding: 8px 12px; font-size: 12.5px; }
             .stats-container { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-            .stat-value { font-size: 1.55em; }
-            .stat-icon { width: 38px; height: 38px; font-size: 1.25em; }
+            .stat-value { font-size: 1.4em; }
+            .stat-icon { width: 36px; height: 36px; font-size: 1.2em; }
             .plan-card { padding: 12px 11px; }
-            .group-block { padding: 9px 9px; }
-            .group-item  { padding: 8px 9px; }
-            .group-row, .firework-row { font-size: 12.5px; }
-            .badge-date  { font-size: 11.5px; padding: 2px 6px; }
-            .badge-person, .badge-members { font-size: 11.5px; padding: 3px 7px; }
+            .group-block { padding: 8px 8px; }
+            .group-item  { padding: 7px 8px; }
+            .group-row, .firework-row { font-size: 12px; }
+            .badge-date  { font-size: 10.5px; padding: 2px 5px; }
+            .badge-person, .badge-members { font-size: 11px; padding: 2px 6px; }
         }
     </style>
 </head>
@@ -1339,6 +1288,7 @@
                 <button class="close-btn" id="closeModalBtn">&times;</button>
             </div>
             <form id="planForm">
+                <input type="hidden" id="planId">
 
                 <!-- 已完结计划只读提示（默认隐藏） -->
                 <div id="completedEditHint" style="display:none; align-items:center; gap:8px; background:#fffbeb; border:1px solid #fde68a; border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:14px; font-size:13px; color:#92400e;">
@@ -1578,139 +1528,19 @@
         </div>
     </div>
 
-    <!-- ① SDK 静态导入通道（首选，与"双击就能连上"的原始版本完全一致）
-         静态 import 由浏览器模块加载器直接取资源，不经过页面自身的 fetch，
-         所以在 file://（页面源为 null）下同样有效。
-         多个源写成多个 module 块：任一成功即可，互不阻塞；全部失败时，
-         主逻辑会在 6 秒后自动降级到第 ② 步的经典脚本 UMD。 -->
     <script type="module">
         import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
-        window.__sdkReady && window.__sdkReady(createClient);
-    </script>
-    <script type="module">
-        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-        window.__sdkReady && window.__sdkReady(createClient);
-    </script>
 
-    <script>
-        /* ② 主逻辑用普通（经典）脚本，保证即使浏览器不支持/拦掉模块脚本，
-           界面依然能跑起来；拿不到 SDK 时再由 loadSupabaseSdk() 用经典
-           <script> 标签加载 UMD 兜底，几条通道都自带超时，详见该函数。 */
-        (function() {
-
-        /* ================================================================
-         * 一、数据层：字段映射（唯一数据源）
-         *   与数据库 plans 表字段一一对应，读 / 写两个方向都由本表派生，
-         *   新增字段只需在此登记一次，避免散落在多处的手工映射。
-         *   [ 数据库列名, 前端字段名, 读取时的默认值 ]
-         * ================================================================ */
-        var FIELD_MAP = [
-            ['title_base',         'titleBase',         ''],
-            ['title_suffix',       'titleSuffix',       ''],
-            ['work_ticket_no',     'workTicketNo',      ''],
-            ['plan_no',            'planNo',            ''],
-            ['start_date',         'startDate',         ''],
-            ['end_date',           'endDate',           ''],
-            ['ticket_type',        'ticketType',        ''],
-            ['equipment_status',   'equipmentStatus',   ''],
-            ['responsible',        'responsible',       ''],
-            ['members',            'members',           ''],
-            ['group1_leader',      'group1Leader',      ''],
-            ['group1_members',     'group1Members',     ''],
-            ['group2_leader',      'group2Leader',      ''],
-            ['group2_members',     'group2Members',     ''],
-            ['group3_leader',      'group3Leader',      ''],
-            ['group3_members',     'group3Members',     ''],
-            ['group4_leader',      'group4Leader',      ''],
-            ['group4_members',     'group4Members',     ''],
-            ['group5_leader',      'group5Leader',      ''],
-            ['group5_members',     'group5Members',     ''],
-            ['ticket_personnel',   'ticketPersonnel',   ''],
-            ['fire_work_leader',   'fireWorkLeader',    ''],
-            ['fire_work_executor', 'fireWorkExecutor',  ''],
-            ['fire_work_guardian', 'fireWorkGuardian',  ''],
-            ['is_deleted',         'isDeleted',         false],
-            ['deleted_at',         'deletedAt',         null],
-            ['is_transferred',     'isTransferred',     false],
-            ['transferred_at',     'transferredAt',     null],
-            ['created_at',         'createdAt',         null],
-            ['updated_at',         'updatedAt',         null]
-        ];
-
-        // 前后端同名的直通字段
-        var PASSTHROUGH_FIELDS = ['id', 'type', 'title', 'content', 'priority', 'status'];
-
-        // 由数据库触发器 / 回收站操作维护，普通保存时不下发
-        var DB_MANAGED_FIELDS = { created_at: 1, updated_at: 1, is_deleted: 1, deleted_at: 1 };
-
-        // 数据库列名 → 前端字段名 反查表
-        var DB_TO_JS = (function() {
-            var map = {};
-            PASSTHROUGH_FIELDS.forEach(function(k) { map[k] = k; });
-            FIELD_MAP.forEach(function(f) { map[f[0]] = f[1]; });
-            return map;
-        })();
-
-        // 列名数组，自检时逐列探测用
-        var SELECT_COLUMNS = PASSTHROUGH_FIELDS
-            .concat(FIELD_MAP.map(function(f) { return f[0]; }))
-            .join(',');
-
-        // 实际使用的查询列。默认用 '*' —— 与"双击就能连上"的原始版本一致。
-        // 显式列清单会让请求 URL 变长许多（36 列），个别浏览器 / 网络中间层对
-        // file:// 页面发出的长 URL 跨域请求处理有差异；同时一旦线上库少跑了某个
-        // 增量脚本，PostgREST 会返回 42703 "column plans.xxx does not exist"，
-        // 整条查询直接失败。权衡下来 '*' 更稳，代价只是多传几个用不上的字段。
-        var selectColumns = '*';
-
-        // 列名数组，自检时逐列探测用
-        var COLS = PASSTHROUGH_FIELDS.concat(FIELD_MAP.map(function(f) { return f[0]; }));
-
-        // 数据库行 → 前端对象
-        function rowToPlan(row) {
-            var plan = {};
-            PASSTHROUGH_FIELDS.forEach(function(k) { plan[k] = row[k]; });
-            FIELD_MAP.forEach(function(f) {
-                var v = row[f[0]];
-                plan[f[1]] = (v === undefined || v === null) ? f[2] : v;
-            });
-            return plan;
-        }
-
-        // 前端对象 → 数据库行（普通保存用，空串归一为 null）
-        function planToRow(plan) {
-            var row = {};
-            PASSTHROUGH_FIELDS.forEach(function(k) { row[k] = plan[k]; });
-            FIELD_MAP.forEach(function(f) {
-                if (DB_MANAGED_FIELDS[f[0]]) return;
-                var v = plan[f[1]];
-                row[f[0]] = (v === undefined || v === null || v === '') ? null : v;
-            });
-            return row;
-        }
-
-        // 数据库风格的补丁 → 前端字段风格的补丁
-        function localPatchOf(patch) {
-            var out = {};
-            Object.keys(patch).forEach(function(k) {
-                var jsKey = DB_TO_JS[k];
-                if (jsKey) out[jsKey] = patch[k];
-            });
-            return out;
-        }
-
-        /* ================================================================
-         * 二、全局状态
-         * ================================================================ */
-        var DB_CONFIG = {
-            url: 'https://cuvkfshykabvwnhrremb.supabase.co',
-            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1dmtmc2h5a2FidnduaHJyZW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzIwNjksImV4cCI6MjA4ODcwODA2OX0.R3HDrqefIimS7HZsXoU1dZorB2jep-1LT5pc8O0tcP4'
-        };
+        window.supabaseCreateClient = createClient;
 
         var supabaseClient = null;
         var plans = [];
         var currentTab = 'weekly';
         var editingPlanId = null;
+
+        // DOM 缓存
+        var DOM = {};
+        function $(id) { return DOM[id] || (DOM[id] = document.getElementById(id)); }
 
         var planTypeNames = {
             weekly: '周计划',
@@ -1720,821 +1550,358 @@
         };
 
         window.onload = function() {
-            renderLoading();          // 先给反馈，避免弱网下白屏
-            initEventListeners();
-            applyTabUI(currentTab);
-            // 网址加 ?diag=1 运行连接自检，报告显示在页面底部
-            var wantDiag = typeof location !== 'undefined' && location.search &&
-                           location.search.indexOf('diag=1') !== -1;
-
-            // 注意：以 file:// 打开时不拦断，照常尝试连接。
-            // 云端网关的跨域策略是 *，Origin: null 的请求通常能正常通过，
-            // 所以本地文件既能看界面也能真实读写数据；只有个别浏览器/安全软件会拦，
-            // 那种情况会在状态栏提示改用 http:// 方式打开。
-
+            console.log('页面加载完成');
             initSupabase();
-            if (wantDiag) setTimeout(runDiagnostics, 1500);
+            initTabs();
+            initEventListeners();
         };
 
-        /* ================================================================
-         * 三、连接与实时同步
-         *    移动端要点：多来源加载 SDK、请求超时保护、断线自愈、轮询兜底
-         * ================================================================ */
-        // UMD 经典脚本源：错开启动、先到先得。国内网络下 npmmirror 通常最快
-        var UMD_SOURCES = [
-            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
-            'https://registry.npmmirror.com/@supabase/supabase-js/2.117.3/files/dist/umd/supabase.js',
-            'https://fastly.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
-            'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'
-        ];
-        var UMD_STAGGER = 2500;        // 相邻两个源的启动间隔，避免并发下载拖慢手机网络
-        var UMD_DEADLINE = 20000;      // 总期限，超时即判定失败并给出可操作提示
-        // 记住上次成功的 CDN 并排到最前：重复打开时几乎秒连，不用逐个试
-        (function() {
-            try {
-                var cached = localStorage.getItem(CDN_CACHE_KEY);
-                var idx = cached ? UMD_SOURCES.indexOf(cached) : -1;
-                if (idx > 0) UMD_SOURCES.unshift(UMD_SOURCES.splice(idx, 1)[0]);
-            } catch (e) { /* 隐私模式忽略 */ }
-        })();
-        // 最后兜底：UMD 全挂才退到 ESM
-        var ESM_SOURCES = [
-            'https://esm.sh/@supabase/supabase-js@2',
-            'https://cdn.skypack.dev/@supabase/supabase-js@2'
-        ];
-        var REQUEST_TIMEOUT = 15000;
-        var SDK_TIMEOUT = 8000;        // 单个 ESM 源的最长等待，超时即换下一个源
-        var STATIC_IMPORT_TIMEOUT = 6000;  // 等静态模块导入的耐心，超时转用 UMD 经典脚本
-
+        // ── 防抖与重连辅助 ──
         var syncDebounceTimer = null;
-        var realtimeChannel = null;
-        var realtimeSubscribed = false;
-        var channelSeq = 0;
-        var realtimeRetryTimer = null;
-        var realtimeRetryCount = 0;
-        var realtimeGiveUp = false;
-        var realtimeWarned = false;
-        var MAX_REALTIME_RETRY = 5;
-        var REALTIME_TIMEOUT = 20000;  // 通道订阅超时（毫秒）
-        var lastSyncedAt = 0;
-        var loadRetry = 0;
-        var MAX_LOAD_RETRY = 6;
-        var loadInFlight = false;
-        var lastDataSig = '';
-        var lastListHtml = null;
-        var lastSyncKey = '';
-        var localWriteUntil = 0;
-        var recoveryBound = false;
-        var syncErrorHint = '';
-        var guideRendered = false;      // 引导页只渲染一次，避免轮询持续失败时反复重绘
-        var sdkSource = '';             // SDK 实际加载通道（ESM / UMD），自检报告里显示
-        var LOCAL_STORAGE_KEY = 'work-planner-v2-local';
-        var CDN_CACHE_KEY = 'work-planner-v2-cdn';
-        var localMode = false;          // 本地预览模式：数据只存在本浏览器，不上传云端
+        var reconnectAttempts = 0;
+        var maxReconnectAttempts = 10;
 
         function debouncedReload(delay) {
-            clearTimeout(syncDebounceTimer);
-            syncDebounceTimer = setTimeout(function() { loadPlans(true); }, delay || 300);
+            if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+            syncDebounceTimer = setTimeout(function() {
+                loadPlans();
+            }, delay || 300);
         }
-
-        // 自己刚写完库：稍后到达的实时回显直接忽略，避免"写一次、回读一次、重绘一次"
-        function noteLocalWrite() {
-            localWriteUntil = Date.now() + 1500;
-        }
-
-        // 给单条请求加超时，避免弱网下无限挂起让界面卡在"同步中"
-        // 用 postgrest 自带的 abortSignal，不动全局 fetch，以免影响实时通道的鉴权握手
-        function makeTimeoutSignal(ms) {
-            if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
-                return AbortSignal.timeout(ms);
-            }
-            var controller = new AbortController();
-            setTimeout(function() { controller.abort(); }, ms);
-            return controller.signal;
-        }
-
-        function withTimeout(builder, ms) {
-            if (builder && typeof builder.abortSignal === 'function') {
-                try { return builder.abortSignal(makeTimeoutSignal(ms)); } catch (e) { /* 忽略，退回无超时 */ }
-            }
-            return builder;
-        }
-
-        // 主通道：经典 <script> 加载 UMD 构建。
-        // 与 ESM 的动态 import 不同，经典脚本由普通资源加载器处理，不受模块脚本
-        // 策略与跨域限制，所以双击本地文件（file://）时这条通道依然能把 SDK 装进来。
-        // 多个源错开时间启动、先到先得：既能绕开单一 CDN 故障，又不会同时拉几份
-        // 大文件把手机网络挤爆。
-        function loadUmdSdk() {
-            // 已由别的路径注入过
-            if (window.supabase && typeof window.supabase.createClient === 'function') {
-                return Promise.resolve(window.supabase.createClient);
-            }
-            return new Promise(function(resolve, reject) {
-                var settled = false;
-                var timers = [];
-                function finish(src) {
-                    if (settled) return;
-                    settled = true;
-                    timers.forEach(function(t) { clearTimeout(t); });
-                    if (src) {
-                        sdkSource = 'UMD · ' + src;
-                        try { localStorage.setItem(CDN_CACHE_KEY, src); } catch (e) { /* 忽略 */ }
-                        resolve(window.supabase.createClient);
-                    } else {
-                        reject(new Error('同步组件加载失败：所有 CDN 均不可达'));
-                    }
-                }
-                UMD_SOURCES.forEach(function(src, i) {
-                    timers.push(setTimeout(function() {
-                        if (settled) return;
-                        var tag = document.createElement('script');
-                        tag.src = src;
-                        tag.async = true;
-                        tag.onload = function() {
-                            if (window.supabase && typeof window.supabase.createClient === 'function') finish(src);
-                        };
-                        tag.onerror = function() { /* 该源不可用，等下一个源启动 */ };
-                        try { document.head.appendChild(tag); } catch (e) { /* 无 DOM 环境 */ }
-                    }, i * UMD_STAGGER));
-                });
-                // 总期限：任何一个源卡住都不会让页面永远停在"同步中"
-                timers.push(setTimeout(function() { finish(null); }, UMD_DEADLINE));
-            });
-        }
-
-        // 动态 import 用 Function 构造：老浏览器（部分国产壳）不认识 import() 时，
-        // 直接写在源码里会在**解析阶段**抛 SyntaxError，导致整段脚本失效。
-        function dynamicImport(url) {
-            var imp = new Function('u', 'return import(u);');
-            return imp(url);
-        }
-
-        // 单个 ESM 源：给动态 import 套超时保护。
-        // 在 file:// 等受限环境下，动态 import 可能被浏览器静默拦掉 —— promise 既不
-        // resolve 也不 reject，没有超时就会永远挂住，页面只能停在"同步失败"。
-        function tryEsmSource(index) {
-            if (index >= ESM_SOURCES.length) {
-                return Promise.reject(new Error('ESM 源全部失败'));
-            }
-            var url = ESM_SOURCES[index];
-            return Promise.race([
-                dynamicImport(url),
-                new Promise(function(_, reject) {
-                    setTimeout(function() { reject(new Error('加载超时')); }, SDK_TIMEOUT);
-                })
-            ]).then(function(mod) {
-                if (!mod || typeof mod.createClient !== 'function') throw new Error('SDK 格式异常');
-                sdkSource = 'ESM · ' + url;
-                return mod.createClient;
-            }).catch(function(error) {
-                console.warn('SDK 源不可用，尝试下一个:', url, error && error.message);
-                return tryEsmSource(index + 1);
-            });
-        }
-
-        // ── 静态模块导入通道（这条就是"双击就能连上"时实际走的通道）───────────
-        // HTML 里的 <script type="module"> 用**静态** import 引 SDK。静态 import 由
-        // 浏览器的模块加载器直接取资源，不经过页面自身的 fetch，因此在 file:// 下
-        // （页面源为 null）同样能成功 —— 这正是最初版本本地双击可用的原因。
-        // import 完成后调用 window.__sdkReady(createClient) 把工厂函数交回来。
-        var staticSdkFn = null;         // 静态 import 得到的 createClient
-        var staticSdkWaiters = [];      // 等待静态 import 的请求方
-
-        window.__sdkReady = function(createClient) {
-            if (typeof createClient !== 'function') return;
-            if (!staticSdkFn) {
-                staticSdkFn = createClient;
-                sdkSource = 'ESM · 静态模块导入';
-            }
-            var waiters = staticSdkWaiters;
-            staticSdkWaiters = [];
-            waiters.forEach(function(fn) { fn(staticSdkFn); });
-        };
-
-        function waitStaticImport(ms) {
-            if (staticSdkFn) return Promise.resolve(staticSdkFn);
-            return new Promise(function(resolve, reject) {
-                var done = false;
-                staticSdkWaiters.push(function(fn) {
-                    if (done) return;
-                    done = true;
-                    clearTimeout(timer);
-                    resolve(fn);
-                });
-                var timer = setTimeout(function() {
-                    if (done) return;
-                    done = true;
-                    reject(new Error('静态模块导入未成功'));
-                }, ms);
-            });
-        }
-
-        // 加载顺序刻意与"最初可用版本"保持一致：
-        //   ① 静态模块导入（首选）→ ② 经典脚本 UMD → ③ 运行时动态 import
-        // 每一步都自带超时，任何一步卡住都会往下走，不会让页面停在"同步失败"。
-        function loadSupabaseSdk() {
-            return waitStaticImport(STATIC_IMPORT_TIMEOUT)
-                .catch(function() { return loadUmdSdk(); })
-                .catch(function() { return tryEsmSource(0); });
-        }
-
-        var initInFlight = false;
-        var sdkAttempts = 0;
 
         function initSupabase() {
-            if (initInFlight || supabaseClient) return;
-            initInFlight = true;
-            setSyncStatus('syncing', '连接中...');
+            var config = {
+                url: 'https://cuvkfshykabvwnhrremb.supabase.co',
+                key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1dmtmc2h5a2FidnduaHJyZW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzIwNjksImV4cCI6MjA4ODcwODA2OX0.R3HDrqefIimS7HZsXoU1dZorB2jep-1LT5pc8O0tcP4'
+            };
 
-            loadSupabaseSdk().then(function(createClient) {
-                if (supabaseClient) return;          // 已由其它路径建好，避免重复建客户端
-                supabaseClient = createClient(DB_CONFIG.url, DB_CONFIG.key, {
-                    realtime: {
-                        params: { eventsPerSecond: 10 },
-                        // 通道自身的断线重连交给 SDK，比手写重连稳得多
-                        heartbeatIntervalMs: 25000
-                    }
+            if (typeof supabaseCreateClient === 'undefined') {
+                console.error('Supabase 库未加载');
+                setSyncStatus('error', '库加载失败');
+                return;
+            }
+
+            try {
+                supabaseClient = supabaseCreateClient(config.url, config.key, {
+                    realtime: { params: { eventsPerSecond: 10 } }
                 });
                 loadPlans();
                 setupRealtime();
-                bindNetworkRecovery();
-                initInFlight = false;
-            }).catch(function(error) {
-                initInFlight = false;
+            } catch (error) {
                 console.error('Supabase 初始化失败:', error);
-                syncErrorHint = '同步组件(SDK)加载失败：' + ((error && error.message) || '未知原因') +
-                                '。这通常是 CDN 域名被网络/防火墙拦截。';
-                sdkAttempts++;
-                // 两次都拿不到 SDK 就别一直空转了，直接把排查指引显示出来
-                if (sdkAttempts >= 2) {
-                    renderConnectionGuide();
-                    return;
-                }
-                // 本地文件打不开云端时，与其一直空转重试，不如直接给可用的预览模式
-                if (isFileOrigin()) {
-                    enterLocalMode();
-                    return;
-                }
-                setSyncStatus('error', '连接失败·重试中');
-                setTimeout(function() {
-                    if (!supabaseClient) initSupabase();   // SDK 都没拿到，稍后整链重试
-                }, 6000);
-            });
+                setSyncStatus('error', '连接失败');
+            }
         }
-
-        // 断网恢复 / 回到前台时补同步；只绑定一次，避免重复注册导致事件叠加
-        function bindNetworkRecovery() {
-            if (recoveryBound) return;
-            recoveryBound = true;
-
-            window.addEventListener('online', function() {
-                resumeRealtime();
-                loadPlans(true);
-            });
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden) return;                       // 后台不打扰
-                if (Date.now() - lastSyncedAt > 30000) loadPlans(true);
-                resumeRealtime();
-            });
-        }
-
-        // 网络/前台恢复后重新放行实时通道，并清空失败计数
-        // 10s 内不重复重建：手机频繁切前后台时，避免每次都拆装通道
-        function resumeRealtime() {
-            if (realtimeSubscribed) return;
-            if (Date.now() - lastRealtimeAttempt < 10000) return;
-            realtimeRetryCount = 0;
-            realtimeGiveUp = false;
-            clearTimeout(realtimeRetryTimer);
-            realtimeRetryTimer = null;
-            setupRealtime();
-        }
-
-        var lastRealtimeAttempt = 0;
 
         function setupRealtime() {
             if (!supabaseClient) return;
-            lastRealtimeAttempt = Date.now();
 
-            clearTimeout(realtimeRetryTimer);
-            realtimeRetryTimer = null;
-            teardownRealtime();
+            var timeoutId = setTimeout(function() {
+                if (reconnectAttempts > 0) setSyncStatus('error', '连接超时');
+            }, 8000);
 
-            // 每次用新的 topic 名：旧通道的 unsubscribe 是异步的，
-            // 复用同名 topic 会让服务端判定为重复订阅并回 CHANNEL_ERROR，形成"越重连越失败"的死循环。
-            realtimeChannel = supabaseClient.channel('plans-changes-' + (++channelSeq));
-            realtimeChannel
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'plans' }, function() {
-                    if (Date.now() < localWriteUntil) return;   // 自己的写入已本地更新过
-                    debouncedReload(400);
+            supabaseClient.channel('plans-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'plans' }, function(payload) {
+                    debouncedReload(300);
                 })
                 .subscribe(function(status, err) {
+                    clearTimeout(timeoutId);
                     if (status === 'SUBSCRIBED') {
-                        realtimeSubscribed = true;
-                        realtimeRetryCount = 0;
-                        realtimeGiveUp = false;
-                        realtimeWarned = false;
-                        return;      // 状态栏只反映"数据能否读到"，不因通道事件抖动
+                        reconnectAttempts = 0;
+                        setSyncStatus('connected', '已连接');
+                    } else if (status === 'CLOSED') {
+                        setSyncStatus('error', '连接断开');
+                        attemptReconnect();
+                    } else if (status === 'CHANNEL_ERROR') {
+                        console.error('实时订阅错误:', err);
+                        setSyncStatus('error', '连接错误');
+                        attemptReconnect();
                     }
-                    realtimeSubscribed = false;
-                    // 只告警一次：弱网下通道事件会连续触发，刷屏会让人误以为页面一直在重连
-                    if (status !== 'CLOSED' && !realtimeWarned) {
-                        realtimeWarned = true;
-                        console.warn('实时订阅未就绪:', status, err && err.message,
-                                     '（不影响使用，已自动降级为定时轮询）');
-                    }
-                    // SDK 自己会重连，这里只做低频兜底探测，绝不连环重建通道
-                    scheduleRealtimeRevive();
-                    // 第二个参数是超时毫秒数，必须是数字；传对象会被 setTimeout 当成 0，
-                    // 导致通道一订阅就 TIMED_OUT —— 这正是"连接超时/一直刷新"的原因。
-                }, REALTIME_TIMEOUT);
+                }, { timeout: 8000 });
         }
 
-        function teardownRealtime() {
-            var channel = realtimeChannel;
-            realtimeChannel = null;
-            realtimeSubscribed = false;
-            if (!channel) return Promise.resolve();
-            try {
-                return Promise.resolve(supabaseClient.removeChannel(channel)).catch(function() { /* 忽略 */ });
-            } catch (e) {
-                return Promise.resolve();
-            }
-        }
-
-        // 低频兜底：10s → 20s → 40s → 80s → 120s，5 次仍失败就彻底停手交给轮询
-        function scheduleRealtimeRevive() {
-            if (realtimeRetryTimer || realtimeGiveUp || !supabaseClient) return;
-            if (realtimeRetryCount >= MAX_REALTIME_RETRY) {
-                realtimeGiveUp = true;
+        function attemptReconnect() {
+            if (reconnectAttempts >= maxReconnectAttempts) {
+                console.error('达到最大重连次数，停止重试');
                 return;
             }
-            var delay = Math.min(10000 * Math.pow(2, realtimeRetryCount), 120000);
-            realtimeRetryCount++;
-            realtimeRetryTimer = setTimeout(function() {
-                realtimeRetryTimer = null;
-                if (document.hidden) { scheduleRealtimeRevive(); return; }
-                setupRealtime();
+            reconnectAttempts++;
+            var delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+            console.log('将在 ' + (delay / 1000) + ' 秒后重连（第 ' + reconnectAttempts + ' 次）');
+            setSyncStatus('syncing', '重连中...');
+            setTimeout(function() {
+                if (supabaseClient) {
+                    setupRealtime();
+                    debouncedReload(100);
+                }
             }, delay);
         }
 
-        // 状态未变就不碰 DOM：className 反复赋值会重播圆点动画，看着像界面在闪
         function setSyncStatus(status, text) {
-            var key = status + '|' + text;
-            if (key === lastSyncKey) return;
-            lastSyncKey = key;
-            var badge = document.getElementById('syncStatus');
-            badge.className = 'sync-status ' + status;
-            badge.title = syncErrorHint || text;         // 长按/悬停可看到具体原因
-            document.getElementById('syncText').textContent = text;
+            var syncStatus = document.getElementById('syncStatus');
+            var syncText = document.getElementById('syncText');
+            syncStatus.className = 'sync-status ' + status;
+            syncText.textContent = text;
         }
 
-        /* ================================================================
-         * 四、读取
-         * ================================================================ */
-        function renderLoading() {
-            lastListHtml = null;
-            document.getElementById('planList').innerHTML =
-                (isFileOrigin() ? fileOriginBanner() : '') +
-                '<div class="loading-box"><div class="loading-spin"></div>' +
-                '<p>正在连接云端…</p>' +
-                '<p style="color:var(--text-muted);font-size:13px;margin-top:6px;">' +
-                '若长时间无响应，会自动切换到本地预览模式</p></div>';
-        }
+        function loadPlans() {
+            if (!supabaseClient) return;
 
-        // 本地文件方式打开时的提示条。不阻断连接：桌面版 Chrome/Edge 通常仍能正常连库，
-        // 但夸克、UC 等手机浏览器会拦截 file:// 页面发出的跨域请求，这里提前告知。
-        function fileOriginBanner() {
-            return '<div class="file-origin-tip">' +
-                '<p>📂 当前以「本地文件」方式打开（file://）</p>' +
-                '<p>部分手机浏览器（夸克、UC、QQ 浏览器等）会拦截此类页面发出的云端请求。' +
-                '遇到这种情况会自动切换到「本地预览模式」，界面照常可用。</p>' +
-                '</div>';
-        }
+            setSyncStatus('syncing', '同步中...');
 
-        /* ================================================================
-         * 四·补、本地预览模式
-         *   背景：浏览器安全策略禁止 file:// 页面向别的域名发 fetch 请求 ——
- *   请求根本发不出去，fetch 直接抛 "Failed to fetch"。
-         *   这一点无法用任何 JS 写法绕过：自检里"实时通道已订阅"反而证明网络是通的，
-         *   只是 REST 跨域请求被浏览器掐掉了。
-         *   对策：本地打开时降级为「本地预览模式」，数据存在浏览器 localStorage，
-         *   界面与交互完整可用，方便先确认功能；上传到 GitHub Pages（http）后
-         *   会自动走真正的云端同步。
-         * ================================================================ */
-        function loadLocalPlans() {
-            try {
-                var arr = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-                return Array.isArray(arr) ? arr : [];
-            } catch (e) { return []; }
-        }
-
-        function saveLocalPlans() {
-            try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(plans)); }
-            catch (e) { /* 隐私模式 / 空间不足时忽略 */ }
-        }
-
-        // 判断是网络层失败（请求没发出去）而不是服务端返回的业务错误
-        function isNetworkFailure(error) {
-            if (!error) return true;
-            if (error.code) return false;                 // PostgREST 的业务错误码
-            var name = String(error.name || '');
-            var text = String(error.message || '');
-            return text.indexOf('fetch') !== -1 ||
-                   text.indexOf('Load failed') !== -1 ||
-                   text.indexOf('NetworkError') !== -1 ||
-                   name.indexOf('Abort') !== -1 ||
-                   name.indexOf('Timeout') !== -1;
-        }
-
-        function enterLocalMode() {
-            if (localMode) return;
-            localMode = true;
-            loadRetry = 0;
-            plans = loadLocalPlans();
-            lastDataSig = '';
-            lastListHtml = null;
-            setSyncStatus('local', '本地预览');
-            renderPlans();
-            updateStats();
-            if (currentTab === 'completed') { updateYearFilter(); renderChart(); }
-        }
-
-        // 退出本地模式、重新尝试连云端（按钮 / 网络恢复时调用）
-        function retryCloud() {
-            localMode = false;
-            guideRendered = false;
-            syncErrorHint = '';
-            lastDataSig = '';
-            lastListHtml = null;
-            realtimeGiveUp = false;
-            realtimeRetryCount = 0;
-            if (supabaseClient) { setSyncStatus('syncing', '连接中...'); loadPlans(); }
-            else initSupabase();
-        }
-
-        function localModeBanner() {
-            return '<div class="local-mode-tip">' +
-                '<p>💾 本地预览模式（数据只存在本浏览器，不会上传云端）</p>' +
-                '<p>当前浏览器禁止「本地文件」页面访问云端接口，已自动切换，界面与操作均可正常试用。</p>' +
-                '<p style="margin-top:8px;">需要真正多人同步时，把本文件上传到 GitHub Pages，' +
-                '用 http 地址打开即可自动切回云端模式。</p>' +
-                '<p style="margin-top:10px;">' +
-                '<button type="button" id="retryCloudBtn" style="padding:8px 18px;font-size:14px;' +
-                'border:0;border-radius:8px;background:#1565c0;color:#fff;cursor:pointer;">' +
-                '☁️ 重试连接云端</button>' +
-                '</p>' +
-                '</div>';
-        }
-
-        // silent=true 时不动状态栏，用于轮询 / 重连等后台刷新
-        // 数据未变化时整条渲染链会被跳过，所以后台刷新不会有任何视觉闪烁
-        function loadPlans(silent) {
-            // 本地预览模式下数据就在内存/localStorage 里，不需要也不能去请求云端
-            if (localMode) return;
-            if (!supabaseClient || loadInFlight) return;
-            loadInFlight = true;
-            if (!silent) setSyncStatus('syncing', '同步中...');
-
-            withTimeout(
-                supabaseClient.from('plans').select(selectColumns).order('created_at', { ascending: false }),
-                REQUEST_TIMEOUT
-            )
+            supabaseClient.from('plans')
+                .select('*')
+                .order('created_at', { ascending: false })
                 .then(function(result) {
-                    if (result.error) throw result.error;
-                    loadInFlight = false;
-                    return result.data || [];
-                })
-                .then(function(rows) {
-                    loadRetry = 0;
-                    guideRendered = false;        // 恢复成功，允许下次失败时再提示
-                    lastSyncedAt = Date.now();
-                    setSyncStatus('connected', '已连接');
+                    var data = result.data;
+                    var error = result.error;
 
-                    // 数据逐字节一致 → 什么都不做：不重绘、不重算统计、不跑自动任务
-                    var sig = JSON.stringify(rows);
-                    if (sig === lastDataSig) return;
-                    lastDataSig = sig;
-
-                    plans = rows.map(rowToPlan);
-                    renderPlans();
-                    updateStats();
-                    if (currentTab === 'completed') {
-                        updateYearFilter();
-                        renderChart();
-                    }
-                    runAutoTasks();   // 月转周 + 到期自动完成（内部含并发/可见性判断）
-                })
-                .catch(function(error) {
-                    loadInFlight = false;
-
-                    // 线上库列不齐 → 降级为 select('*')，页面照常可用
-                    if (isSchemaError(error) && selectColumns !== '*') {
-                        console.warn('[同步] 查询列与线上库不一致，已自动降级为 select(*)。' +
-                                     '请在 Supabase SQL Editor 执行 database-schema.sql 补齐列。',
-                                     error);
-                        selectColumns = '*';
-                        loadPlans(silent);
+                    if (error) {
+                        console.error('加载数据失败:', error);
+                        setSyncStatus('error', '同步失败');
                         return;
                     }
 
-                    console.error('加载数据失败:', {
-                        code: error && error.code,
-                        message: error && error.message,
-                        details: error && error.details,
-                        hint: error && error.hint
+                    plans = data.map(function(plan) {
+                        return {
+                            id: plan.id,
+                            type: plan.type,
+                            title: plan.title,
+                            titleBase: plan.title_base,
+                            titleSuffix: plan.title_suffix,
+                            content: plan.content,
+                            workTicketNo: plan.work_ticket_no || '',
+                            planNo: plan.plan_no || '',
+                            startDate: plan.start_date,
+                            endDate: plan.end_date,
+                            ticketType: plan.ticket_type,
+                            priority: plan.priority,
+                            status: plan.status,
+                            equipmentStatus: plan.equipment_status || '',
+                            responsible: plan.responsible || '',
+                            members: plan.members || '',
+                            group1Leader: plan.group1_leader || '',
+                            group1Members: plan.group1_members || '',
+                            group2Leader: plan.group2_leader || '',
+                            group2Members: plan.group2_members || '',
+                            group3Leader: plan.group3_leader || '',
+                            group3Members: plan.group3_members || '',
+                            group4Leader: plan.group4_leader || '',
+                            group4Members: plan.group4_members || '',
+                            group5Leader: plan.group5_leader || '',
+                            group5Members: plan.group5_members || '',
+                            ticketPersonnel: plan.ticket_personnel || '',
+                            fireWorkLeader: plan.fire_work_leader || '',
+                            fireWorkExecutor: plan.fire_work_executor || '',
+                            fireWorkGuardian: plan.fire_work_guardian || '',
+                            isDeleted: plan.is_deleted || false,
+                            deletedAt: plan.deleted_at || null,
+                            isTransferred: plan.is_transferred || false,
+                            transferredAt: plan.transferred_at || null,
+                            createdAt: plan.created_at,
+                            updatedAt: plan.updated_at
+                        };
                     });
 
-                    // file:// 页面发出的跨域 fetch 会被浏览器直接掐掉（请求根本没发出去）。
-                    // 此时实时 WebSocket 往往还能连上 —— 说明网络没问题，是浏览器的安全策略。
-                    // 这种情况下自动切到本地预览模式，保证界面照常可用。
-                    if (isFileOrigin() && isNetworkFailure(error)) {
-                        syncErrorHint = '浏览器禁止「本地文件」页面访问云端接口（请求未发出）。' +
-                                        '已切换到本地预览模式。';
-                        enterLocalMode();
-                        return;
-                    }
-
-                    syncErrorHint = describeError(error);
-                    scheduleRetry();
+                    renderPlans();
+                    updateStats();
+                    setSyncStatus('connected', '已连接');
+                    // 每周一自动将下一周的月计划标记为已转移
+                    autoTransferMonthlyPlans();
+                    // 检查是否有计划已到结束时间，自动标记为已完成
+                    autoCompleteExpiredPlans();
                 });
         }
 
-        // 判断是否「表/列不存在」这类架构问题
-        function isSchemaError(error) {
-            var code = String((error && error.code) || '');
-            var text = String((error && error.message) || (error && error.details) || '');
-            if (code === '42703' || code === '42P01' || code === 'PGRST204') return true;
-            return text.indexOf('does not exist') !== -1 ||
-                   text.indexOf('Could not find the') !== -1 ||
-                   text.indexOf('schema cache') !== -1;
-        }
-
-        // 把 PostgREST / 网络错误翻成人看得懂的提示
-        function describeError(error) {
-            var code = String((error && error.code) || '');
-            var text = String((error && error.message) || '');
-
-            if (code === '42703' || text.indexOf('does not exist') !== -1) {
-                var m = text.match(/plans\.([a-z0-9_]+)/);
-                return '数据库缺少列' + (m ? ' (' + m[1] + ')' : '') + '，请执行 database-schema.sql';
-            }
-            if (code === '42P01') return '找不到 plans 表，请执行 database-schema.sql';
-            if (code === '42501' || text.indexOf('row-level security') !== -1) {
-                return '被行级安全策略(RLS)拦截，请执行 fix-permissions.sql';
-            }
-            if (code === '401' || text.indexOf('Invalid API key') !== -1 || text.indexOf('No API key') !== -1) {
-                return '匿名 key 无效或已轮换，请到 Supabase → Settings → API 复制新 key';
-            }
-            if (code === '404') return '接口/表不存在(404)，请确认项目 URL 与表名';
-            if (text.indexOf('Failed to fetch') !== -1 || text.indexOf('NetworkError') !== -1 || text.indexOf('Load failed') !== -1) {
-                return '网络请求失败：检查手机网络/公司防火墙是否拦截 supabase.co。' + fileOriginHint();
-            }
-            return text || (error && error.name) || '未知错误';
-        }
-
-        // 失败退避重试：2s → 4s → 8s → 16s → 30s，六次仍失败则交给 60s 轮询慢慢补，不无限重试
-        function scheduleRetry() {
-            loadRetry++;
-            if (loadRetry > MAX_LOAD_RETRY) {               // 静默降级到轮询，不再打扰状态栏
-                // 只渲染一次：轮询每次失败都会走到这里，不能反复重绘
-                if (!guideRendered) {
-                    guideRendered = true;
-                    renderConnectionGuide();
-                }
-                return;
-            }
-            // 已经成功同步过（界面上有数据）时，后台刷新的偶发失败不打回"同步失败"。
-            // "已连接 → 同步失败 → 已连接" 的来回跳变比真实抖动更干扰使用；
-            // 真正连不上（几次都没拿到数据）时才明确报错并给排查指引。
-            if (!(lastSyncedAt > 0 && loadRetry < 3)) {
-                setSyncStatus('error', loadRetry > 2 ? '同步失败·重试中' : '同步失败');
-            }
-            var delay = Math.min(2000 * Math.pow(2, loadRetry - 1), 30000);
-            setTimeout(function() {
-                if (supabaseClient) loadPlans(true);
-            }, delay);
-        }
-
-        // 重试全部用尽：状态栏不再抖动，但在列表区给出可操作的排查指引
-        function renderConnectionGuide() {
-            var reason = syncErrorHint || '未知原因';
-            if (isFileOrigin() && reason.indexOf('http-server') === -1) {
-                reason += ' ' + fileOriginHint();
-                syncErrorHint = reason;
-            }
-            setSyncStatus('error', '同步失败');
-            document.getElementById('planList').innerHTML =
-                '<div class="file-origin-tip" style="max-width:640px;margin:0 auto;">' +
-                '<p>☁️ 云端数据暂时读取不到</p>' +
-                '<p>已连续重试 ' + MAX_LOAD_RETRY + ' 次仍未成功。原因：' + escapeHtml(reason) + '</p>' +
-                '<p style="margin-top:8px;">建议按以下顺序排查：</p>' +
-                '<p>1) 先点下面的「重新连接」按钮；多数情况只是刚才网络抖动。</p>' +
-                '<p>2) 若当前是双击本地文件打开（file://）：夸克、UC 等手机浏览器会拦截此类请求。' +
-                '请改用 http 方式 —— 双击本目录 start-node-server.bat，用命令行显示的地址打开。</p>' +
-                '<p>3) 手机上日常使用：把 work-planner-v2.html 上传到 GitHub Pages 后访问站点地址即可。</p>' +
-                '<p style="margin-top:12px;">' +
-                '<button type="button" id="reconnectBtn" style="padding:10px 20px;font-size:15px;' +
-                'border:0;border-radius:8px;background:#1565c0;color:#fff;cursor:pointer;">' +
-                '🔄 重新连接</button>' +
-                '</p>' +
-                '</div>';
-
-            var btn = document.getElementById('reconnectBtn');
-            if (btn) {
-                btn.onclick = function() {
-                    loadRetry = 0;
-                    guideRendered = false;
-                    syncErrorHint = '';
-                    setSyncStatus('syncing', '重新连接中...');
-                    renderLoading();
-                    if (supabaseClient) loadPlans(true);
-                    else initSupabase();
-                };
-            }
-            // 到这一步说明确实连不上，顺手把自检报告打出来，省得再手动加 ?diag=1
-            setTimeout(runDiagnostics, 300);
-        }
-
-        /* ================================================================
-         * 五、写入（统一出口，消除重复的 update 语句）
-         * ================================================================ */
-        // 单条更新
-        function dbUpdate(planId, patch) {
-            if (localMode) {                       // 本地预览：只改本地，不发请求
-                applyLocal(planId, localPatchOf(patch));
-                saveLocalPlans();
-                return Promise.resolve();
-            }
-            if (!supabaseClient) return Promise.reject(new Error('未连接到数据库'));
-            noteLocalWrite();
-            return withTimeout(
-                supabaseClient.from('plans').update(patch).eq('id', planId),
-                REQUEST_TIMEOUT
-            ).then(function(result) {
-                if (result.error) throw result.error;
-            });
-        }
-
-        // 批量更新，并同步刷新本地缓存
-        function batchUpdate(ids, patch) {
-            if (!ids.length) return Promise.resolve();
-            if (localMode) {                       // 本地预览：只改本地，不发请求
-                var lp = localPatchOf(patch);
-                ids.forEach(function(id) {
-                    var plan = plans.find(function(p) { return p.id === id; });
-                    if (plan) Object.assign(plan, lp);
-                });
-                saveLocalPlans();
-                renderPlans();
-                updateStats();
-                return Promise.resolve();
-            }
-            if (!supabaseClient) return Promise.resolve();
-            var localPatch = localPatchOf(patch);
-            noteLocalWrite();
-            return withTimeout(
-                supabaseClient.from('plans').update(patch).in('id', ids),
-                REQUEST_TIMEOUT
-            ).then(function(result) {
-                if (result.error) throw result.error;
-                ids.forEach(function(id) {
-                    var plan = plans.find(function(p) { return p.id === id; });
-                    if (plan) Object.assign(plan, localPatch);
-                });
-                renderPlans();
-                updateStats();
-            });
-        }
-
-        // 本地乐观更新 + 重绘
-        function applyLocal(planId, patch) {
-            var plan = plans.find(function(p) { return p.id === planId; });
-            if (plan) Object.assign(plan, patch);
-            renderPlans();
-            updateStats();
-        }
-
-        function savePlanToCloud(plan) {
-            if (localMode) {                       // 本地预览：存到 localStorage
-                if (!plan.createdAt) plan.createdAt = new Date().toISOString();
-                plan.updatedAt = new Date().toISOString();
-                var idx = plans.findIndex(function(p) { return p.id === plan.id; });
-                if (idx >= 0) plans[idx] = plan; else plans.unshift(plan);
-                saveLocalPlans();
-                renderPlans();
-                updateStats();
-                setSyncStatus('local', '本地预览');
-                return Promise.resolve();
-            }
-            if (!supabaseClient) return Promise.reject(new Error('未连接到数据库'));
-            setSyncStatus('syncing', '保存中...');
-            noteLocalWrite();
-            return withTimeout(
-                supabaseClient.from('plans').upsert(planToRow(plan)),
-                REQUEST_TIMEOUT
-            ).then(function(result) {
-                if (result.error) throw result.error;
-            });
-        }
-
-        function deletePlanFromCloud(planId) {
-            return dbUpdate(planId, { is_deleted: true, deleted_at: new Date().toISOString() });
-        }
-
-        function restorePlanFromTrash(planId) {
-            return dbUpdate(planId, { is_deleted: false, deleted_at: null });
-        }
-
-        function permanentDeletePlan(planId) {
-            if (localMode) {                       // 本地预览：只删本地
-                plans = plans.filter(function(p) { return p.id !== planId; });
-                saveLocalPlans();
-                renderPlans();
-                updateStats();
-                return Promise.resolve();
-            }
-            if (!supabaseClient) return Promise.reject(new Error('未连接到数据库'));
-            noteLocalWrite();
-            return withTimeout(
-                supabaseClient.from('plans').delete().eq('id', planId),
-                REQUEST_TIMEOUT
-            ).then(function(result) {
-                if (result.error) throw result.error;
-            });
-        }
-
-        /* ================================================================
-         * 六、自动任务（月转周 / 自动完成）
-         * ================================================================ */
-        // 自动任务加并发闸：同一时刻只跑一个，避免定时器与实时回读叠加触发
-        var autoTaskRunning = false;
-
-        function runAutoTasks() {
-            if (autoTaskRunning || !supabaseClient || document.hidden) return;
-            autoTaskRunning = true;
-            Promise.all([autoTransferMonthlyPlans(), autoCompleteExpiredPlans()])
-                .catch(function() { /* 已在内部提示 */ })
-                .then(function() { autoTaskRunning = false; });
-        }
-
+        // 自动将月计划标记为已转移（开始时间已到本周/下周，或开始时间已过但尚未完成）
         function autoTransferMonthlyPlans() {
-            if (!supabaseClient) return Promise.resolve();
+            if (!supabaseClient) return;
 
             var now = new Date();
-            // 需要出现在周计划里的月计划：开始时间在本周/下周，或已开始但未完成
-            var ids = plans.filter(function(p) {
+            // 找出需要出现在周计划里的月计划：
+            //   1. 开始时间在本周或下周（即将开始）
+            //   2. 开始时间已经过了（已开始但尚未完成，如 in-progress / paused / pending）
+            var toTransfer = plans.filter(function(p) {
                 return p.type === 'monthly'
                     && !p.isDeleted
                     && !p.isTransferred
                     && p.status !== 'completed'
                     && p.startDate
                     && (isInCurrentWeek(p.startDate) || isInNextWeek(p.startDate) || new Date(p.startDate) < now);
-            }).map(function(p) { return p.id; });
+            });
 
-            return batchUpdate(ids, { is_transferred: true, transferred_at: now.toISOString() })
-                .catch(function(error) { console.error('[月转周] 更新失败:', error); });
+            if (toTransfer.length === 0) return;
+
+            var nowIso = now.toISOString();
+            var ids = toTransfer.map(function(p) { return p.id; });
+            console.log('[转移] 准备转移月计划:', ids.length, '个');
+
+            supabaseClient.from('plans')
+                .update({ is_transferred: true, transferred_at: nowIso })
+                .in('id', ids)
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('[转移] 数据库更新失败:', result.error);
+                        return;
+                    }
+                    plans.forEach(function(p) {
+                        if (ids.indexOf(p.id) !== -1) {
+                            p.isTransferred = true;
+                            p.transferredAt = nowIso;
+                        }
+                    });
+                    renderPlans();
+                    updateStats();
+                });
         }
 
+        // 自动检查结束时间已过的计划，将其状态更新为已完成
         function autoCompleteExpiredPlans() {
-            if (!supabaseClient) return Promise.resolve();
+            if (!supabaseClient) return;
 
             var now = new Date();
-            // 仅自动完成「进行中」且结束时间已过的计划；待开始/间断中视为延期，交人工处理
-            var ids = plans.filter(function(p) {
+            // 仅自动完成「进行中」且结束日期已过的计划
+            // 待开始(pending) / 间断中(paused) 不自动完成——结束日期过了可能是计划延期，需人工处理
+            var toComplete = plans.filter(function(p) {
                 return !p.isDeleted
                     && p.status === 'in-progress'
                     && p.endDate
                     && new Date(p.endDate) < now;
-            }).map(function(p) { return p.id; });
+            });
 
-            return batchUpdate(ids, { status: 'completed', updated_at: now.toISOString() })
-                .catch(function(error) { console.error('[自动完成] 更新失败:', error); });
+            if (toComplete.length === 0) return;
+
+            var nowIso = now.toISOString();
+            var ids = toComplete.map(function(p) { return p.id; });
+
+            supabaseClient.from('plans')
+                .update({ status: 'completed', updated_at: nowIso })
+                .in('id', ids)
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('[自动完成] 数据库更新失败:', result.error);
+                        return;
+                    }
+                    plans.forEach(function(p) {
+                        if (ids.indexOf(p.id) !== -1) {
+                            p.status = 'completed';
+                            p.updatedAt = nowIso;
+                        }
+                    });
+                    renderPlans();
+                    updateStats();
+                });
         }
 
-        // 每分钟检查一次到期计划
-        setInterval(runAutoTasks, 60 * 1000);
-
-        // 轮询兜底：实时通道未就绪、或上次读取失败时，每分钟静默补一次。
-        // 因为数据一致就整链跳过渲染，这里只发请求、不动界面。
+        // 每分钟检查一次是否有计划到期
         setInterval(function() {
-            if (!supabaseClient || document.hidden) return;
-            if (!realtimeSubscribed || loadRetry > 0) loadPlans(true);
+            if (plans && plans.length > 0) {
+                autoCompleteExpiredPlans();
+            }
         }, 60 * 1000);
 
-        /* ================================================================
-         * 七、标签页与事件
-         * ================================================================ */
+        // ── 数据映射辅助函数 ──
+        // 将前端 plan 对象映射为数据库字段
+        function planToDbRows(planList) {
+            return planList.map(function(plan) {
+                return {
+                    id: plan.id, type: plan.type, title: plan.title,
+                    title_base: plan.titleBase, title_suffix: plan.titleSuffix,
+                    content: plan.content, work_ticket_no: plan.workTicketNo || null,
+                    plan_no: plan.planNo || null, start_date: plan.startDate,
+                    end_date: plan.endDate, ticket_type: plan.ticketType,
+                    priority: plan.priority, status: plan.status,
+                    equipment_status: plan.equipmentStatus, responsible: plan.responsible,
+                    members: plan.members, group1_leader: plan.group1Leader,
+                    group1_members: plan.group1Members, group2_leader: plan.group2Leader,
+                    group2_members: plan.group2Members, group3_leader: plan.group3Leader,
+                    group3_members: plan.group3Members, group4_leader: plan.group4Leader,
+                    group4_members: plan.group4Members, group5_leader: plan.group5Leader,
+                    group5_members: plan.group5Members, ticket_personnel: plan.ticketPersonnel,
+                    fire_work_leader: plan.fireWorkLeader, fire_work_executor: plan.fireWorkExecutor,
+                    fire_work_guardian: plan.fireWorkGuardian,
+                    is_transferred: plan.isTransferred || false,
+                    transferred_at: plan.transferredAt || null
+                };
+            });
+        }
+
+        function savePlanToCloud(planData) {
+            if (!supabaseClient) {
+                return Promise.reject(new Error('未连接到数据库'));
+            }
+
+            setSyncStatus('syncing', '保存中...');
+            var dbData = planToDbRows([planData])[0];
+
+            return supabaseClient.from('plans')
+                .upsert(dbData)
+                .select()
+                .single()
+                .then(function(result) {
+                    if (result.error) {
+                        throw result.error;
+                    }
+                    return result.data;
+                });
+        }
+
+        function deletePlanFromCloud(planId) {
+            if (!supabaseClient) {
+                return Promise.reject(new Error('未连接到数据库'));
+            }
+
+            // 软删除：将计划标记为已删除，移入回收站
+            return supabaseClient.from('plans')
+                .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+                .eq('id', planId)
+                .then(function(result) {
+                    if (result.error) {
+                        throw result.error;
+                    }
+                });
+        }
+
+        function restorePlanFromTrash(planId) {
+            if (!supabaseClient) {
+                return Promise.reject(new Error('未连接到数据库'));
+            }
+
+            return supabaseClient.from('plans')
+                .update({ is_deleted: false, deleted_at: null })
+                .eq('id', planId)
+                .then(function(result) {
+                    if (result.error) {
+                        throw result.error;
+                    }
+                });
+        }
+
+        function permanentDeletePlan(planId) {
+            if (!supabaseClient) {
+                return Promise.reject(new Error('未连接到数据库'));
+            }
+
+            return supabaseClient.from('plans')
+                .delete()
+                .eq('id', planId)
+                .then(function(result) {
+                    if (result.error) {
+                        throw result.error;
+                    }
+                });
+        }
+
+        // 根据标签页更新 UI 显示（筛选器、按钮、图表）
         function applyTabUI(tab) {
-            document.getElementById('addPlanBtn').style.display =
-                (tab === 'weekly' || tab === 'monthly') ? 'block' : 'none';
-            document.getElementById('weeklyStatusFilter').style.display =
-                (tab === 'weekly') ? 'block' : 'none';
-            document.getElementById('yearFilter').style.display =
-                (tab === 'completed') ? 'block' : 'none';
-            document.getElementById('chartContainer').style.display =
-                (tab === 'completed') ? 'block' : 'none';
+            var addBtn             = document.getElementById('addPlanBtn');
+            var weeklyStatusFilter = document.getElementById('weeklyStatusFilter');
+            var yearFilter         = document.getElementById('yearFilter');
+            var chartContainer     = document.getElementById('chartContainer');
+
+            addBtn.style.display             = (tab === 'weekly' || tab === 'monthly') ? 'block' : 'none';
+            weeklyStatusFilter.style.display = (tab === 'weekly')    ? 'block' : 'none';
+            yearFilter.style.display         = (tab === 'completed') ? 'block' : 'none';
+            chartContainer.style.display     = (tab === 'completed') ? 'block' : 'none';
 
             if (tab === 'completed') {
                 updateYearFilter();
@@ -2543,7 +1910,6 @@
         }
 
         function initEventListeners() {
-            // 标签切换
             var tabs = document.querySelectorAll('.tab');
             tabs.forEach(function(tab) {
                 tab.addEventListener('click', function() {
@@ -2556,20 +1922,28 @@
                 });
             });
 
-            // 年份 / 月份筛选
-            ['yearSelect', 'monthSelect'].forEach(function(id) {
-                document.getElementById(id).addEventListener('change', function() {
-                    renderPlans();
-                    if (document.getElementById('chartContainer').style.display !== 'none') renderChart();
-                });
+            // 年份筛选监听
+            document.getElementById('yearSelect').addEventListener('change', function() {
+                renderPlans();
+                if (document.getElementById('chartContainer').style.display !== 'none') {
+                    renderChart();
+                }
             });
 
-            // 周计划状态筛选 + 视觉联动
+            // 月份筛选监听
+            document.getElementById('monthSelect').addEventListener('change', function() {
+                renderPlans();
+                if (document.getElementById('chartContainer').style.display !== 'none') {
+                    renderChart();
+                }
+            });
+
+            // 周计划状态筛选监听 + 视觉联动
             var filterColors = {
-                statusPending:    { border: '#9e9e9e', bg: '#f5f5f5', dot: '#9e9e9e' },
-                statusInProgress: { border: '#4caf50', bg: '#e8f5e9', dot: '#4caf50' },
-                statusPaused:     { border: '#ff9800', bg: '#fff3e0', dot: '#ff9800' },
-                showNextWeek:     { border: '#1976d2', bg: '#e3f2fd', dot: '#1976d2' }
+                'statusPending':   { border: '#9e9e9e', bg: '#f5f5f5',  dot: '#9e9e9e' },
+                'statusInProgress':{ border: '#4caf50', bg: '#e8f5e9',  dot: '#4caf50' },
+                'statusPaused':    { border: '#ff9800', bg: '#fff3e0',  dot: '#ff9800' },
+                'showNextWeek':    { border: '#1976d2', bg: '#e3f2fd',  dot: '#1976d2' }
             };
 
             function updateFilterStyle(id) {
@@ -2588,145 +1962,189 @@
                 }
             }
 
-            Object.keys(filterColors).forEach(function(id) {
+            ['statusPending', 'statusInProgress', 'statusPaused', 'showNextWeek'].forEach(function(id) {
                 var checkbox = document.getElementById(id);
-                if (!checkbox) return;
-                updateFilterStyle(id);
-                checkbox.addEventListener('change', function() {
+                if (checkbox) {
+                    // 初始化样式
                     updateFilterStyle(id);
-                    renderPlans();
-                });
+                    checkbox.addEventListener('change', function() {
+                        updateFilterStyle(id);
+                        renderPlans();
+                    });
+                } else {
+                    console.error('找不到元素:', id);
+                }
             });
 
-            // 图表显示 / 隐藏
-            document.getElementById('toggleChartBtn').addEventListener('click', function(e) {
+            // 图表显示/隐藏按钮
+            document.getElementById('toggleChartBtn').addEventListener('click', function() {
                 var chartContainer = document.getElementById('chartContainer');
-                var hidden = chartContainer.style.display === 'none';
-                chartContainer.style.display = hidden ? 'block' : 'none';
-                e.target.textContent = hidden ? '📊 隐藏统计图表' : '📊 显示统计图表';
-                if (hidden) renderChart();
+                var toggleBtn = document.getElementById('toggleChartBtn');
+
+                if (chartContainer.style.display === 'none') {
+                    chartContainer.style.display = 'block';
+                    toggleBtn.textContent = '📊 隐藏统计图表';
+                    renderChart();
+                } else {
+                    chartContainer.style.display = 'none';
+                    toggleBtn.textContent = '📊 显示统计图表';
+                }
             });
 
-            document.getElementById('addPlanBtn').addEventListener('click', function() { openModal(); });
+            document.getElementById('addPlanBtn').addEventListener('click', function() {
+                openModal();
+            });
 
-            // 搜索（防抖）
+            // 搜索功能监听（防抖优化）
             var searchTimer = null;
             document.getElementById('searchInput').addEventListener('input', function() {
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(renderPlans, 200);
+                if (searchTimer) clearTimeout(searchTimer);
+                searchTimer = setTimeout(function() { renderPlans(); }, 200);
             });
+
+            // 清空搜索按钮
             document.getElementById('clearSearchBtn').addEventListener('click', function() {
                 document.getElementById('searchInput').value = '';
                 renderPlans();
             });
 
-            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('closeModalBtn').addEventListener('click', function() {
+                closeModal();
+            });
+
+            document.getElementById('cancelBtn').addEventListener('click', function() {
+                closeModal();
+            });
+
             document.getElementById('planForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 savePlan();
             });
+
+            // 禁用点击模态框外部关闭功能（锁定模态框）
+            // document.getElementById('planModal').addEventListener('click', function(e) {
+            //     if (e.target.id === 'planModal') {
+            //         closeModal();
+            //     }
+            // });
+
+            // 监听计划类型变化
             document.getElementById('planType').addEventListener('change', function(e) {
                 togglePersonnelFields(e.target.value);
             });
 
-            // 计划卡片操作：编辑 / 删除 / 恢复 / 彻底删除（事件委托，替代内联 onclick）
+            // 使用事件委托处理编辑和删除按钮点击
             document.getElementById('planList').addEventListener('click', function(e) {
-                var btn = e.target.closest('[data-action]');
-                if (!btn) return;
-                var handler = {
-                    edit:    openModal,
-                    delete:  deletePlan,
-                    restore: restorePlan,
-                    purge:   permanentDelete
-                }[btn.dataset.action];
-                if (handler) handler(btn.dataset.planId);
+                var editBtn   = e.target.closest('.edit-btn');
+                var deleteBtn = e.target.closest('.delete-btn');
+
+                if (editBtn) {
+                    var planId = editBtn.dataset.planId;
+                    if (planId) openModal(planId);
+                } else if (deleteBtn) {
+                    var planId = deleteBtn.dataset.planId;
+                    deletePlan(planId);
+                }
             });
         }
 
-        /* ================================================================
-         * 八、弹窗（新增 / 编辑）
-         * ================================================================ */
-        // 计划 id 归一：周计划中"来自月计划"的虚拟 id 形如 <真实id>_weekly
-        function realIdOf(planId) {
-            return (planId && planId.slice(-7) === '_weekly') ? planId.slice(0, -7) : planId;
-        }
-
-        function findPlanById(planId) {
-            if (!planId) return null;
-            return plans.find(function(p) { return p.id === planId; })
-                || plans.find(function(p) { return p.id === realIdOf(planId); })
-                || null;
+        function initTabs() {
+            applyTabUI(currentTab);
         }
 
         function openModal(planId) {
-            document.getElementById('planForm').reset();
-            editingPlanId = planId || null;
+            var modal = document.getElementById('planModal');
+            var form = document.getElementById('planForm');
+            var title = document.getElementById('modalTitle');
 
-            var plan = findPlanById(editingPlanId);
-            if (plan) editingPlanId = plan.id;
+            form.reset();
+            editingPlanId = planId;
 
-            if (plan) {
-                document.getElementById('modalTitle').textContent = '编辑计划';
-                fillForm(plan);
+            if (planId) {
+                var plan = plans.find(function(p) { return p.id === planId; });
+                // 如果没找到（比如是周计划中的来自月计划的记录），尝试查找原始月计划
+                if (!plan && planId && planId.endsWith('_weekly')) {
+                    var sourceId = planId.replace('_weekly', '');
+                    plan = plans.find(function(p) { return p.id === sourceId; });
+                    // 如果找到原始月计划，设置编辑ID为原始ID
+                    if (plan) {
+                        editingPlanId = sourceId;
+                    }
+                }
+                if (plan) {
+                    title.textContent = '编辑计划';
+                    document.getElementById('planId').value = plan.id;
+                    document.getElementById('planType').value = plan.type;
+
+                    // 填充标题（如果是新的格式，拆分标题和补充说明；旧格式兼容）
+                    if (plan.titleBase) {
+                        document.getElementById('planTitle').value = plan.titleBase;
+                        document.getElementById('planTitleSuffix').value = plan.titleSuffix || '';
+                    } else {
+                        // 旧数据，尝试从标题中提取补充说明
+                        var match = plan.title.match(/^(.+?)\s*-\s*(.+)$/);
+                        if (match) {
+                            document.getElementById('planTitle').value = match[1];
+                            document.getElementById('planTitleSuffix').value = match[2];
+                        } else {
+                            document.getElementById('planTitle').value = plan.title;
+                            document.getElementById('planTitleSuffix').value = '';
+                        }
+                    }
+
+                    document.getElementById('planContent').value = plan.content;
+                    document.getElementById('workTicketNo').value = plan.workTicketNo || '';
+                    document.getElementById('planNo').value = plan.planNo || '';
+
+                    // 填充开始时间
+                    var startDateTime = new Date(plan.startDate);
+                    document.getElementById('startDate').value = formatDateForInput(startDateTime);
+                    document.getElementById('startHour').value = startDateTime.getHours();
+                    document.getElementById('startMinute').value = String(startDateTime.getMinutes()).padStart(2, '0');
+
+                    // 填充结束时间
+                    var endDateTime = new Date(plan.endDate);
+                    document.getElementById('endDate').value = formatDateForInput(endDateTime);
+                    document.getElementById('endHour').value = endDateTime.getHours();
+                    document.getElementById('endMinute').value = String(endDateTime.getMinutes()).padStart(2, '0');
+
+                    document.getElementById('ticketType').value = plan.ticketType || '';
+                    document.getElementById('priority').value = plan.priority;
+                    document.getElementById('status').value = plan.status;
+                    document.getElementById('equipmentStatus').value = plan.equipmentStatus || '';
+
+                    // 只在周计划和月计划时填充人员信息
+                    if (plan.type === 'weekly' || plan.type === 'monthly') {
+                        document.getElementById('responsible').value = plan.responsible || '';
+                        document.getElementById('members').value = plan.members || '';
+
+                        for (var gi = 1; gi <= 5; gi++) {
+                            document.getElementById('group' + gi + 'Leader').value = plan['group' + gi + 'Leader'] || '';
+                            document.getElementById('group' + gi + 'Members').value = plan['group' + gi + 'Members'] || '';
+                        }
+
+                        document.getElementById('ticketPersonnel').value = plan.ticketPersonnel || '';
+                        document.getElementById('fireWorkLeader').value = plan.fireWorkLeader || '';
+                        document.getElementById('fireWorkExecutor').value = plan.fireWorkExecutor || '';
+                        document.getElementById('fireWorkGuardian').value = plan.fireWorkGuardian || '';
+                    }
+                }
             } else {
-                document.getElementById('modalTitle').textContent = '新增计划';
+                title.textContent = '新增计划';
                 document.getElementById('planType').value = currentTab;
             }
 
+            // 根据计划类型显示/隐藏人员字段
             togglePersonnelFields(document.getElementById('planType').value);
-            setCompletedEditMode(!!(plan && plan.status === 'completed'));
-            document.getElementById('planModal').classList.add('show');
-        }
 
-        // 把计划数据回填到表单
-        function fillForm(plan) {
-            var set = function(id, value) {
-                document.getElementById(id).value = (value === undefined || value === null) ? '' : value;
-            };
+            // 已完结计划：进入只读模式，仅允许修改票号和状态
+            var isCompletedPlan = planId && (function() {
+                var p = plans.find(function(x) { return x.id === planId || x.id === editingPlanId; });
+                return p && p.status === 'completed';
+            })();
+            setCompletedEditMode(isCompletedPlan);
 
-            set('planType', plan.type);
-            set('planContent', plan.content);
-            set('workTicketNo', plan.workTicketNo);
-            set('planNo', plan.planNo);
-            set('ticketType', plan.ticketType);
-            set('priority', plan.priority);
-            set('status', plan.status);
-            set('equipmentStatus', plan.equipmentStatus);
-            setDateTime('start', plan.startDate);
-            setDateTime('end', plan.endDate);
-
-            // 立项名：新格式拆分「基础名 + 补充说明」，旧数据从标题中兼容解析
-            if (plan.titleBase) {
-                set('planTitle', plan.titleBase);
-                set('planTitleSuffix', plan.titleSuffix);
-            } else {
-                var m = (plan.title || '').match(/^(.+?)\s*-\s*(.+)$/);
-                set('planTitle', m ? m[1] : plan.title);
-                set('planTitleSuffix', m ? m[2] : '');
-            }
-
-            // 人员信息仅在周计划 / 月计划下回填
-            if (plan.type === 'weekly' || plan.type === 'monthly') {
-                set('responsible', plan.responsible);
-                set('members', plan.members);
-                for (var gi = 1; gi <= 5; gi++) {
-                    set('group' + gi + 'Leader', plan['group' + gi + 'Leader']);
-                    set('group' + gi + 'Members', plan['group' + gi + 'Members']);
-                }
-                set('ticketPersonnel', plan.ticketPersonnel);
-                set('fireWorkLeader', plan.fireWorkLeader);
-                set('fireWorkExecutor', plan.fireWorkExecutor);
-                set('fireWorkGuardian', plan.fireWorkGuardian);
-            }
-        }
-
-        // 填充「日期 + 时 + 分」三个输入框
-        function setDateTime(prefix, dateTimeStr) {
-            var d = dateTimeStr ? new Date(dateTimeStr) : new Date();
-            document.getElementById(prefix + 'Date').value   = formatDateForInput(d);
-            document.getElementById(prefix + 'Hour').value   = d.getHours();
-            document.getElementById(prefix + 'Minute').value = pad2(d.getMinutes());
+            modal.classList.add('show');
         }
 
         function closeModal() {
@@ -2735,94 +2153,160 @@
             editingPlanId = null;
         }
 
-        // 已完结计划：仅保留票号 / 计划编号 / 状态可编辑
+        // 已完结编辑模式：仅保留票号（workTicketNo/planNo）和状态（status）可编辑
         function setCompletedEditMode(enable) {
-            var lockedFields = [
-                'planType', 'planTitle', 'planTitleSuffix', 'planContent',
-                'startDate', 'startHour', 'startMinute',
-                'endDate', 'endHour', 'endMinute',
-                'ticketType', 'equipmentStatus', 'priority',
-                'responsible', 'members',
-                'group1Leader', 'group1Members', 'group2Leader', 'group2Members',
-                'group3Leader', 'group3Members', 'group4Leader', 'group4Members',
-                'group5Leader', 'group5Members',
-                'ticketPersonnel', 'fireWorkLeader', 'fireWorkExecutor', 'fireWorkGuardian'
-            ];
-            var editableFields = ['workTicketNo', 'planNo', 'status'];
+            var modal = document.getElementById('planModal');
             var hint = document.getElementById('completedEditHint');
 
-            // 锁定字段在只读模式下禁用，可编辑字段（票号 / 计划编号 / 状态）始终可用
-            lockedFields.concat(editableFields).forEach(function(id) {
-                var el = document.getElementById(id);
-                if (el) el.disabled = enable && lockedFields.indexOf(id) !== -1;
-            });
-            if (hint) hint.style.display = enable ? 'flex' : 'none';
-            if (enable) document.getElementById('modalTitle').textContent = '编辑已完结计划';
+            // 所有表单字段
+            var allFields = [
+                'planType','planTitle','planTitleSuffix','planContent',
+                'startDate','startHour','startMinute',
+                'endDate','endHour','endMinute',
+                'ticketType','equipmentStatus','priority',
+                'responsible','members',
+                'group1Leader','group1Members','group2Leader','group2Members',
+                'group3Leader','group3Members','group4Leader','group4Members',
+                'group5Leader','group5Members',
+                'ticketPersonnel','fireWorkLeader','fireWorkExecutor','fireWorkGuardian'
+            ];
+            // 仅允许修改的字段
+            var editableFields = ['workTicketNo','planNo','status'];
+
+            if (enable) {
+                allFields.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.disabled = true;
+                });
+                editableFields.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.disabled = false;
+                });
+                document.getElementById('modalTitle').textContent = '编辑已完结计划';
+                if (hint) hint.style.display = 'flex';
+            } else {
+                allFields.concat(editableFields).forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.disabled = false;
+                });
+                if (hint) hint.style.display = 'none';
+            }
         }
 
-        // 按计划类型显示 / 隐藏人员信息
+        // 根据计划类型显示/隐藏人员字段
         function togglePersonnelFields(planType) {
-            var show = (planType === 'weekly' || planType === 'monthly');
-            document.getElementById('personnelFields').style.display = show ? 'block' : 'none';
+            var personnelFields = document.getElementById('personnelFields');
+            if (planType === 'weekly' || planType === 'monthly') {
+                personnelFields.style.display = 'block';
+            } else {
+                personnelFields.style.display = 'none';
+            }
         }
 
-        /* ================================================================
-         * 九、保存
-         * ================================================================ */
+        function updateStats() {
+            var activePlans = plans.filter(function(p) { return !p.isDeleted; });
+            var weeklyCount = activePlans.filter(function(p) {
+                // 周计划本身 + 已转移到周计划的月计划，均计入周计划统计
+                return (p.type === 'weekly' || (p.type === 'monthly' && p.isTransferred))
+                    && p.status !== 'completed';
+            }).length;
+            // 月计划统计：排除已转移到周计划的计划
+            var monthlyCount = activePlans.filter(function(p) {
+                return p.type === 'monthly'
+                    && p.status !== 'completed'
+                    && !p.isTransferred;
+            }).length;
+            var completedCount = activePlans.filter(function(p) { return p.status === 'completed'; }).length;
+            var totalCount = activePlans.length;
+            var trashCount = plans.filter(function(p) { return p.isDeleted; }).length;
+
+            document.getElementById('weeklyCount').textContent = weeklyCount;
+            document.getElementById('monthlyCount').textContent = monthlyCount;
+            document.getElementById('completedCount').textContent = completedCount;
+            document.getElementById('totalCount').textContent = totalCount;
+
+            var trashBadge = document.getElementById('trashCount');
+            if (trashBadge) {
+                trashBadge.textContent = trashCount;
+                trashBadge.style.display = trashCount > 0 ? 'inline-block' : 'none';
+            }
+        }
+
         function savePlan() {
-            var val = function(id) { return document.getElementById(id).value; };
+            var getVal = function(id) { return document.getElementById(id).value; };
 
-            var titleBase   = val('planTitle');
-            var titleSuffix = val('planTitleSuffix');
-            var startDate = new Date(val('startDate') + 'T' + pad2(val('startHour')) + ':' + pad2(val('startMinute')));
-            var endDate   = new Date(val('endDate')   + 'T' + pad2(val('endHour'))   + ':' + pad2(val('endMinute')));
+            var titleBase   = getVal('planTitle');
+            var titleSuffix = getVal('planTitleSuffix');
+            var fullTitle   = titleSuffix ? titleBase + ' - ' + titleSuffix : titleBase;
 
-            var existing = findPlanById(editingPlanId);
-            var plan = {
-                id:               (existing && existing.id) || realIdOf(editingPlanId) || String(Date.now()),
-                type:             val('planType'),
-                title:            titleSuffix ? titleBase + ' - ' + titleSuffix : titleBase,
-                titleBase:        titleBase,
-                titleSuffix:      titleSuffix,
-                content:          val('planContent'),
-                workTicketNo:     val('workTicketNo'),
-                planNo:           val('planNo'),
-                startDate:        startDate.toISOString(),
-                endDate:          endDate.toISOString(),
-                ticketType:       val('ticketType'),
-                priority:         val('priority'),
-                status:           val('status'),
-                equipmentStatus:  val('equipmentStatus'),
-                responsible:      val('responsible'),
-                members:          val('members'),
-                ticketPersonnel:  val('ticketPersonnel'),
-                fireWorkLeader:   val('fireWorkLeader'),
-                fireWorkExecutor: val('fireWorkExecutor'),
-                fireWorkGuardian: val('fireWorkGuardian'),
-                isTransferred:    existing ? !!existing.isTransferred : false,
-                transferredAt:    existing ? (existing.transferredAt || null) : null
-            };
+            // 合并开始/结束日期和时间
+            var startDateTime = new Date(getVal('startDate') + 'T' +
+                String(getVal('startHour')).padStart(2, '0') + ':' +
+                String(getVal('startMinute')).padStart(2, '0'));
+            var endDateTime   = new Date(getVal('endDate') + 'T' +
+                String(getVal('endHour')).padStart(2, '0') + ':' +
+                String(getVal('endMinute')).padStart(2, '0'));
+
+            var groupFields = {};
             for (var gi = 1; gi <= 5; gi++) {
-                plan['group' + gi + 'Leader']  = val('group' + gi + 'Leader');
-                plan['group' + gi + 'Members'] = val('group' + gi + 'Members');
+                groupFields['group' + gi + 'Leader']  = getVal('group' + gi + 'Leader');
+                groupFields['group' + gi + 'Members'] = getVal('group' + gi + 'Members');
             }
 
-            // 类型联动：编辑时尊重用户选择；新建时若时间超出本周/下周则降级为月计划
-            var isNew = !editingPlanId;
-            var inWeekRange = isInCurrentWeek(plan.startDate) || isInNextWeek(plan.startDate);
+            // 保留原始计划的 isTransferred / transferredAt
+            var existingPlan = editingPlanId ? plans.find(function(p) { return p.id === editingPlanId; }) : null;
 
-            if (isNew && plan.type === 'weekly' && !inWeekRange) {
-                plan.type = 'monthly';
-            }
-            if (plan.type === 'weekly') {
-                plan.isTransferred = false;
-                plan.transferredAt = null;
-            } else if (!isNew && plan.isTransferred && !inWeekRange) {
-                plan.isTransferred = false;
-                plan.transferredAt = null;
-            }
+            var planData = Object.assign({
+                id:             editingPlanId || String(Date.now()),
+                type:           getVal('planType'),
+                title:          fullTitle,
+                titleBase:      titleBase,
+                titleSuffix:    titleSuffix,
+                content:        getVal('planContent'),
+                workTicketNo:   getVal('workTicketNo'),
+                planNo:         getVal('planNo'),
+                startDate:      startDateTime.toISOString(),
+                endDate:        endDateTime.toISOString(),
+                ticketType:     getVal('ticketType'),
+                priority:       getVal('priority'),
+                status:         getVal('status'),
+                equipmentStatus:getVal('equipmentStatus'),
+                responsible:    getVal('responsible'),
+                members:        getVal('members'),
+                ticketPersonnel:getVal('ticketPersonnel'),
+                fireWorkLeader: getVal('fireWorkLeader'),
+                fireWorkExecutor:getVal('fireWorkExecutor'),
+                fireWorkGuardian:getVal('fireWorkGuardian'),
+                isTransferred:  existingPlan ? (existingPlan.isTransferred || false) : false,
+                transferredAt:  existingPlan ? (existingPlan.transferredAt || null) : null,
+                createdAt:      new Date().toISOString(),
+                updatedAt:      new Date().toISOString()
+            }, groupFields);
 
-            savePlanToCloud(plan)
+            // ── 类型联动逻辑 ─────────────────────────────────────────────────
+            // 编辑时：用户手动选择了类型，完全尊重，不做任何自动覆盖
+            // 新建时：若选了周计划但时间不在本周/下周范围，自动降级为月计划
+            // 特殊情况：若类型改为周计划，清除 isTransferred（它不再是"月转周"了）
+            var isNewPlan = !editingPlanId;
+            var startInWeekRange = isInCurrentWeek(planData.startDate) || isInNextWeek(planData.startDate);
+
+            if (isNewPlan && planData.type === 'weekly' && !startInWeekRange) {
+                // 新建时：时间超出范围，自动降级为月计划
+                planData.type = 'monthly';
+                planData.isTransferred = false;
+                planData.transferredAt = null;
+            } else if (!isNewPlan && planData.type === 'weekly') {
+                // 编辑时：用户手动改回周计划，清除月转周标记，直接作为原生周计划
+                planData.isTransferred = false;
+                planData.transferredAt = null;
+            } else if (!isNewPlan && planData.type === 'monthly' && planData.isTransferred && !startInWeekRange) {
+                // 编辑时：已转移月计划的时间被改出本/下周范围，取消转移，回到月计划栏
+                planData.isTransferred = false;
+                planData.transferredAt = null;
+            }
+            // ─────────────────────────────────────────────────────────────────
+
+            savePlanToCloud(planData)
                 .then(function() {
                     closeModal();
                     loadPlans();
@@ -2834,42 +2318,55 @@
                 });
         }
 
-        /* ================================================================
-         * 十、删除 / 恢复
-         * ================================================================ */
         // 通用确认对话框
         function showConfirmDialog(modalId, confirmBtnId, cancelBtnId, onConfirm) {
             var modal = document.getElementById(modalId);
-
-            // 克隆按钮以清除上一次绑定的监听
-            [confirmBtnId, cancelBtnId].forEach(function(id) {
-                var oldBtn = document.getElementById(id);
-                oldBtn.parentNode.replaceChild(oldBtn.cloneNode(true), oldBtn);
-            });
-
             modal.classList.add('show');
-            document.getElementById(cancelBtnId).addEventListener('click', function() {
-                modal.classList.remove('show');
-            });
-            document.getElementById(confirmBtnId).addEventListener('click', function() {
+            var confirmBtn = document.getElementById(confirmBtnId);
+            var cancelBtn = document.getElementById(cancelBtnId);
+            var newConfirm = confirmBtn.cloneNode(true);
+            var newCancel = cancelBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+            cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+            newCancel.addEventListener('click', function() { modal.classList.remove('show'); });
+            newConfirm.addEventListener('click', function() {
                 modal.classList.remove('show');
                 onConfirm();
             });
         }
 
         function deletePlan(planId) {
-            var realId = realIdOf(planId);
-            if (!realId) { alert('无法获取计划ID，请刷新页面后重试。'); return; }
-            if (!supabaseClient) { alert('未连接到数据库，请检查网络连接后刷新页面。'); return; }
+            if (!planId) {
+                alert('无法获取计划ID，请刷新页面后重试。');
+                return;
+            }
+            if (!supabaseClient) {
+                alert('未连接到数据库，请检查网络连接后刷新页面。');
+                return;
+            }
+
+            // 月转周虚拟计划：id 带 _weekly 后缀，需还原真实 ID
+            var realPlanId = planId.endsWith('_weekly')
+                ? planId.replace(/_weekly$/, '')
+                : planId;
 
             showConfirmDialog('deleteConfirmModal', 'deleteConfirmBtn', 'deleteCancelBtn', function() {
                 setSyncStatus('syncing', '处理中...');
-                applyLocal(realId, { isDeleted: true, deletedAt: new Date().toISOString() });
-                deletePlanFromCloud(realId)
+                var now = new Date().toISOString();
+                plans.forEach(function(p) {
+                    if (p.id === realPlanId) { p.isDeleted = true; p.deletedAt = now; }
+                });
+                renderPlans();
+                updateStats();
+                deletePlanFromCloud(realPlanId)
                     .then(function() { loadPlans(); })
                     .catch(function(error) {
-                        applyLocal(realId, { isDeleted: false, deletedAt: null });
-                        console.error('移入回收站失败:', error);
+                        plans.forEach(function(p) {
+                            if (p.id === realPlanId) { p.isDeleted = false; p.deletedAt = null; }
+                        });
+                        renderPlans();
+                        updateStats();
+                        console.error('操作失败:', error);
                         alert('移入回收站失败: ' + error.message);
                         setSyncStatus('error', '操作失败');
                     });
@@ -2902,292 +2399,350 @@
             });
         }
 
-        /* ================================================================
-         * 十一、渲染
-         * ================================================================ */
         function renderPlans() {
             var container = document.getElementById('planList');
-            var keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-            var html;
+            var filteredPlans;
 
-            // 回收站
+            // 获取搜索关键词
+            var searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // 回收站标签：显示已删除的计划
             if (currentTab === 'trash') {
-                var trash = plans.filter(function(p) { return p.isDeleted; });
-                if (keyword) trash = trash.filter(function(p) { return buildSearchText(p).indexOf(keyword) !== -1; });
-                trash.sort(function(a, b) {
+                filteredPlans = plans.filter(function(p) { return p.isDeleted; });
+
+                // 搜索过滤
+                if (searchKeyword) {
+                    filteredPlans = filteredPlans.filter(function(plan) {
+                        var searchText = (plan.title || '') + ' ' + (plan.content || '') + ' ' + (plan.responsible || '');
+                        return searchText.toLowerCase().indexOf(searchKeyword) !== -1;
+                    });
+                }
+
+                // 按删除时间降序
+                filteredPlans.sort(function(a, b) {
                     return new Date(b.deletedAt || b.updatedAt) - new Date(a.deletedAt || a.updatedAt);
                 });
-                html = trash.length
-                    ? trash.map(trashCardHtml).join('')
-                    : '<div class="empty-state"><p style="font-size:1.2em;">🗑️ 回收站为空</p>' +
-                      '<p style="margin-top:10px; color:var(--text-muted);">删除的计划会在这里显示</p></div>';
-            } else {
-                var list = selectPlansForTab(currentTab, keyword);
-                if (!list.length) {
-                    html = '<div class="empty-state"><p>暂无' + planTypeNames[currentTab] +
-                        '，点击"新增计划"开始创建</p></div>';
-                } else {
-                    var now = new Date();
-                    html = list.map(function(plan) { return planCardHtml(plan, now); }).join('');
+
+                if (filteredPlans.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p style="font-size:1.2em;">🗑️ 回收站为空</p><p style="margin-top:10px; color:#bbb;">删除的计划会在这里显示</p></div>';
+                    return;
                 }
-            }
 
-            if (localMode) html = localModeBanner() + html;
-
-            // 渲染结果一致就不碰 DOM。否则每次轮询/实时回读都会重建 innerHTML，
-            // 触发 .plan-card 的 fadeInUp 动画重播 —— 表现就是"界面一直在刷新"。
-            if (html === lastListHtml) return;
-            lastListHtml = html;
-            container.innerHTML = html;
-
-            // 提示条上的「重试连接云端」按钮
-            if (localMode) {
-                var rb = document.getElementById('retryCloudBtn');
-                if (rb) rb.onclick = function() { retryCloud(); };
-            }
-        }
-
-        // 按标签页 + 关键词筛选（回收站分支在上层单独处理）
-        function selectPlansForTab(tab, keyword) {
-            var list;
-
-            if (tab === 'completed') {
-                var year  = document.getElementById('yearSelect').value;
-                var month = document.getElementById('monthSelect').value;
-                list = plans.filter(function(p) {
-                    if (p.isDeleted || p.status !== 'completed') return false;
-                    var d = new Date(p.endDate);
-                    if (year  && d.getFullYear()  !== parseInt(year))  return false;
-                    if (month && d.getMonth() + 1 !== parseInt(month)) return false;
-                    return true;
-                });
-
-            } else if (tab === 'weekly') {
-                var fPending    = document.getElementById('statusPending').checked;
-                var fInProgress = document.getElementById('statusInProgress').checked;
-                var fPaused     = document.getElementById('statusPaused').checked;
-                var fNextWeek   = document.getElementById('showNextWeek').checked;
-
-                list = plans.filter(function(p) {
-                    if (p.isDeleted || p.status === 'completed') return false;
-                    var isWeekly = p.type === 'weekly';
-                    var isTransferred = p.type === 'monthly' && p.isTransferred;
-                    if (!isWeekly && !isTransferred) return false;
-                    if (fNextWeek) return isInNextWeek(p.startDate);
-                    return (p.status === 'pending'     && fPending)
-                        || (p.status === 'in-progress' && fInProgress)
-                        || (p.status === 'paused'      && fPaused);
-                }).map(function(p) {
-                    // 已转移月计划挂虚拟 ID，便于编辑 / 删除时回溯来源
-                    return (p.type === 'monthly' && p.isTransferred)
-                        ? Object.assign({}, p, { id: p.id + '_weekly', sourceId: p.id, _fromMonthly: true })
-                        : p;
-                });
-
-            } else {
-                list = plans.filter(function(p) {
-                    return !p.isDeleted && p.status !== 'completed' && !p.isTransferred && p.type === tab;
-                });
-            }
-
-            if (keyword) {
-                list = list.filter(function(p) { return buildSearchText(p).indexOf(keyword) !== -1; });
-            }
-            return list.sort(function(a, b) { return new Date(a.startDate) - new Date(b.startDate); });
-        }
-
-        // 计划的时间派生信息（统一计算，避免渲染期重复推算）
-        function planTiming(plan, now) {
-            var end = plan.endDate ? new Date(plan.endDate) : null;
-            var finished = plan.status === 'completed' || !!(end && end < now);
-            var days = Math.ceil((new Date(plan.startDate) - now) / 86400000);
-            var urgency = finished ? '' :
-                          days <= 3  ? 'urgent' :
-                          days <= 7  ? 'near'   :
-                          days <= 30 ? 'normal' : 'far';
-            return { finished: finished, days: days, urgency: urgency };
-        }
-
-        function daysBadgeHtml(timing) {
-            if (timing.finished) return '';
-            if (timing.days <= 0) return '<span class="badge badge-urgent badge-sm">进行中</span>';
-            var cls = timing.days <= 3 ? 'badge-warn3' : timing.days <= 7 ? 'badge-warn7' : 'badge-far';
-            return '<span class="badge ' + cls + ' badge-sm">' + timing.days + '天后</span>';
-        }
-
-        function statusBadgeHtml(plan) {
-            // 已完结页不重复提示"已完成"，仅显示异常状态；其他页在"结束时间已过但状态未同步"时也显示已完成
-            if (plan.status === 'completed') {
-                return currentTab === 'completed' ? '' : getStatusText('completed');
-            }
-            return getStatusText(plan.status);
-        }
-
-        function planCardHtml(plan, now) {
-            var timing = planTiming(plan, now);
-
-            var personnelHtml = '';
-            if (plan.responsible) personnelHtml += '<span class="badge badge-person">' + escapeHtml(plan.responsible) + '</span>';
-            if (plan.members)     personnelHtml += '<span class="badge badge-members">' + escapeHtml(plan.members) + '</span>';
-
-            var groupsHtml = '';
-            for (var i = 1; i <= 5; i++) {
-                var leader  = plan['group' + i + 'Leader'];
-                var members = plan['group' + i + 'Members'];
-                if (!leader && !members) continue;
-                groupsHtml += '<div class="group-item"><div class="group-label">小组 ' + i + '</div>' +
-                    (leader  ? '<div class="group-row group-row-leader">负责人：<span class="group-val">' + escapeHtml(leader) + '</span></div>' : '') +
-                    (members ? '<div class="group-row group-row-member">组员：<span class="group-val">' + escapeHtml(members) + '</span></div>' : '') +
-                    '</div>';
-            }
-
-            var fireWorkHtml = '';
-            if (plan.fireWorkLeader || plan.fireWorkExecutor || plan.fireWorkGuardian) {
-                fireWorkHtml = '<div class="firework-block"><div class="firework-title">🔥 动火作业信息</div>' +
-                    (plan.fireWorkLeader   ? '<div class="firework-row">负责人：<span class="group-val">' + escapeHtml(plan.fireWorkLeader) + '</span></div>' : '') +
-                    (plan.fireWorkExecutor ? '<div class="firework-row">执行人：<span class="group-val">' + escapeHtml(plan.fireWorkExecutor) + '</span></div>' : '') +
-                    (plan.fireWorkGuardian ? '<div class="firework-row">监护人：<span class="group-val">' + escapeHtml(plan.fireWorkGuardian) + '</span></div>' : '') +
-                    '</div>';
-            }
-
-            var ticketPersonnelHtml = (plan.ticketPersonnel && plan.ticketPersonnel.trim())
-                ? '<div class="ticket-person-block"><span style="color:var(--text-secondary);">📝 办票人员：</span>' +
-                  '<span class="group-val">' + escapeHtml(plan.ticketPersonnel.trim()) + '</span></div>'
-                : '';
-
-            // 徽章行：下周 / 剩余天数 / 票型 / 票号 / 计划编号
-            var badges = '';
-            if (isInNextWeek(plan.startDate)) badges += '<span class="badge badge-next badge-sm">下周</span>';
-            badges += daysBadgeHtml(timing);
-            if (plan.ticketType)  badges += '<span class="badge badge-ticket">🎫 ' + escapeHtml(plan.ticketType) + '</span>';
-            if (plan.workTicketNo) badges += '<span class="badge badge-work-no">🔖 ' + escapeHtml(plan.workTicketNo) + '</span>';
-            if (plan.planNo)      badges += '<span class="badge badge-plan-no">📋 ' + escapeHtml(plan.planNo) + '</span>';
-
-            return '<div class="plan-card ' + timing.urgency + '">' +
-                /* 标题 + 操作 */
-                '<div class="plan-title-row">' +
-                    '<div class="plan-title">' + escapeHtml(plan.title) + '</div>' +
-                    '<div class="plan-actions">' +
-                        '<button class="action-btn edit-btn" data-action="edit" data-plan-id="' + escapeHtml(plan.id) + '">✏️ 编辑</button>' +
-                        (currentTab !== 'completed'
-                            ? '<button class="action-btn delete-btn" data-action="delete" data-plan-id="' + escapeHtml(plan.id) + '">🗑️ 删除</button>'
-                            : '') +
-                    '</div>' +
-                '</div>' +
-                /* 徽章行 */
-                (badges ? '<div class="plan-badges">' + badges + '</div>' : '') +
-                /* 元信息行：日期 + 状态 + 风险 + 设备 */
-                '<div class="plan-meta">' +
-                    '<span class="badge badge-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' — ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
-                    statusBadgeHtml(plan) +
-                    getPriorityText(plan.priority) +
-                    (plan.equipmentStatus ? getEquipmentStatusText(plan.equipmentStatus) : '') +
-                '</div>' +
-                /* 人员 */
-                (personnelHtml ? '<div class="plan-meta" style="margin-top:6px;">' + personnelHtml + '</div>' : '') +
-                /* 小组 */
-                (groupsHtml ? '<div class="group-block">' + groupsHtml + '</div>' : '') +
-                /* 工作内容（无内容时不渲染空盒子） */
-                (plan.content ? '<div class="card-content">' + escapeHtml(plan.content) + '</div>' : '') +
-                fireWorkHtml +
-                ticketPersonnelHtml +
-                '</div>';
-        }
-
-        function trashCardHtml(plan) {
-            var typeLabel = plan.type === 'weekly' ? '周计划' : plan.type === 'monthly' ? '月计划' : '已完结';
-            var deletedAt = plan.deletedAt ? formatDateTimeForDisplay(plan.deletedAt) : '未知时间';
-
-            return '<div class="plan-card far" style="opacity:0.95;">' +
-                '<div class="plan-title-row">' +
-                    '<div style="flex:1;min-width:0;">' +
-                        '<div class="plan-title" style="color:var(--text-muted);">' + escapeHtml(plan.title) +
+                container.innerHTML = filteredPlans.map(function(plan) {
+                    var deletedTimeStr = plan.deletedAt ? formatDateTimeForDisplay(plan.deletedAt) : '未知时间';
+                    var typeLabel = plan.type === 'weekly' ? '周计划' : plan.type === 'monthly' ? '月计划' : '已完结';
+                    return '<div class="plan-card far" style="opacity:0.88;">' +
+                        '<div class="plan-title-row">' +
+                        '<div style="flex:1;min-width:0;">' +
+                        '<div class="plan-title" style="color:#888;">' + escapeHtml(plan.title) +
                         ' <span class="badge badge-trash">' + typeLabel + '</span></div>' +
                         '<div class="plan-meta" style="margin-top:6px;">' +
-                            '<span class="badge badge-trash-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' — ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
-                            '<span style="color:var(--text-muted);font-size:12.5px;">🗑️ 删除于 ' + deletedAt + '</span>' +
+                        '<span class="badge badge-trash-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' — ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
+                        '<span style="color:#bbb;font-size:12px;">🗑️ 删除于 ' + deletedTimeStr + '</span>' +
+                        '</div></div>' +
+                        '<div class="plan-actions">' +
+                        '<button class="action-btn" style="background:#2e7d32;color:white;min-height:36px;" onclick="restorePlan(\'' + escapeHtml(plan.id) + '\')">↩️ 恢复</button>' +
+                        '<button class="action-btn" style="background:#c62828;color:white;min-height:36px;" onclick="permanentDelete(\'' + escapeHtml(plan.id) + '\')">🗑️ 删除</button>' +
                         '</div>' +
-                    '</div>' +
-                    '<div class="plan-actions">' +
-                        '<button class="action-btn" data-action="restore" data-plan-id="' + escapeHtml(plan.id) + '" style="background:#2e7d32;color:white;min-height:36px;">↩️ 恢复</button>' +
-                        '<button class="action-btn" data-action="purge" data-plan-id="' + escapeHtml(plan.id) + '" style="background:#c62828;color:white;min-height:36px;">🗑️ 删除</button>' +
-                    '</div>' +
-                '</div>' +
-                (plan.content ? '<div class="card-content" style="border-left-color:#9ca3af;">' + escapeHtml(plan.content) + '</div>' : '') +
-                '</div>';
-        }
-
-        // 仅在数值变化时写 DOM，避免无意义的排版重算
-        function setText(id, value) {
-            var el = document.getElementById(id);
-            if (el && el.textContent !== String(value)) el.textContent = value;
-        }
-
-        function updateStats() {
-            var active = plans.filter(function(p) { return !p.isDeleted; });
-            var count = function(fn) { return active.filter(fn).length; };
-
-            setText('weeklyCount', count(function(p) {
-                return (p.type === 'weekly' || (p.type === 'monthly' && p.isTransferred)) && p.status !== 'completed';
-            }));
-            setText('monthlyCount', count(function(p) {
-                return p.type === 'monthly' && p.status !== 'completed' && !p.isTransferred;
-            }));
-            setText('completedCount', count(function(p) { return p.status === 'completed'; }));
-            setText('totalCount', active.length);
-
-            var trashCount = plans.filter(function(p) { return p.isDeleted; }).length;
-            var trashBadge = document.getElementById('trashCount');
-            if (trashBadge) {
-                setText('trashCount', trashCount);
-                var display = trashCount > 0 ? 'inline-block' : 'none';
-                if (trashBadge.style.display !== display) trashBadge.style.display = display;
+                        '</div>' +
+                        '<div class="card-content" style="border-left-color:#9ca3af;">' + escapeHtml(plan.content) + '</div>' +
+                        '</div>';
+                }).join('');
+                return;
             }
+
+            // 已完结计划标签显示所有已完成的计划
+            if (currentTab === 'completed') {
+                var selectedYear = document.getElementById('yearSelect').value;
+                var selectedMonth = document.getElementById('monthSelect').value;
+                filteredPlans = plans.filter(function(p) {
+                    if (p.isDeleted) return false;
+                    if (p.status !== 'completed') return false;
+
+                    var planDate = new Date(p.endDate);
+                    var planYear = planDate.getFullYear();
+                    var planMonth = planDate.getMonth() + 1; // getMonth() 返回 0-11
+
+                    // 年份筛选
+                    if (selectedYear && selectedYear !== '') {
+                        if (planYear !== parseInt(selectedYear)) return false;
+                    }
+
+                    // 月份筛选
+                    if (selectedMonth && selectedMonth !== '') {
+                        if (planMonth !== parseInt(selectedMonth)) return false;
+                    }
+
+                    return true;
+                });
+            } else if (currentTab === 'weekly') {
+                // 周计划：统一筛选原生周计划 + 已转移的月计划
+                var statusPending   = document.getElementById('statusPending').checked;
+                var statusInProgress = document.getElementById('statusInProgress').checked;
+                var statusPaused    = document.getElementById('statusPaused').checked;
+                var showNextWeek    = document.getElementById('showNextWeek').checked;
+
+                filteredPlans = plans.filter(function(p) {
+                    if (p.isDeleted || p.status === 'completed') return false;
+                    // 原生周计划 或 已转移的月计划
+                    var isWeeklyPlan = p.type === 'weekly';
+                    var isTransferredMonthly = p.type === 'monthly' && p.isTransferred;
+                    if (!isWeeklyPlan && !isTransferredMonthly) return false;
+
+                    if (showNextWeek) return isInNextWeek(p.startDate);
+                    return (p.status === 'pending'      && statusPending) ||
+                           (p.status === 'in-progress'  && statusInProgress) ||
+                           (p.status === 'paused'       && statusPaused);
+                });
+
+                // 给已转移月计划标记虚拟ID（供编辑/删除识别来源）
+                filteredPlans = filteredPlans.map(function(p) {
+                    if (p.type === 'monthly' && p.isTransferred) {
+                        return Object.assign({}, p, {
+                            id: p.id + '_weekly',
+                            sourceType: 'monthly',
+                            sourceId: p.id,
+                            _fromMonthly: true
+                        });
+                    }
+                    return p;
+                });
+
+            } else {
+                // 其他标签（月计划）显示对应类型的计划，排除已完成的
+                filteredPlans = plans.filter(function(p) {
+                    if (p.isDeleted) return false;
+                    if (p.status === 'completed') return false;
+                    if (p.type !== currentTab) return false;
+                    // 已转移到周计划的月计划，永久不再在月计划中显示
+                    if (currentTab === 'monthly' && p.isTransferred) return false;
+                    return true;
+                });
+            }
+
+            // 搜索过滤
+            if (searchKeyword) {
+                filteredPlans = filteredPlans.filter(function(plan) {
+                    return buildSearchText(plan).indexOf(searchKeyword) !== -1;
+                });
+            }
+
+            // 按开始时间从近到远排序
+            filteredPlans.sort(function(a, b) {
+                return new Date(a.startDate) - new Date(b.startDate);
+            });
+
+            // 计算每个计划距离今天的天数，并添加样式类
+            var now = new Date();
+            filteredPlans = filteredPlans.map(function(plan) {
+                var startDate = new Date(plan.startDate);
+                var endDate = plan.endDate ? new Date(plan.endDate) : null;
+                var isFinished = plan.status === 'completed' || (endDate && endDate < now);
+
+                var diffTime = startDate - now;
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // 添加样式类：已完成/结束时间已过 不再标为 urgent/near
+                if (isFinished) {
+                    plan.urgencyClass = 'plan-card'; // 正常样式，不突出
+                } else if (diffDays <= 0) {
+                    plan.urgencyClass = 'urgent'; // 今天或已开始
+                } else if (diffDays <= 3) {
+                    plan.urgencyClass = 'urgent'; // 3天内
+                } else if (diffDays <= 7) {
+                    plan.urgencyClass = 'near'; // 一周内
+                } else if (diffDays <= 30) {
+                    plan.urgencyClass = 'normal'; // 一月内
+                } else {
+                    plan.urgencyClass = 'far'; // 超过一个月
+                }
+
+                return plan;
+            });
+
+            if (filteredPlans.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>暂无' + planTypeNames[currentTab] + '，点击"新增计划"开始创建</p></div>';
+                return;
+            }
+            
+            container.innerHTML = filteredPlans.map(function(plan) {
+                var personnelHtml = '';
+                if (plan.responsible) {
+                    personnelHtml += '<span class="badge badge-person">' + escapeHtml(plan.responsible) + '</span>';
+                }
+                if (plan.members) {
+                    if (personnelHtml) personnelHtml += ' ';
+                    personnelHtml += '<span class="badge badge-members">' + escapeHtml(plan.members) + '</span>';
+                }
+
+                // 显示小组信息
+                var groupsHtml = '';
+                for (var i = 1; i <= 5; i++) {
+                    var leaderKey = 'group' + i + 'Leader';
+                    var membersKey = 'group' + i + 'Members';
+
+                    if (plan[leaderKey] || plan[membersKey]) {
+                        var groupText = '<div class="group-item">';
+                        groupText += '<div class="group-label">小组 ' + i + '</div>';
+                        if (plan[leaderKey]) {
+                            groupText += '<div class="group-row group-row-leader">负责人：<span class="group-val">' + escapeHtml(plan[leaderKey]) + '</span></div>';
+                        }
+                        if (plan[membersKey]) {
+                            groupText += '<div class="group-row group-row-member">组员：<span class="group-val">' + escapeHtml(plan[membersKey]) + '</span></div>';
+                        }
+                        groupText += '</div>';
+                        groupsHtml += groupText;
+                    }
+                }
+
+                // 显示票型
+                var ticketHtml = '';
+                if (plan.ticketType && plan.ticketType !== '') {
+                    ticketHtml = '<span class="badge badge-ticket">🎫 ' + escapeHtml(plan.ticketType) + '</span>';
+                }
+
+                // 显示动火票信息
+                var fireWorkHtml = '';
+                if (plan.fireWorkLeader || plan.fireWorkExecutor || plan.fireWorkGuardian) {
+                    fireWorkHtml = '<div class="firework-block">';
+                    fireWorkHtml += '<div class="firework-title">🔥 动火作业信息</div>';
+                    if (plan.fireWorkLeader) {
+                        fireWorkHtml += '<div class="firework-row">负责人：<span class="group-val">' + escapeHtml(plan.fireWorkLeader) + '</span></div>';
+                    }
+                    if (plan.fireWorkExecutor) {
+                        fireWorkHtml += '<div class="firework-row">执行人：<span class="group-val">' + escapeHtml(plan.fireWorkExecutor) + '</span></div>';
+                    }
+                    if (plan.fireWorkGuardian) {
+                        fireWorkHtml += '<div class="firework-row">监护人：<span class="group-val">' + escapeHtml(plan.fireWorkGuardian) + '</span></div>';
+                    }
+                    fireWorkHtml += '</div>';
+                }
+
+                // 显示办票人员信息
+                var ticketPersonnelHtml = '';
+                if (plan.ticketPersonnel && plan.ticketPersonnel.trim()) {
+                    ticketPersonnelHtml = '<div class="ticket-person-block">' +
+                        '<span style="color:var(--text-secondary);">📝 办票人员：</span>' +
+                        '<span class="group-val">' + escapeHtml(plan.ticketPersonnel.trim()) + '</span>' +
+                        '</div>';
+                }
+
+                // 来源标记 & 下周计划标签
+                var sourceTag = '';
+                var cardClass = plan.urgencyClass || 'plan-card';
+                var isNextWeekForTag = isInNextWeek(plan.startDate);
+                if (isNextWeekForTag) {
+                    sourceTag = '<span class="badge badge-next badge-sm">下周</span>';
+                }
+
+                // 计算剩余天数提示（考虑已完成/结束时间已过的情况）
+                var daysBadge = '';
+                var startDate = new Date(plan.startDate);
+                var endDate = plan.endDate ? new Date(plan.endDate) : null;
+                var isFinished = plan.status === 'completed' || (endDate && endDate < now);
+
+                if (isFinished) {
+                    // 已完成或结束时间已过，不显示"进行中"，改显示对应真实状态
+                    daysBadge = '';
+                } else {
+                    var diffTime = startDate - now;
+                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (diffDays <= 0) {
+                        daysBadge = '<span class="badge badge-urgent badge-sm">进行中</span>';
+                    } else if (diffDays <= 3) {
+                        daysBadge = '<span class="badge badge-warn3 badge-sm">' + diffDays + '天后</span>';
+                    } else if (diffDays <= 7) {
+                        daysBadge = '<span class="badge badge-warn7 badge-sm">' + diffDays + '天后</span>';
+                    } else {
+                        daysBadge = '<span class="badge badge-far badge-sm">' + diffDays + '天后</span>';
+                    }
+                }
+
+                // 状态徽章：实时反映真实状态
+                // 在已完结标签页中，不重复显示"已完成"，仅显示非 completed 的异常状态
+                // 在其他标签页中，若结束时间已过但状态未更新，也显示"已完成"
+                var statusBadge = '';
+                if (currentTab === 'completed') {
+                    if (plan.status && plan.status !== 'completed') {
+                        statusBadge = getStatusText(plan.status);
+                    }
+                } else {
+                    // 结束时间已过，但数据库状态尚未同步完成时，也实时显示"已完成"
+                    var effectiveStatus = plan.status;
+                    if (endDate && endDate < now && effectiveStatus !== 'completed') {
+                        effectiveStatus = 'completed';
+                    }
+                    if (effectiveStatus) {
+                        statusBadge = getStatusText(effectiveStatus);
+                    }
+                }
+
+                // 显示电气设备状态
+                var equipmentBadge = '';
+                if (plan.equipmentStatus) {
+                    equipmentBadge = getEquipmentStatusText(plan.equipmentStatus);
+                }
+
+                // 组装徽章行内容，为空则不输出
+                var badgesContent = sourceTag + daysBadge + ticketHtml +
+                    (plan.workTicketNo ? '<span class="badge badge-work-no">🎫 ' + escapeHtml(plan.workTicketNo) + '</span>' : '') +
+                    (plan.planNo ? '<span class="badge badge-plan-no">📋 ' + escapeHtml(plan.planNo) + '</span>' : '');
+                var badgesRow = badgesContent ? '<div class="plan-badges">' + badgesContent + '</div>' : '';
+
+                return '<div class="' + cardClass + '">' +
+                    /* ── 顶部：标题 + 操作按钮 ── */
+                    '<div class="plan-title-row">' +
+                    '<div class="plan-title">' + escapeHtml(plan.title) + '</div>' +
+                    '<div class="plan-actions">' +
+                    '<button class="action-btn edit-btn" data-plan-id="' + escapeHtml(plan.id) + '">✏️ 编辑</button>' +
+                    (currentTab !== 'completed' ? '<button class="action-btn delete-btn" data-plan-id="' + escapeHtml(plan.id) + '">🗑️ 删除</button>' : '') +
+                    '</div>' +
+                    '</div>' +
+                    /* ── 徽章行（有内容时才渲染） ── */
+                    badgesRow +
+                    /* ── 元信息行：日期 + 状态 + 风险 + 设备 ── */
+                    '<div class="plan-meta">' +
+                    '<span class="badge badge-date">📅 ' + formatDateTimeForDisplay(plan.startDate) + ' — ' + formatDateTimeForDisplay(plan.endDate) + '</span>' +
+                    (statusBadge ? statusBadge : '') +
+                    getPriorityText(plan.priority) +
+                    (equipmentBadge ? equipmentBadge : '') +
+                    '</div>' +
+                    /* ── 人员行（有数据时显示） ── */
+                    (personnelHtml ? '<div class="plan-meta" style="margin-top:6px;">' + personnelHtml + '</div>' : '') +
+                    /* ── 小组信息 ── */
+                    (groupsHtml ? '<div class="group-block">' + groupsHtml + '</div>' : '') +
+                    /* ── 工作内容 ── */
+                    '<div class="card-content">' + escapeHtml(plan.content) + '</div>' +
+                    /* ── 动火/办票信息 ── */
+                    fireWorkHtml +
+                    ticketPersonnelHtml +
+                    '</div>';
+            }).join('');
         }
 
-        /* ================================================================
-         * 十二、徽章与文本工具
-         * ================================================================ */
+        // 通用徽章生成（替代三个重复函数）
         function makeBadge(cls, text, bold) {
             return '<span class="bdg ' + cls + (bold ? ' bdg-bold' : '') + '">' + text + '</span>';
         }
 
         function getPriorityText(priority) {
-            var m = {
-                high:   ['bdg-risk-high',   '高风险', 1],
-                medium: ['bdg-risk-medium', '中风险', 1],
-                low:    ['bdg-risk-low',    '低风险', 1]
-            };
-            var v = m[priority] || ['bdg-risk-none', '普通', 0];
+            var m = { high:['bdg-risk-high','高风险',1], medium:['bdg-risk-medium','中风险',1], low:['bdg-risk-low','低风险',1] };
+            var v = m[priority] || ['bdg-risk-none','普通',0];
             return makeBadge(v[0], v[1], v[2]);
         }
 
         function getStatusText(status) {
-            var m = {
-                'pending':     ['bdg-status-pending',   '待开始'],
-                'in-progress': ['bdg-status-progress',  '进行中'],
-                'paused':      ['bdg-status-paused',    '间断中'],
-                'completed':   ['bdg-status-completed', '已完成']
-            };
-            var v = m[status] || ['bdg-status-pending', '未知'];
+            var m = { 'pending':['bdg-status-pending','待开始'], 'in-progress':['bdg-status-progress','进行中'], 'paused':['bdg-status-paused','间断中'], 'completed':['bdg-status-completed','已完成'] };
+            var v = m[status] || ['bdg-status-pending','未知'];
             return makeBadge(v[0], v[1]);
         }
 
         function getEquipmentStatusText(status) {
-            // "无设备"是默认值，本身不含信息，不渲染徽章以免每张卡片都挂一个灰点
-            if (!status || status === 'none') return '';
-            var m = {
-                'none':        ['bdg-equip-none',        '无设备'],
-                'not-arrived': ['bdg-equip-not-arrived', '未到货'],
-                'pending':     ['bdg-equip-pending',     '待试验'],
-                'testing':     ['bdg-equip-testing',     '试验中'],
-                'tested':      ['bdg-equip-tested',      '已试验']
-            };
+            var m = { 'none':['bdg-equip-none','无设备'], 'not-arrived':['bdg-equip-not-arrived','未到货'], 'pending':['bdg-equip-pending','待试验'], 'testing':['bdg-equip-testing','试验中'], 'tested':['bdg-equip-tested','已试验'] };
             var v = m[status];
             return v ? makeBadge(v[0], v[1]) : '';
         }
-
-        // 计划的搜索全文（关键词过滤）
+        // 构建计划的搜索全文（用于关键词过滤）
         function buildSearchText(plan) {
             var fields = [
                 plan.title, plan.content, plan.responsible, plan.members,
@@ -3202,31 +2757,34 @@
             return fields.filter(Boolean).join(' ').toLowerCase();
         }
 
-        var escapeEl = document.createElement('div');
         function escapeHtml(text) {
-            escapeEl.textContent = (text === undefined || text === null) ? '' : String(text);
-            return escapeEl.innerHTML;
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        function pad2(n) { return String(n).padStart(2, '0'); }
-
-        // 格式化为 date 输入框需要的 YYYY-MM-DD
+        // 格式化日期为 date 输入框需要的格式 (YYYY-MM-DD)
         function formatDateForInput(date) {
             if (!date) return '';
-            return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate());
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
         }
 
-        // 格式化为 YYYY-MM-DD HH:mm
+        // 格式化日期时间用于显示
         function formatDateTimeForDisplay(dateTimeStr) {
             if (!dateTimeStr) return '';
             var date = new Date(dateTimeStr);
-            return formatDateForInput(date) + ' ' + pad2(date.getHours()) + ':' + pad2(date.getMinutes());
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
         }
 
-        /* ================================================================
-         * 十三、周范围判断
-         * ================================================================ */
-        // offset=0 本周，offset=1 下周
+        // 获取周范围；offset=0 当前周，offset=1 下一周
         function getWeekRange(offset) {
             var now = new Date();
             var day = now.getDay();
@@ -3239,288 +2797,139 @@
             return { start: monday, end: sunday };
         }
 
-        // "YYYY-MM-DD" → 本地 Date
+        // 解析 "YYYY-MM-DD" 为本地 Date
         function parseLocalDate(dateStr) {
             if (!dateStr) return null;
             var parts = dateStr.substring(0, 10).split('-');
             return new Date(+parts[0], parts[1] - 1, +parts[2]);
         }
 
+        // 日期是否在指定周内
         function isInWeek(dateStr, offset) {
             var range = getWeekRange(offset);
             var d = parseLocalDate(dateStr);
-            return !!d && d >= range.start && d <= range.end;
+            return d && d >= range.start && d <= range.end;
         }
         function isInCurrentWeek(dateStr) { return isInWeek(dateStr, 0); }
         function isInNextWeek(dateStr)    { return isInWeek(dateStr, 1); }
 
-        /* ================================================================
-         * 十四、已完结统计（年份筛选 + 柱状图）
-         * ================================================================ */
+
+        // 更新年份筛选器
         function updateYearFilter() {
-            var select = document.getElementById('yearSelect');
-            var previous = select.value;                 // 刷新时保留用户已选年份
-
+            var yearSelect = document.getElementById('yearSelect');
+            var completedPlans = plans.filter(function(p) { return p.status === 'completed'; });
             var years = [];
-            plans.forEach(function(plan) {
-                if (plan.status !== 'completed') return;
-                var y = new Date(plan.endDate).getFullYear();
-                if (years.indexOf(y) === -1) years.push(y);
-            });
-            years.sort(function(a, b) { return b - a; });
 
-            var html = '<option value="">全部年份</option>' +
-                years.map(function(y) { return '<option value="' + y + '">' + y + '年</option>'; }).join('');
-            if (select.innerHTML !== html) {
-                select.innerHTML = html;
-                if (previous && years.indexOf(parseInt(previous)) !== -1) select.value = previous;
-            }
+            completedPlans.forEach(function(plan) {
+                var year = new Date(plan.endDate).getFullYear();
+                if (years.indexOf(year) === -1) {
+                    years.push(year);
+                }
+            });
+
+            years.sort(function(a, b) { return b - a; }); // 降序排列
+
+            yearSelect.innerHTML = '<option value="">全部年份</option>';
+            years.forEach(function(year) {
+                yearSelect.innerHTML += '<option value="' + year + '">' + year + '年</option>';
+            });
         }
 
-        var lastChartKey = null;
-
+        // 渲染柱状图
         function renderChart() {
-            var selectedYear  = document.getElementById('yearSelect').value;
-            var selectedMonth = document.getElementById('monthSelect').value;
+            var chartCanvas = document.getElementById('chartCanvas');
+            var chartLegend = document.getElementById('chartLegend');
 
-            var completed = plans.filter(function(plan) {
-                if (plan.isDeleted || plan.status !== 'completed') return false;
-                var d = new Date(plan.endDate);
-                if (isNaN(d.getTime())) return false;
-                if (selectedYear  && d.getFullYear()  !== parseInt(selectedYear))  return false;
-                if (selectedMonth && d.getMonth() + 1 !== parseInt(selectedMonth)) return false;
+            var selectedYear = document.getElementById('yearSelect').value;
+            var selectedMonth = document.getElementById('monthSelect').value;
+            var completedPlans = plans.filter(function(p) {
+                if (p.status !== 'completed') return false;
+                if (p.isDeleted) return false;
+                var planDate = new Date(p.endDate);
+                if (isNaN(planDate.getTime())) return false;
+                if (selectedYear && selectedYear !== '') {
+                    if (planDate.getFullYear() !== parseInt(selectedYear)) return false;
+                }
+                if (selectedMonth && selectedMonth !== '') {
+                    if (planDate.getMonth() + 1 !== parseInt(selectedMonth)) return false;
+                }
                 return true;
             });
 
+            // 动态更新图表标题
+            var titleParts = ['已完结计划统计（按立项名）'];
+            var suffix = [];
+            if (selectedYear && selectedYear !== '') suffix.push(selectedYear + '年');
+            if (selectedMonth && selectedMonth !== '') suffix.push(parseInt(selectedMonth) + '月');
+            if (suffix.length > 0) {
+                titleParts = [suffix.join('') + ' · 已完结计划统计（按立项名）'];
+            }
+            var chartTitle = document.getElementById('chartTitle');
+            if (chartTitle) chartTitle.textContent = titleParts[0];
+
             // 按立项名分组统计
-            var stats = {};
-            completed.forEach(function(plan) {
-                var name = plan.titleBase || plan.title;
-                stats[name] = (stats[name] || 0) + 1;
+            var projectStats = {};
+            completedPlans.forEach(function(plan) {
+                var titleBase = plan.titleBase || plan.title;
+                if (!projectStats[titleBase]) {
+                    projectStats[titleBase] = 0;
+                }
+                projectStats[titleBase]++;
             });
 
-            var names = Object.keys(stats);
-            var key = selectedYear + '|' + selectedMonth + '|' + JSON.stringify(stats);
-            if (key === lastChartKey) return;            // 数据一致，不重画
-            lastChartKey = key;
+            var projects = Object.keys(projectStats);
+            var counts = Object.values(projectStats);
+            var maxCount = Math.max.apply(null, counts) || 1;
 
-            // 动态标题
-            var suffix = [];
-            if (selectedYear)  suffix.push(selectedYear + '年');
-            if (selectedMonth) suffix.push(parseInt(selectedMonth) + '月');
-            document.getElementById('chartTitle').textContent =
-                (suffix.length ? suffix.join('') + ' · ' : '') + '已完结计划统计（按立项名）';
+            // 颜色数组（沉稳办公色系）
+            var colors = [
+                '#1e3a5f', '#2c5282', '#1565c0', '#0d47a1',
+                '#2e7d32', '#388e3c', '#455a64', '#546e7a',
+                '#6a1b9a', '#bf360c'
+            ];
 
-            var canvas = document.getElementById('chartCanvas');
-            var legend = document.getElementById('chartLegend');
-
-            if (!names.length) {
-                canvas.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--text-muted);font-size:14px;">暂无已完结计划数据</div>';
-                legend.innerHTML = '';
+            // 生成柱状图HTML
+            if (projects.length === 0) {
+                chartCanvas.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--text-muted);font-size:14px;">暂无已完结计划数据</div>';
+                chartLegend.innerHTML = '';
                 return;
             }
 
-            var colors = ['#1e3a5f', '#2c5282', '#1565c0', '#0d47a1', '#2e7d32',
-                          '#388e3c', '#455a64', '#546e7a', '#6a1b9a', '#bf360c'];
-            var max = Math.max.apply(null, names.map(function(n) { return stats[n]; })) || 1;
-
-            var bars = '';
-            var legendHtml = '';
-            names.forEach(function(name, index) {
-                var count = stats[name];
+            var chartHtml = '<div class="chart-container">';
+            projects.forEach(function(project, index) {
+                var count = projectStats[project];
+                var height = Math.max((count / maxCount) * 220, 8); // 最大高度220px，最小8px
                 var color = colors[index % colors.length];
-                var height = Math.max((count / max) * 220, 8);   // 最高 220px，最低 8px
-                bars += '<div class="chart-bar">' +
-                    '<div class="chart-bar-value" style="height:' + height + 'px;background:' + color + ';">' +
+
+                chartHtml += '<div class="chart-bar">' +
+                    '<div class="chart-bar-value" style="height: ' + height + 'px; background: ' + color + ';">' +
                         '<div class="chart-bar-count">' + count + '</div>' +
                     '</div>' +
-                    '<div class="chart-bar-label" title="' + name + '">' + name + '</div>' +
+                    '<div class="chart-bar-label" title="' + project + '">' + project + '</div>' +
                     '</div>';
+            });
+            chartHtml += '</div>';
+
+            chartCanvas.innerHTML = chartHtml;
+
+            // 生成图例
+            var legendHtml = '';
+            projects.forEach(function(project, index) {
+                var color = colors[index % colors.length];
+                var count = projectStats[project];
                 legendHtml += '<div class="legend-item">' +
-                    '<div class="legend-color" style="background:' + color + ';"></div>' +
-                    '<span>' + name + ': ' + count + '个</span>' +
+                    '<div class="legend-color" style="background: ' + color + ';"></div>' +
+                    '<span>' + project + ': ' + count + '个</span>' +
                     '</div>';
             });
-
-            canvas.innerHTML = '<div class="chart-container">' + bars + '</div>';
-            legend.innerHTML = legendHtml;
+            chartLegend.innerHTML = legendHtml;
         }
 
-        /* ================================================================
-         * 十五、连接自检
-         *   用法：在网址后面加 ?diag=1 后刷新，页面底部会显示一份诊断报告。
-         *   把报告复制给助手即可精确定位同步失败原因。
-         * ================================================================ */
-        function httpProbe(path, options) {
-            var config = {
-                headers: {
-                    apikey: DB_CONFIG.key,
-                    Authorization: 'Bearer ' + DB_CONFIG.key,
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json'
-                }
-            };
-            if (options) {
-                if (options.method) config.method = options.method;
-                if (options.body) config.body = options.body;
-                if (options.headers) {
-                    Object.keys(options.headers).forEach(function(k) {
-                        config.headers[k] = options.headers[k];
-                    });
-                }
-            }
-            return fetch(DB_CONFIG.url + path, config)
-                .then(function(r) {
-                    return r.text().then(function(t) { return { status: r.status, body: t || '' }; });
-                })
-                .catch(function(e) {
-                    return { status: 0, body: 'FETCH FAILED: ' + (e && e.message) };
-                });
-        }
-
-        function runDiagnostics() {
-            var log = [];
-            function say(line) { log.push(line); console.log('[diag] ' + line); }
-
-            say('===== 工作计划 · 连接自检 =====');
-            say('时间: ' + new Date().toLocaleString());
-            say('页面来源: ' + (typeof location !== 'undefined'
-                ? location.protocol + '//' + (location.host || '(无主机)')
-                : 'unknown'));
-            if (isFileOrigin()) {
-                say('  [i] 当前是「本地文件」方式打开（源为 null）。多数浏览器下仍能正常');
-                say('      连库；若下面第 [1] 步显示请求没发出去，再改用 http:// 方式。');
-            }
-            say('URL : ' + DB_CONFIG.url);
-
-            var key = DB_CONFIG.key;
-            say('KEY : ' + key.slice(0, 24) + ' ... ' + key.slice(-8) + ' (长度 ' + key.length + ')');
-
-            // 解析 anon key，确认是否过期、项目是否对得上
-            try {
-                var seg = key.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-                seg += '='.repeat((4 - seg.length % 4) % 4);
-                var payload = JSON.parse(decodeURIComponent(escape(atob(seg))));
-                say('KEY : ref=' + payload.ref + '  role=' + payload.role +
-                    '  签发=' + new Date(payload.iat * 1000).toLocaleString() +
-                    '  过期=' + new Date(payload.exp * 1000).toLocaleString());
-                var urlRef = DB_CONFIG.url.split('//')[1].split('.')[0];
-                say('匹配: URL 的 ref=' + urlRef +
-                    (urlRef === payload.ref ? '  [OK] 与 key 一致' : '  [X] 与 key 不一致，key 属于别的项目'));
-                say('过期: ' + (payload.exp * 1000 < Date.now() ? '[X] key 已过期' : '[OK] 未过期'));
-            } catch (e) {
-                say('KEY : [X] 解析失败（' + e.message + '），key 可能不是合法 JWT');
-            }
-
-            var results = { table: null, missing: [], write: null, delete: null };
-
-            say('');
-            say('[1] 整表读取测试（select=id，limit=1）');
-
-            httpProbe('/rest/v1/plans?select=id&limit=1').then(function(res) {
-                results.table = res;
-                var code = res.status;
-                say('    结果: HTTP ' + code);
-                if (code === 0) {
-                    say('    [X] 请求没发出去 → 手机没联网，或公司/宿舍网络拦截了 supabase.co');
-                } else if (code === 200) {
-                    say('    [OK] 网络与鉴权正常，plans 表可访问');
-                } else if (code === 401 || code === 403) {
-                    say('    [X] key 被拒绝 → anon key 可能已轮换，去 Supabase → Settings → API 复制新的');
-                } else if (code === 404) {
-                    say('    [X] 找不到 plans 表 → 确认表名是否为 plans、URL 是否为当前项目');
-                } else {
-                    say('    [X] 异常状态码，原始响应如下');
-                }
-                say('    原始: ' + res.body.slice(0, 300));
-
-                say('');
-                say('[2] 逐列校验（前端查询清单共 ' + COLS.length + ' 列）');
-                return COLS.reduce(function(prev, col) {
-                    return prev.then(function() {
-                        return httpProbe('/rest/v1/plans?select=' + col + '&limit=1')
-                            .then(function(r) {
-                                if (r.status !== 200) {
-                                    results.missing.push(col);
-                                    say('    [X] 缺失列: ' + col + '  (HTTP ' + r.status + ') ' + r.body.slice(0, 140));
-                                }
-                            });
-                    });
-                }, Promise.resolve());
-            }).then(function() {
-                say('    ' + (results.missing.length ? '缺失列共 ' + results.missing.length + ' 个，需执行 database-schema.sql'
-                                                     : '[OK] 全部 ' + COLS.length + ' 列都存在'));
-                say('');
-                say('[3] 写入权限测试（插入一条探测数据后立即删除）');
-                return httpProbe('/rest/v1/plans', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        id: 'diag-probe-000', type: 'weekly', title: '__probe__',
-                        content: '', priority: 'low', status: 'pending',
-                        // start_date / end_date 在库里是 NOT NULL，不带上会被约束拦下，
-                        // 造成"没有写入权限"的误报
-                        start_date: '2000-01-01T00:00:00', end_date: '2000-01-01T00:00:00'
-                    }),
-                    headers: { Prefer: 'return=minimal' }
-                });
-            }).then(function(res) {
-                results.write = res.status;
-                say('    写入 -> HTTP ' + res.status);
-                if (res.status === 200 || res.status === 201 || res.status === 204) {
-                    say('    [OK] 有写入权限');
-                } else {
-                    say('    [X] 写入被拒绝：多半是 RLS 策略没放开，执行 fix-permissions.sql，或临时关闭 RLS');
-                    say('    原始: ' + res.body.slice(0, 300));
-                }
-                return httpProbe('/rest/v1/plans?id=eq.diag-probe-000', { method: 'DELETE' });
-            }).then(function(res) {
-                results.delete = res.status;
-                say('    清理探测数据 -> HTTP ' + res.status +
-                    ((res.status === 200 || res.status === 204) ? '  [OK] 已删除' : '  [!] 需手动删除 id=diag-probe-000'));
-                say('');
-                say('[4] SDK 加载: ' + (supabaseClient ? '[OK] 已加载' : '[X] 未加载（CDN 全部失败？）') +
-                    (sdkSource ? '   通道=' + sdkSource : ''));
-                say('[5] 实时通道: ' + (realtimeSubscribed ? '[OK] 已订阅' : '[!] 未订阅（已自动降级为定时轮询兜底）'));
-                say('[6] 当前查询模式: ' + (selectColumns === '*' ? '*（取全部列，默认）' : '显式列清单'));
-                say('');
-                say('===== 请把以上全部内容复制发给助手 =====');
-                showDiag(log);
-            }).catch(function(e) {
-                say('自检过程出错: ' + (e && e.message));
-                showDiag(log);
-            });
-        }
-
-        /* ================================================================
-         * 十六、运行环境提示
-         *   以 file:// 直接打开时页面源为 null。云端网关跨域策略是 *，
-         *   多数浏览器下请求照常可通，因此不阻断；只有在请求根本发不出去
-         *   （网络层失败）且当前是 file:// 时，才把这个可能性写进提示。
-         * ================================================================ */
-        function isFileOrigin() {
-            return typeof location !== 'undefined' && location.protocol === 'file:';
-        }
-
-        // 网络层失败（请求没发出去 / 被掐断）时的补充线索
-        function fileOriginHint() {
-            return isFileOrigin()
-                ? '另外：当前是「本地文件」方式打开（file://），个别浏览器或安全软件会拦截这类请求。' +
-                  '可改为在本目录执行 npx http-server -p 3000 -c-1 --cors，再用命令行显示的地址打开。'
-                : '';
-        }
-
-        function showDiag(log) {
-            try {
-                var box = document.createElement('div');
-                box.style.cssText = 'position:fixed;left:0;right:0;bottom:0;max-height:60vh;overflow:auto;' +
-                    'z-index:99999;background:#ffffff;color:#16202b;border-top:3px solid #1565c0;' +
-                    'padding:14px 16px;font-family:Consolas,Menlo,monospace;font-size:12.5px;line-height:1.75;' +
-                    'box-shadow:0 -2px 16px rgba(0,0,0,0.15);';
-                box.textContent = log.join('\n');
-                document.body.appendChild(box);
-            } catch (e) { /* 无 DOM 环境时忽略 */ }
-        }
-        })();
+        // 暴露函数到全局作用域，供 HTML onclick 使用
+        window.openModal = openModal;
+        window.deletePlan = deletePlan;
+        window.restorePlan = restorePlan;
+        window.permanentDelete = permanentDelete;
     </script>
 </body>
 </html>
