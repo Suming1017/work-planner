@@ -626,6 +626,20 @@
         /* ===== 空状态 ===== */
         .empty-state { text-align: center; padding: 64px 20px; color: var(--text-muted); }
 
+        /* ===== 本地文件方式打开的提示条 ===== */
+        .file-origin-tip {
+            margin: 0 auto 20px; max-width: 640px;
+            padding: 12px 16px;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-left: 4px solid #ffa726;
+            border-radius: var(--radius-md);
+            color: #6d4c1b;
+            font-size: 13px; line-height: 1.7; text-align: left;
+        }
+        .file-origin-tip p:first-child { font-weight: 700; margin-bottom: 4px; }
+        .file-origin-tip p + p { color: #7a5a22; }
+
         /* ===== 加载态（弱网下先给反馈，避免白屏） ===== */
         .loading-box { text-align: center; padding: 64px 20px; color: var(--text-muted); font-size: 14px; }
         .loading-spin {
@@ -1702,6 +1716,7 @@
             'https://cdn.skypack.dev/@supabase/supabase-js@2'
         ];
         var REQUEST_TIMEOUT = 15000;
+        var SDK_TIMEOUT = 8000;        // 单个 SDK 源的最长等待，超时即换下一个源
 
         var syncDebounceTimer = null;
         var realtimeChannel = null;
@@ -1721,6 +1736,8 @@
         var localWriteUntil = 0;
         var recoveryBound = false;
         var syncErrorHint = '';
+        var guideRendered = false;      // 引导页只渲染一次，避免轮询持续失败时反复重绘
+        var sdkSource = '';             // SDK 实际加载通道（ESM / UMD），自检报告里显示
 
         function debouncedReload(delay) {
             clearTimeout(syncDebounceTimer);
@@ -1772,6 +1789,7 @@
                 tag.async = true;
                 tag.onload = function() {
                     if (window.supabase && typeof window.supabase.createClient === 'function') {
+                        sdkSource = 'UMD · ' + UMD_SOURCES[index];
                         resolve(window.supabase.createClient);
                     } else {
                         loadUmdSdk(index + 1).then(resolve, reject);
@@ -1784,24 +1802,37 @@
             });
         }
 
-        // 依次尝试各 CDN，任一成功即返回 createClient；ESM 全挂则退到 UMD
+        // 单个 ESM 源：给动态 import 套超时保护。
+        // 在 file:// 等受限环境下，动态 import 可能被浏览器静默拦掉 —— promise 既不
+        // resolve 也不 reject，没有超时就会永远挂住，页面只能停在"同步失败"。
+        function tryEsmSource(index) {
+            if (index >= SDK_SOURCES.length) {
+                return Promise.reject(new Error('ESM 源全部失败'));
+            }
+            return Promise.race([
+                import(SDK_SOURCES[index]),
+                new Promise(function(_, reject) {
+                    setTimeout(function() { reject(new Error('加载超时')); }, SDK_TIMEOUT);
+                })
+            ]).then(function(mod) {
+                if (!mod || typeof mod.createClient !== 'function') throw new Error('SDK 格式异常');
+                sdkSource = 'ESM · ' + SDK_SOURCES[index];
+                return mod.createClient;
+            }).catch(function(error) {
+                console.warn('SDK 源不可用，尝试下一个:', SDK_SOURCES[index], error.message);
+                return tryEsmSource(index + 1);
+            });
+        }
+
         function loadSupabaseSdk() {
-            var trySource = function(index) {
-                if (index >= SDK_SOURCES.length) {
-                    console.warn('ESM 源全部失败，改用 UMD 兜底通道');
-                    return loadUmdSdk(0);
-                }
-                return import(SDK_SOURCES[index])
-                    .then(function(mod) {
-                        if (!mod || typeof mod.createClient !== 'function') throw new Error('SDK 格式异常');
-                        return mod.createClient;
-                    })
-                    .catch(function(error) {
-                        console.warn('SDK 源不可用，尝试下一个:', SDK_SOURCES[index], error.message);
-                        return trySource(index + 1);
-                    });
-            };
-            return trySource(0);
+            // 关键：以 file:// 打开时页面源为 null，动态 import() 在夸克、UC 等
+            // 国产浏览器上会被拦掉。经典 <script> 标签不走模块加载器，不受该限制，
+            // 所以本地打开时**直接**走 UMD，不再先试 ESM。
+            if (isFileOrigin()) {
+                return loadUmdSdk(0).catch(function() { return tryEsmSource(0); });
+            }
+            // 线上：优先体积小得多的 ESM，全部失败再退 UMD
+            return tryEsmSource(0).catch(function() { return loadUmdSdk(0); });
         }
 
         var initInFlight = false;
@@ -1941,8 +1972,19 @@
         function renderLoading() {
             lastListHtml = null;
             document.getElementById('planList').innerHTML =
+                (isFileOrigin() ? fileOriginBanner() : '') +
                 '<div class="loading-box"><div class="loading-spin"></div>' +
                 '<p>正在加载计划数据…</p></div>';
+        }
+
+        // 本地文件方式打开时的提示条。不阻断连接：桌面版 Chrome/Edge 通常仍能正常连库，
+        // 但夸克、UC 等手机浏览器会拦截 file:// 页面发出的跨域请求，这里提前告知。
+        function fileOriginBanner() {
+            return '<div class="file-origin-tip">' +
+                '<p>📂 当前以「本地文件」方式打开（file://）</p>' +
+                '<p>部分手机浏览器（夸克、UC、QQ 浏览器等）会拦截此类页面发出的云端请求。' +
+                '若下方一直显示「同步失败」，请改用 http 方式访问本页。</p>' +
+                '</div>';
         }
 
         // silent=true 时不动状态栏，用于轮询 / 重连等后台刷新
@@ -1963,6 +2005,7 @@
                 })
                 .then(function(rows) {
                     loadRetry = 0;
+                    guideRendered = false;        // 恢复成功，允许下次失败时再提示
                     lastSyncedAt = Date.now();
                     setSyncStatus('connected', '已连接');
 
@@ -2040,12 +2083,40 @@
         // 失败退避重试：2s → 4s → 8s → 16s → 30s，六次仍失败则交给 60s 轮询慢慢补，不无限重试
         function scheduleRetry() {
             loadRetry++;
-            if (loadRetry > MAX_LOAD_RETRY) return;         // 静默降级到轮询，不再打扰状态栏
+            if (loadRetry > MAX_LOAD_RETRY) {               // 静默降级到轮询，不再打扰状态栏
+                // 只渲染一次：轮询每次失败都会走到这里，不能反复重绘
+                if (!guideRendered) {
+                    guideRendered = true;
+                    renderConnectionGuide();
+                }
+                return;
+            }
             setSyncStatus('error', loadRetry > 2 ? '同步失败·重试中' : '同步失败');
             var delay = Math.min(2000 * Math.pow(2, loadRetry - 1), 30000);
             setTimeout(function() {
                 if (supabaseClient) loadPlans(true);
             }, delay);
+        }
+
+        // 重试全部用尽：状态栏不再抖动，但在列表区给出可操作的排查指引
+        function renderConnectionGuide() {
+            var reason = syncErrorHint || '未知原因';
+            if (isFileOrigin() && reason.indexOf('http-server') === -1) {
+                reason += ' ' + fileOriginHint();
+                syncErrorHint = reason;
+            }
+            setSyncStatus('error', '同步失败');
+            document.getElementById('planList').innerHTML =
+                '<div class="file-origin-tip" style="max-width:640px;margin:0 auto;">' +
+                '<p>☁️ 云端数据暂时读取不到</p>' +
+                '<p>已连续重试 ' + MAX_LOAD_RETRY + ' 次仍未成功。原因：' + escapeHtml(reason) + '</p>' +
+                '<p style="margin-top:8px;">建议按以下顺序排查：</p>' +
+                '<p>1) 若当前是双击本地文件打开（file://）：夸克、UC 等手机浏览器会拦截此类请求。' +
+                '请改用 http 方式 —— 双击本目录 start-node-server.bat，用命令行显示的地址打开。</p>' +
+                '<p>2) 手机上日常使用：直接访问 GitHub Pages 地址 ' +
+                'https://suming1017.github.io/work-planner/</p>' +
+                '<p>3) 仍不行：网址末尾加 ?diag=1 后刷新，把页面底部的自检报告复制给助手。</p>' +
+                '</div>';
         }
 
         /* ================================================================
@@ -3123,7 +3194,8 @@
                 say('    清理探测数据 -> HTTP ' + res.status +
                     ((res.status === 200 || res.status === 204) ? '  [OK] 已删除' : '  [!] 需手动删除 id=diag-probe-000'));
                 say('');
-                say('[4] SDK 加载: ' + (supabaseClient ? '[OK] 已加载' : '[X] 未加载（CDN 全部失败？）'));
+                say('[4] SDK 加载: ' + (supabaseClient ? '[OK] 已加载' : '[X] 未加载（CDN 全部失败？）') +
+                    (sdkSource ? '   通道=' + sdkSource : ''));
                 say('[5] 实时通道: ' + (realtimeSubscribed ? '[OK] 已订阅' : '[!] 未订阅（已自动降级为定时轮询兜底）'));
                 say('[6] 当前查询模式: ' + (selectColumns === '*' ? '*（降级模式，说明线上库列不齐）' : '显式 36 列'));
                 say('');
